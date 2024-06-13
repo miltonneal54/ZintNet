@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{0AEC3B89-AAC5-4DE3-861F-4DFD9364C5AA}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ZintNet</RootNamespace>
+    <AssemblyName>ZintNetLib</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\ZintNetLib.XML</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ArrayEx">
+      <HintPath>..\..\..\Libraries\ArrayEx\ArrayEx\bin\Release\ArrayEx.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BCEnums.cs" />
+    <Compile Include="BCExceptions.cs" />
+    <Compile Include="BinaryMath.cs" />
+    <Compile Include="BitVector.cs" />
+    <Compile Include="BitStreamEncoder.cs" />
+    <Compile Include="CharacterSets.cs" />
+    <Compile Include="CheckSum.cs" />
+    <Compile Include="ConvertMetrics.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Encoders\AusPost.cs" />
+    <Compile Include="Encoders\AztecEncoder.cs" />
+    <Compile Include="Encoders\ChannelCode.cs" />
+    <Compile Include="Encoders\Codabar.cs" />
+    <Compile Include="Encoders\CodablockF.cs" />
+    <Compile Include="Encoders\Code16KEncoder.cs" />
+    <Compile Include="Encoders\Code1Encoder.cs" />
+    <Compile Include="Encoders\Code11Encoder.cs" />
+    <Compile Include="Encoders\Code128Encoder.cs" />
+    <Compile Include="Encoders\Code49Encoder.cs" />
+    <Compile Include="Encoders\Code93Encoder.cs" />
+    <Compile Include="Encoders\DatabarExpanded.cs" />
+    <Compile Include="Encoders\DatabarLimited.cs" />
+    <Compile Include="Encoders\DotCodeEncoder.cs" />
+    <Compile Include="Encoders\GridMatrixEncoder.cs" />
+    <Compile Include="Encoders\HanxinEncoder.cs" />
+    <Compile Include="Encoders\IntelligentMailEncoder.cs" />
+    <Compile Include="Encoders\Mailmark.cs" />
+    <Compile Include="Encoders\PharmacodeEncoder.cs" />
+    <Compile Include="Encoders\PlesseyEncoder.cs" />
+    <Compile Include="Encoders\PDF417Tables.cs" />
+    <Compile Include="Encoders\PostalEncodes.cs" />
+    <Compile Include="Encoders\QRCodeEncoder.cs" />
+    <Compile Include="Encoders\Telepen.cs" />
+    <Compile Include="CharacterModes.cs" />
+    <Compile Include="Encoders\UltraEncoder.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="Encoders\Composite.cs" />
+    <Compile Include="Encoders\Code2of5Encoder.cs" />
+    <Compile Include="Encoders\Code39Encoder.cs" />
+    <Compile Include="Encoders\DatabarEncoder.cs" />
+    <Compile Include="Encoders\DataMatrixEncoder.cs" />
+    <Compile Include="Encoders\EANUPCEncoder.cs" />
+    <Compile Include="Encoders\MaxiCodeEncoder.cs" />
+    <Compile Include="Encoders\PDF417Encoder.cs" />
+    <Compile Include="MessageProcessors.cs" />
+    <Compile Include="ReedSolomon.cs" />
+    <Compile Include="SymbolBuilder.cs" />
+    <Compile Include="SymbolDictionary.cs" />
+    <Compile Include="ZintNetLib.cs" />
+    <Compile Include="Encoders\SymbolEncoder.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SymbolData.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="LICENSE.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

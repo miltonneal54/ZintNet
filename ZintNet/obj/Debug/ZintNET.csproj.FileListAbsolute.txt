@@ -1,0 +1,33 @@
+C:\Documents and Settings\Milton\My Documents\Visual Studio 2008\Projects\C#\Zint.NET\obj\Debug\ResolveAssemblyReference.cache
+C:\Documents and Settings\Milton\My Documents\Visual Studio 2008\Projects\C#\ZintNET\obj\Debug\ResolveAssemblyReference.cache
+C:\Documents and Settings\Milton\My Documents\Visual Studio 2008\Projects\C#\ZintNET\bin\Debug\ZintNETBarcodes.dll
+C:\Documents and Settings\Milton\My Documents\Visual Studio 2008\Projects\C#\ZintNET\bin\Debug\ZintNETBarcodes.pdb
+C:\Documents and Settings\Milton\My Documents\Visual Studio 2008\Projects\C#\ZintNET\obj\Debug\ZintNETBarcodes.dll
+C:\Documents and Settings\Milton\My Documents\Visual Studio 2008\Projects\C#\ZintNET\obj\Debug\ZintNETBarcodes.pdb
+C:\Users\Milton\Documents\Visual Studio 2008\Projects\C# Projects\ZintNET\ZintNET\bin\Debug\ZintNETBarcodes.dll
+C:\Users\Milton\Documents\Visual Studio 2008\Projects\C# Projects\ZintNET\ZintNET\bin\Debug\ZintNETBarcodes.pdb
+C:\Users\Milton\Documents\Visual Studio 2008\Projects\C# Projects\ZintNET\ZintNET\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Milton\Documents\Visual Studio 2008\Projects\C# Projects\ZintNET\ZintNET\obj\Debug\ZintNETBarcodes.dll
+C:\Users\Milton\Documents\Visual Studio 2008\Projects\C# Projects\ZintNET\ZintNET\obj\Debug\ZintNETBarcodes.pdb
+C:\Users\Milton\Documents\Visual Studio 2008\Projects\CSharp Projects\ZintNET\ZintNET\bin\Debug\ZintNETBarcodes.dll
+C:\Users\Milton\Documents\Visual Studio 2008\Projects\CSharp Projects\ZintNET\ZintNET\bin\Debug\ZintNETBarcodes.pdb
+C:\Users\Milton\Documents\Visual Studio 2008\Projects\CSharp Projects\ZintNET\ZintNET\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Milton\Documents\Visual Studio 2008\Projects\CSharp Projects\ZintNET\ZintNET\obj\Debug\ZintNETBarcodes.dll
+C:\Users\Milton\Documents\Visual Studio 2008\Projects\CSharp Projects\ZintNET\ZintNET\obj\Debug\ZintNETBarcodes.pdb
+C:\Users\Milton\Documents\Visual Studio 2017\Projects\CSharp Projects\ZintNet\ZintNET\bin\Debug\ZintNetLib.dll
+C:\Users\Milton\Documents\Visual Studio 2017\Projects\CSharp Projects\ZintNet\ZintNET\bin\Debug\ZintNetLib.pdb
+C:\Users\Milton\Documents\Visual Studio 2017\Projects\CSharp Projects\ZintNet\ZintNET\bin\Debug\ArrayEx.pdb
+C:\Users\Milton\Documents\Visual Studio 2017\Projects\CSharp Projects\ZintNet\ZintNET\bin\Debug\ArrayEx.xml
+C:\Users\Milton\Documents\Visual Studio 2017\Projects\CSharp Projects\ZintNet\ZintNET\obj\Debug\ZintNetLib.dll
+C:\Users\Milton\Documents\Visual Studio 2017\Projects\CSharp Projects\ZintNet\ZintNET\obj\Debug\ZintNetLib.pdb
+C:\Users\Milton\Documents\Visual Studio 2013\Projects\CSharp Projects\ZintNet\ZintNET\bin\Debug\ZintNetLib.dll
+C:\Users\Milton\Documents\Visual Studio 2013\Projects\CSharp Projects\ZintNet\ZintNET\bin\Debug\ZintNetLib.pdb
+C:\Users\Milton\Documents\Visual Studio 2013\Projects\CSharp Projects\ZintNet\ZintNET\bin\Debug\ArrayEx.dll
+C:\Users\Milton\Documents\Visual Studio 2013\Projects\CSharp Projects\ZintNet\ZintNET\bin\Debug\ArrayEx.pdb
+C:\Users\Milton\Documents\Visual Studio 2013\Projects\CSharp Projects\ZintNet\ZintNET\bin\Debug\ArrayEx.xml
+C:\Users\Milton\Documents\Visual Studio 2013\Projects\CSharp Projects\ZintNet\ZintNET\obj\Debug\ZintNet.csprojResolveAssemblyReference.cache
+C:\Users\Milton\Documents\Visual Studio 2013\Projects\CSharp Projects\ZintNet\ZintNET\obj\Debug\ZintNetLib.dll
+C:\Users\Milton\Documents\Visual Studio 2013\Projects\CSharp Projects\ZintNet\ZintNET\obj\Debug\ZintNetLib.pdb
+C:\Users\Milton\Documents\Visual Studio 2017\Projects\CSharp Projects\ZintNet\ZintNET\obj\Debug\ZintNet.csprojAssemblyReference.cache
+C:\Users\Milton\Documents\Visual Studio 2017\Projects\CSharp Projects\ZintNet\ZintNET\obj\Debug\ZintNet.csproj.CoreCompileInputs.cache
+C:\Users\Milton\Documents\Visual Studio 2017\Projects\CSharp Projects\ZintNet\ZintNET\obj\Debug\ZintNet.csproj.CopyComplete

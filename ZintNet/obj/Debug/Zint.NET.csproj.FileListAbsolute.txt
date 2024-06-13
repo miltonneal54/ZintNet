@@ -1,0 +1,5 @@
+C:\Documents and Settings\Milton\My Documents\Visual Studio 2008\Projects\C#\Zint.NET\obj\Debug\ResolveAssemblyReference.cache
+C:\Documents and Settings\Milton\My Documents\Visual Studio 2008\Projects\C#\Zint.NET\bin\Debug\Zint.NET.dll
+C:\Documents and Settings\Milton\My Documents\Visual Studio 2008\Projects\C#\Zint.NET\bin\Debug\Zint.NET.pdb
+C:\Documents and Settings\Milton\My Documents\Visual Studio 2008\Projects\C#\Zint.NET\obj\Debug\Zint.NET.dll
+C:\Documents and Settings\Milton\My Documents\Visual Studio 2008\Projects\C#\Zint.NET\obj\Debug\Zint.NET.pdb
