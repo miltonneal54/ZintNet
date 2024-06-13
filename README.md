@@ -4,4 +4,5 @@ Features:
 
 A barcode generation library supporting 60+ symbologies.
 
-![image](https://github.com/miltonneal54/ZintNet/assets/65113973/09c27c9a-8168-4741-aa9e-44317db8c9c2)
+![image](https://github.com/miltonneal54/ZintNet/assets/65113973/ccab4c98-4b16-48b7-85d3-8461d39b8e3b)
+
