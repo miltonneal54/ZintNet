@@ -1,0 +1,2035 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ZintNetLib</name>
+    </assembly>
+    <members>
+        <member name="T:ZintNet.Symbology">
+            <summary>
+            Enumeration of supported Symbol ID's
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.CodeOne">
+            <summary>
+            Code One 2D symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Code39">
+            <summary>
+            Code 39 (ISO 16388)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Code39Extended">
+            <summary>
+            Code 39 extended ASCII.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.LOGMARS">
+            <summary>
+            Logistics Applications of Automated Marking and Reading Symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Code32">
+            <summary>
+            Code 32 (Italian Pharmacode)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.PharmaZentralNummer">
+            <summary>
+            Pharmazentralnummer (PZN - German Pharmaceutical Code)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Pharmacode">
+            <summary>
+            Pharmaceutical Binary Code. 
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Pharmacode2Track">
+            <summary>
+            Pharmaceutical Binary Code (2 Track)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Code93">
+            <summary>
+            Code 93
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.ChannelCode">
+            <summary>
+            Channel Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Telepen">
+            <summary>
+            Telepen Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.TelepenNumeric">
+            <summary>
+            Telepen Numeric Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Code128">
+            <summary>
+            Code 128/GS1-128 (ISO 15417)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.EAN14">
+            <summary>
+            European Article Number (14)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.SSCC18">
+            <summary>
+            Serial Shipping Container Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Standard2of5">
+            <summary>
+            Standard 2 of 5 Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Interleaved2of5">
+            <summary>
+            Interleaved 2 of 5 Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Matrix2of5">
+            <summary>
+            Matrix 2 of 5 Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.IATA2of5">
+            <summary>
+            IATA 2 of 5 Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DataLogic2of5">
+            <summary>
+            Datalogic 2 of 5 Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.ITF14">
+            <summary>
+            ITF 14 (GS1 2 of 5 Code)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DeutschePostIdentCode">
+            <summary>
+            Deutsche Post Identcode (DHL)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DeutshePostLeitCode">
+            <summary>
+            Deutsche Post Leitcode (DHL)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Codabar">
+            <summary>
+            Codabar Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.MSIPlessey">
+            <summary>
+            MSI Plessey Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.UKPlessey">
+            <summary>
+            UK Plessey Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Code11">
+            <summary>
+            Code 11.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.ISBN">
+            <summary>
+            International Standard Book Number.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.EAN13">
+            <summary>
+            European Article Number (13)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.EAN8">
+            <summary>
+            European Article Number (8)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.UPCA">
+            <summary>
+            Universal Product Code (A)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.UPCE">
+            <summary>
+            Universal Product Code (E)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DatabarOmni">
+            <summary>
+            GS1 Databar Omnidirectional.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DatabarOmniStacked">
+            <summary>
+            GS1 Databar Omnidirectional Stacked.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DatabarStacked">
+            <summary>
+            GS1 Databar Stacked.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DatabarTruncated">
+            <summary>
+            GS1 Databar Omnidirectional Truncated.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DatabarLimited">
+            <summary>
+            GS1 Databar Limited.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DatabarExpanded">
+            <summary>
+            GS1 Databar Expanded.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DatabarExpandedStacked">
+            <summary>
+            GS1 Databar Expanded Stacked.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DataMatrix">
+            <summary>
+            Data Matrix (ISO 16022)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.QRCode">
+            <summary>
+            QR Code (ISO 18004)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.MicroQRCode">
+            <summary>
+            Micro variation of QR Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.RectangularMicroQRCode">
+            <summary>
+            Rectangular Micro variation of QR Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.UPNQR">
+            <summary>
+            UPN variation of QR Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Aztec">
+            <summary>
+            Aztec (ISO 24778)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.AztecRunes">
+            <summary>
+            Aztec Runes.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.MaxiCode">
+            <summary>
+            Maxicode (ISO 16023)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.PDF417">
+            <summary>
+            PDF417 (ISO 15438)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.PDF417Truncated">
+            <summary>
+            PDF417 Truncated.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.MicroPDF417">
+            <summary>
+            Micro PDF417 (ISO 24728)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.AusPostStandard">
+            <summary>
+            Australia Post Standard.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.AusPostReplyPaid">
+            <summary>
+            Australia Post Reply Paid.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.AusPostRedirect">
+            <summary>
+            Australia Post Redirect.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.AusPostRouting">
+            <summary>
+            Australia Post Routing.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.USPS">
+            <summary>
+            United States Postal Service Intelligent Mail.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.PostNet">
+            <summary>
+            PostNET (Postal Numeric Encoding Technique)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Planet">
+            <summary>
+            Planet (Postal Alpha Numeric Encoding Technique)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.KoreaPost">
+            <summary>
+            Korean Post.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.FIM">
+            <summary>
+            Facing Identification Mark (FIM)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.RoyalMail">
+            <summary>
+            UK Royal Mail 4 State Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.KixCode">
+            <summary>
+            KIX Dutch 4 State Code.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DaftCode">
+            <summary>
+            DAFT Code (Generic 4 State Code)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Flattermarken">
+            <summary>
+            Flattermarken (Markup Code)
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.JapanPost">
+            <summary>
+            Japanese Post.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.CodablockF">
+            <summary>
+            Codablock-F 2D symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Code16K">
+            <summary>
+            Code 16K 2D symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.DotCode">
+            <summary>
+            Dot Code 2D symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.GridMatrix">
+            <summary>
+            Grid Matrix 2D symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Code49">
+            <summary>
+            Code 49 2D symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.HanXin">
+            <summary>
+            Han Xin 2D symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.VINCode">
+            <summary>
+            VIN code symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.RoyalMailMailmark">
+            <summary>
+            Mailmark 4 state postal.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Ultracode">
+            <summary>
+            Ultracode 2D color symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.Symbology.Invalid">
+            <summary>
+            Not a valid Symbol ID.
+            </summary>
+        </member>
+        <member name="T:ZintNet.TextPosition">
+            <summary>
+            Enumeration of the barcodes text position.
+            </summary>
+        </member>
+        <member name="F:ZintNet.TextPosition.UnderBarcode">
+            <summary>
+            Places the text under the barcode symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.TextPosition.AboveBarcode">
+            <summary>
+            Places the text above the barcode sysmbol.
+            </summary>
+        </member>
+        <member name="T:ZintNet.TextAlignment">
+            <summary>
+            Enumeration of the barcodes text alignment.
+            </summary>
+        </member>
+        <member name="F:ZintNet.TextAlignment.Center">
+            <summary>
+            Displays the text centered within the symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.TextAlignment.Left">
+            <summary>
+            Displays the text aligned to the left side of the symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.TextAlignment.Right">
+            <summary>
+            displays the text aligned to the right side of the symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.TextAlignment.Stretched">
+            <summary>
+            Expands the text across the full width of the symbol.
+            </summary>
+        </member>
+        <member name="T:ZintNet.ITF14BearerStyle">
+            <summary>
+            Enumeration of the ITF14 bearer style options.
+            </summary>
+        </member>
+        <member name="F:ZintNet.ITF14BearerStyle.None">
+            <summary>
+            No bearer bars.
+            </summary>
+        </member>
+        <member name="F:ZintNet.ITF14BearerStyle.Horizonal">
+            <summary>
+            Horizontal bearer bars at the top and bottom of the symbol.
+            </summary>
+        </member>
+        <member name="F:ZintNet.ITF14BearerStyle.Rectangle">
+            <summary>
+            Full rectangular bearer bars.
+            </summary>
+        </member>
+        <member name="T:ZintNet.AusPostEncoding">
+            <summary>
+            Australian Post encoding modes.
+            </summary>
+        </member>
+        <member name="F:ZintNet.AusPostEncoding.Numeric">
+            <summary>
+            Numeric mode.
+            </summary>
+        </member>
+        <member name="F:ZintNet.AusPostEncoding.Character">
+            <summary>
+            Character mode.
+            </summary>
+        </member>
+        <member name="T:ZintNet.MSICheckDigitType">
+            <summary>
+            Enumeration of MSI code check digit types.
+            </summary>
+        </member>
+        <member name="F:ZintNet.MSICheckDigitType.None">
+            <summary>
+            No check digit.
+            </summary>
+        </member>
+        <member name="F:ZintNet.MSICheckDigitType.Mod10">
+            <summary>
+            Modulus 10 check digit.
+            </summary>
+        </member>
+        <member name="F:ZintNet.MSICheckDigitType.Mod10Mod10">
+            <summary>
+            2 Modulus 10 check digits.
+            </summary>
+        </member>
+        <member name="F:ZintNet.MSICheckDigitType.Mod11">
+            <summary>
+            Modulus 11 check digit.
+            </summary>
+        </member>
+        <member name="F:ZintNet.MSICheckDigitType.Mod11Mod10">
+            <summary>
+            Modulus 10 plus modulus 11 check digits.
+            </summary>
+        </member>
+        <member name="T:ZintNet.I2of5CheckDigitType">
+            <summary>
+            Enumeration of Interleaved 2 of 5 check digit types.
+            </summary>
+        </member>
+        <member name="F:ZintNet.I2of5CheckDigitType.USS">
+            <summary>
+            Uniform Symbology Specification (USS) check digit.
+            </summary>
+        </member>
+        <member name="F:ZintNet.I2of5CheckDigitType.OPCC">
+            <summary>
+            Optical Product Code Council (OPCC) check digit.
+            </summary>
+        </member>
+        <member name="T:ZintNet.QRCodeEccLevel">
+            <summary>
+            Enumeration of the QR code error correction levels.
+            </summary>
+        </member>
+        <member name="F:ZintNet.QRCodeEccLevel.Low">
+            <summary>
+            Low error correction level.
+            </summary>
+        </member>
+        <member name="F:ZintNet.QRCodeEccLevel.Medium">
+            <summary>
+            Medium error correction level.
+            </summary>
+        </member>
+        <member name="F:ZintNet.QRCodeEccLevel.Quartile">
+            <summary>
+            Quartile error correction level.
+            </summary>
+        </member>
+        <member name="F:ZintNet.QRCodeEccLevel.High">
+            <summary>
+            High error correction level.
+            </summary>
+        </member>
+        <member name="T:ZintNet.EncodingMode">
+            <summary>
+            Enumeration of supported encoding modes.
+            </summary>
+        </member>
+        <member name="F:ZintNet.EncodingMode.Standard">
+            <summary>
+            Standard encoding.
+            </summary>
+        </member>
+        <member name="F:ZintNet.EncodingMode.GS1">
+            <summary>
+            GS1 format.
+            </summary>
+        </member>
+        <member name="F:ZintNet.EncodingMode.HIBC">
+            <summary>
+            Health Industry Barcode format.
+            </summary>
+        </member>
+        <member name="T:ZintNet.CompositeMode">
+            <summary>
+            Enumeration of composite modes.
+            </summary>
+        </member>
+        <member name="F:ZintNet.CompositeMode.CCA">
+            <summary>
+            Composite mode A.
+            </summary>
+        </member>
+        <member name="F:ZintNet.CompositeMode.CCB">
+            <summary>
+            Composite mode B.
+            </summary>
+        </member>
+        <member name="F:ZintNet.CompositeMode.CCC">
+            <summary>
+            Composite mode C.
+            </summary>
+        </member>
+        <member name="T:ZintNet.MaxicodeMode">
+            <summary>
+            Enumeration of Maxicode modes.
+            </summary>
+        </member>
+        <member name="F:ZintNet.MaxicodeMode.Mode2">
+            <summary>
+            Mode 2.
+            </summary>
+        </member>
+        <member name="F:ZintNet.MaxicodeMode.Mode3">
+            <summary>
+            Mode 3.
+            </summary>
+        </member>
+        <member name="F:ZintNet.MaxicodeMode.Mode4">
+            <summary>
+            Mode 4.
+            </summary>
+        </member>
+        <member name="F:ZintNet.MaxicodeMode.Mode5">
+            <summary>
+            Mode 5.
+            </summary>
+        </member>
+        <member name="F:ZintNet.MaxicodeMode.Mode6">
+            <summary>
+            Mode 6.
+            </summary>
+        </member>
+        <member name="T:ZintNet.DataMatrixSize">
+            <summary>
+            Enumeration of Datamatrix code symbol sizes.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.Automatic">
+            <summary>
+            Automatic sizing.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM10X10">
+            <summary>
+            Datamatrix square 10x10.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM12X12">
+            <summary>
+            Datamatrix square 12x12.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM14X14">
+            <summary>
+            Datamatrix square 14 x 14.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM16X16">
+            <summary>
+            Datamatrix square 16 x 16.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM18X18">
+            <summary>
+            Datamatrix square 18 x 18.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM20X20">
+            <summary>
+            Datamatrix square 20 x 20.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM22X22">
+            <summary>
+            Datamatrix square 22 x 22.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM24X24">
+            <summary>
+            Datamatrix square 24 x 24.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM26X26">
+            <summary>
+            Datamatrix square 26 x 26.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM32X32">
+            <summary>
+            Datamatrix square 32 x 32.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM36X36">
+            <summary>
+            Datamatrix square 36 x 36.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM40X40">
+            <summary>
+            Datamatrix square 40 x 40.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM44X44">
+            <summary>
+            Datamatrix square 44 x 44.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM48X48">
+            <summary>
+            Datamatrix square 48 x 48.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM52X52">
+            <summary>
+            Datamatrix square 52 x 52.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM64X64">
+            <summary>
+            Datamatrix square 64 x 64.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM72X72">
+            <summary>
+            Datamatrix square 72 x 72.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM80X80">
+            <summary>
+            Datamatrix square 80 x 80.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM88X88">
+            <summary>
+            Datamatrix square 88 x 88.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM96X96">
+            <summary>
+            Datamatrix square 96 x 96.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM104X104">
+            <summary>
+            Datamatrix square 104 x 104.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM120X120">
+            <summary>
+            Datamatrix square 120 x 120.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM132X132">
+            <summary>
+            Datamatrix square 132 x 132.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM144X144">
+            <summary>
+            Datamatrix square 144 x144.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM8X18">
+            <summary>
+            Datamatrix rectangular 8 x 18.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM8X32">
+            <summary>
+            Datamatrix rectangular 8 x 32.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM12X26">
+            <summary>
+            Datamatrix rectangular 12 x 26.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM12X36">
+            <summary>
+            Datamatrix rectangular 12 x 36.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM16X36">
+            <summary>
+            Datamatrix rectangular 16 x 36.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM16X48">
+            <summary>
+            Datamatrix rectangular 16 x 48.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM8X48">
+            <summary>
+            Datamatrix rectangular extension 8 x 48;
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM8X64">
+            <summary>
+            Datamatrix rectangular extension 8 x 64.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM12X64">
+            <summary>
+            Datamatrix rectangular extension 12 x 64.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM16X64">
+            <summary>
+            Datamatrix rectangular extension 16 x 64.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM24X48">
+            <summary>
+            Datamatrix rectangular extension 24 x 48.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM24X64">
+            <summary>
+            Datamatrix rectangular extension 24 x 64.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM26X40">
+            <summary>
+            Datamatrix rectangular extension 26 x 40.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM26X48">
+            <summary>
+            Datamatrix rectangular extension 26 x 48.
+            </summary>
+        </member>
+        <member name="F:ZintNet.DataMatrixSize.DM26X64">
+            <summary>
+            Datamatrix rectangular extension 26 x 64.
+            </summary>
+        </member>
+        <member name="T:ZintNet.ZintNetDLLException">
+            <summary>
+            ZintNet.ZintNetDLLException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.ZintNetDLLException.#ctor">
+            <summary>
+            Initialses a new instance of ZintNet.ZintNetDLLException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.ZintNetDLLException.#ctor(System.String)">
+            <summary>
+            Initialses a new instance of ZintNet.ZintNetDLLException class with a specified error message.
+            </summary>
+            <param name="message">error message.</param>
+        </member>
+        <member name="M:ZintNet.ZintNetDLLException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialses a new instance of ZintNet.ZintNetDLLException class with a specified error message and a reference to the inner exception.
+            </summary>
+            <param name="message">error message</param>
+            <param name="innerException">inner exception.</param>
+        </member>
+        <member name="M:ZintNet.ZintNetDLLException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Initialses a new instance of ZintNet.ZintNetDLLException class with a specified serialization information and streaming context.
+            </summary>
+            <param name="info">serialization info.</param>
+            <param name="context">streaming context.</param>
+        </member>
+        <member name="T:ZintNet.InvalidDataException">
+            <summary>
+            ZintNet.InvalidDataException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.InvalidDataException.#ctor">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidDataException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.InvalidDataException.#ctor(System.String)">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidDataException class with a specified error message.
+            </summary>
+            <param name="message">exception message</param>
+        </member>
+        <member name="M:ZintNet.InvalidDataException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidDataException class with a specified error message and a reference to the inner exception.
+            </summary>
+            <param name="message">error message</param>
+            <param name="innerException">inner exception</param>
+        </member>
+        <member name="M:ZintNet.InvalidDataException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidDataException class with a specified serialization information and streaming context.
+            </summary>
+            <param name="info">serialization info.</param>
+            <param name="context">streaming context.</param>
+        </member>
+        <member name="T:ZintNet.InvalidSymbolSizeException">
+            <summary>
+            ZintNet.InvalidSymbolSizeException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.InvalidSymbolSizeException.#ctor">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidSymbolSizeException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.InvalidSymbolSizeException.#ctor(System.String)">
+            <summary>
+            /// <summary>
+            Initialses a new instance of ZintNet.InvalidSymbolSizeException class with a specified error message.
+            </summary>
+            <param name="message">exception message</param>
+            </summary>
+        </member>
+        <member name="M:ZintNet.InvalidSymbolSizeException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidSymbolSizeException class with a specified error message and a reference to the inner exception.
+            </summary>
+            <param name="message">error message</param>
+            <param name="innerException">inner exception</param>
+        </member>
+        <member name="M:ZintNet.InvalidSymbolSizeException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidSymbolSizeException class with a specified serialization information and streaming context.
+            </summary>
+            <param name="info">serialization info.</param>
+            <param name="context">streaming context.</param>
+        </member>
+        <member name="T:ZintNet.InvalidDataLengthException">
+            <summary>
+            ZintNet.InvalidDataLengthException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.InvalidDataLengthException.#ctor">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidDataLengthException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.InvalidDataLengthException.#ctor(System.String)">
+            <summary>
+            /// <summary>
+            Initialses a new instance of ZintNet.InvalidDataLengthException class with a specified error message.
+            </summary>
+            <param name="message">exception message</param>
+            </summary>
+        </member>
+        <member name="M:ZintNet.InvalidDataLengthException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidDataLengthException class with a specified error message and a reference to the inner exception.
+            </summary>
+            <param name="message">error message</param>
+            <param name="innerException">inner exception</param>
+        </member>
+        <member name="M:ZintNet.InvalidDataLengthException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidDataLengthException class with a specified serialization information and streaming context.
+            </summary>
+            <param name="info">serialization info.</param>
+            <param name="context">streaming context.</param>
+        </member>
+        <member name="T:ZintNet.InvalidDataFormatException">
+            <summary>
+            ZintNet.InvalidDataFormatException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.InvalidDataFormatException.#ctor">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidDataFormatException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.InvalidDataFormatException.#ctor(System.String)">
+            <summary>
+            /// <summary>
+            Initialses a new instance of ZintNet.InvalidDataFormatException class with a specified error message.
+            </summary>
+            <param name="message">exception message</param>
+            </summary>
+        </member>
+        <member name="M:ZintNet.InvalidDataFormatException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidDataFormatException class with a specified error message and a reference to the inner exception.
+            </summary>
+            <param name="message">error message</param>
+            <param name="innerException">inner exception</param>
+        </member>
+        <member name="M:ZintNet.InvalidDataFormatException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Initialses a new instance of ZintNet.InvalidDataFormatException class with a specified serialization information and streaming context.
+            </summary>
+            <param name="info">serialization info.</param>
+            <param name="context">streaming context.</param>
+        </member>
+        <member name="T:ZintNet.ErrorCorrectionLevelException">
+            <summary>
+            ZintNet.ErrorCorrectionLevelException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.ErrorCorrectionLevelException.#ctor">
+            <summary>
+            Initialses a new instance of ZintNet.ErrorCorrectionLevelException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.ErrorCorrectionLevelException.#ctor(System.String)">
+            <summary>
+            /// <summary>
+            Initialses a new instance of ZintNet.InvalidDataFormatException class with a specified error message.
+            </summary>
+            <param name="message">exception message</param>
+            </summary>
+        </member>
+        <member name="M:ZintNet.ErrorCorrectionLevelException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialses a new instance of ZintNet.ErrorCorrectionLevelException class with a specified error message and a reference to the inner exception.
+            </summary>
+            <param name="message">error message</param>
+            <param name="innerException">inner exception</param>
+        </member>
+        <member name="M:ZintNet.ErrorCorrectionLevelException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Initialses a new instance of ZintNet.ErrorCorrectionLevelException class with a specified serialization information and streaming context.
+            </summary>
+            <param name="info">serialization info.</param>
+            <param name="context">streaming context.</param>
+        </member>
+        <member name="T:ZintNet.DataEncodingException">
+            <summary>
+            ZintNet.DataEncodingException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.DataEncodingException.#ctor">
+            <summary>
+            Initialses a new instance of ZintNet.DataEncodingException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.DataEncodingException.#ctor(System.String)">
+            <summary>
+            /// <summary>
+            Initialses a new instance of ZintNet.DataEncodingException class with a specified error message.
+            </summary>
+            <param name="message">exception message</param>
+            </summary>
+        </member>
+        <member name="M:ZintNet.DataEncodingException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialses a new instance of ZintNet.DataEncodingException class with a specified error message and a reference to the inner exception.
+            </summary>
+            <param name="message">error message</param>
+            <param name="innerException">inner exception</param>
+        </member>
+        <member name="M:ZintNet.DataEncodingException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Initialses a new instance of ZintNet.DataEncodingException class with a specified serialization information and streaming context.
+            </summary>
+            <param name="info">serialization info.</param>
+            <param name="context">streaming context.</param>
+        </member>
+        <member name="T:ZintNet.UnknownSymbolException">
+            <summary>
+            ZintNet.UnknownSymbolException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.UnknownSymbolException.#ctor">
+            <summary>
+            Initialses a new instance of ZintNet.UnknownSymbolException class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.UnknownSymbolException.#ctor(System.String)">
+            <summary>
+            /// <summary>
+            Initialses a new instance of ZintNet.UnknownSymbolException class with a specified error message.
+            </summary>
+            <param name="message">exception message</param>
+            </summary>
+        </member>
+        <member name="M:ZintNet.UnknownSymbolException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialses a new instance of ZintNet.UnknownSymbolException class with a specified error message and a reference to the inner exception.
+            </summary>
+            <param name="message">error message</param>
+            <param name="innerException">inner exception</param>
+        </member>
+        <member name="M:ZintNet.UnknownSymbolException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Initialses a new instance of ZintNet.UnknownSymbolException class with a specified serialization information and streaming context.
+            </summary>
+            <param name="info">serialization info.</param>
+            <param name="context">streaming context.</param>
+        </member>
+        <member name="T:ZintNet.BinaryMath">
+            <summary>
+            Class for binary math calculations on large numbers.
+            </summary>
+        </member>
+        <member name="M:ZintNet.BinaryMath.BinaryAdd(System.Int16[],System.Int16[])">
+            <summary>
+            Binary addition.
+            </summary>
+            <param name="accumulator">result</param>
+            <param name="register">operand</param>
+        </member>
+        <member name="M:ZintNet.BinaryMath.BinarySubtract(System.Int16[],System.Int16[])">
+            <summary>
+            Binary subtraction.
+            </summary>
+            <param name="accumulator">result</param>
+            <param name="register">operand</param>
+        </member>
+        <member name="M:ZintNet.BinaryMath.BinaryMultiply(System.Int16[],System.String)">
+            <summary>
+            Binary multipication.
+            </summary>
+            <param name="register">contents to be multiplied</param>
+            <param name="data">number to multiply by</param>
+        </member>
+        <member name="M:ZintNet.BinaryMath.ShiftDown(System.Int16[])">
+            <summary>
+            Perform a binary shift left
+            </summary>
+            <param name="buffer">operand buffer</param>
+        </member>
+        <member name="M:ZintNet.BinaryMath.ShiftUp(System.Int16[])">
+            <summary>
+            Perform a binary shift right.
+            </summary>
+            <param name="buffer">operand buffer</param>
+        </member>
+        <member name="M:ZintNet.BinaryMath.IsLarger(System.Int16[],System.Int16[])">
+            <summary>
+            Performs a binary comparison between two values.
+            </summary>
+            <param name="accumulator">accumulator value for comparison</param>
+            <param name="register">register value for comparison</param>
+            <returns>1 if accumulator is larger than register, else 0</returns>
+        </member>
+        <member name="M:ZintNet.BinaryMath.BinaryLoad(System.Int16[],System.String)">
+            <summary>
+            Convert a numeric string to a binary value.
+            </summary>
+            <param name="register">result</param>
+            <param name="data">string to store as a binary value</param>
+        </member>
+        <member name="T:ZintNet.BitVector">
+            <summary>
+            Class for storing and retreving bit data.
+            </summary>
+            <author>satorux@google.com (Satoru Takabayashi) - creator
+            </author>
+            <author>dswitkin@google.com (Daniel Switkin) - ported from C++
+            </author>
+            <author>www.Redivivus.in (suraj.supekar@redivivus.in) - Ported from ZXING Java Source 
+            </author>
+            <author>Milton Neal milton200954@gmail.com Ported to C# and added additional methods for manipulating bit data.
+            </author>
+        </member>
+        <member name="M:ZintNet.BitVector.ToByteArray">
+            <summary>
+            Gets a copy of the vector as a byte array.
+            </summary>
+            <returns>a copy of the vector array</returns>
+        </member>
+        <member name="P:ZintNet.BitVector.SizeInBits">
+            <summary>
+            Gets the size of the vector in bits.
+            </summary>
+        </member>
+        <member name="P:ZintNet.BitVector.SizeInBytes">
+            <summary>
+            Gets the size of the vector in bytes.
+            </summary>
+        </member>
+        <member name="P:ZintNet.BitVector.Capacity">
+            <summary>
+            Get the current capacity of the vector.
+            </summary>
+        </member>
+        <member name="M:ZintNet.BitVector.#ctor">
+            <summary>
+            Initializes a new instance of BitVector class.
+            </summary>
+        </member>
+        <member name="M:ZintNet.BitVector.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of BitVector class of a given size.
+            </summary>
+            <param name="size">size in bytes of the vector</param>
+        </member>
+        <member name="M:ZintNet.BitVector.ValueAtIndex(System.Int32)">
+            <summary>
+            Returns the bit value at a specified bit index.
+            </summary>
+            <param name="index">index to the bit to be returned</param>
+        </member>
+        <member name="M:ZintNet.BitVector.SetAtIndex(System.Int32,System.Byte)">
+            <summary>
+            Sets the bit at a specified bit index.
+            </summary>
+            <param name="index">index at which to set the bit</param>
+            <param name="value">value to set the bit</param>
+        </member>
+        <member name="M:ZintNet.BitVector.Insert(System.Int32,System.Byte)">
+            <summary>
+            Inserts a bit into the vector.
+            </summary>
+            <param name="index">index to insert the bit</param>
+            <param name="value">value of the bit</param>
+        </member>
+        <member name="M:ZintNet.BitVector.RemoveBits(System.Int32,System.Int32)">
+            <summary>
+            Removes bits from the vector.
+            </summary>
+            <param name="index">index within the vector to remove the bit</param>
+            <param name="count">number of bits to remove</param>
+        </member>
+        <member name="M:ZintNet.BitVector.AppendBit(System.Byte)">
+            <summary>
+            Appends one bit to the vector.
+            </summary>
+            <param name="value">the bit value to add</param>
+        </member>
+        <member name="M:ZintNet.BitVector.AppendBits(System.Int32,System.Int32)">
+            <summary>
+            /// <summary>
+            Appends bits to the vector.
+            </summary>
+            <remarks>
+            - appendBits(0x00, 1) adds 0.
+            - appendBits(0x00, 4) adds 0000.
+            - appendBits(0xff, 8) adds 11111111.
+            </remarks>
+            </summary>
+            <param name="value">value to add</param>
+            <param name="numberOfBits">number of bits from 'value'</param>
+        </member>
+        <member name="M:ZintNet.BitVector.Clear">
+            <summary>
+            Clears the contents of the bit vector and resets it's size to 0.
+            </summary>
+        </member>
+        <member name="M:ZintNet.BitVector.AppendBitVector(ZintNet.BitVector)">
+            <summary>
+            Appends the contents of a bit vector to the current vector.
+            </summary><param type=""></param>
+            <param name="bitVector">the bit vector to be appended</param>
+        </member>
+        <member name="M:ZintNet.BitVector.Xor(ZintNet.BitVector)">
+            <summary>
+            Modify the bit vector by XOR'ing with another vector.
+            </summary>
+            <param name="bitVector">vector to Xor with</param>
+        </member>
+        <member name="P:ZintNet.BitVector.Item(System.Int32)">
+            <summary>
+            Bit Vector indexer.
+            </summary>
+            <param name="index">index position within the vector</param>
+            <returns>value at the index</returns>
+        </member>
+        <member name="M:ZintNet.BitVector.ToString">
+            <summary>
+            Builds a string representation of the bit vector.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZintNet.BitVector.AppendByte(System.Byte)">
+            <summary>
+            Appends a byte to the end of the vector.
+            </summary>
+            <param name="value">the byte value to be added</param>
+        </member>
+        <member name="T:ZintNet.BitStreamEncoder">
+            <summary>
+            Generates the bit stream for Databar Expanded and Composite symbols.
+            </summary>
+        </member>
+        <member name="M:ZintNet.BitStreamEncoder.DatabarExpBitStream(ZintNet.Symbology,System.Char[],System.Boolean,System.Int32)">
+            <summary>
+            Encodes the Databar message into a bit stream.
+            </summary>
+            <param name="symbology"></param>
+            <param name="barcodeData"></param>
+            <param name="isCompositeSymbol"></param>
+            <param name="segments"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZintNet.BitStreamEncoder.CompositeBitStream(ZintNet.Symbology,System.Char[],ZintNet.CompositeMode@,System.Int32@,System.Int32@,System.Int32)">
+            <summary>
+            Encodes the composite symbol data into a binary bit stream.
+            </summary>
+            <param name="symbology">host symbolology</param>
+            <param name="compositeData">data to be encoded</param>
+            <param name="compositeMode">composite mode</param>
+            <param name="dataColumns">number of data columns</param>
+            <param name="eccLevel">error correction level</param>
+            <param name="linearWidth">width of the host symbol</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZintNet.BitStreamEncoder.TestForAI90">
+            <summary>
+            Test if AI[90] data compression can be used.
+            </summary>
+            <returns>true/false</returns>
+        </member>
+        <member name="M:ZintNet.BitStreamEncoder.ProcessAI90">
+            <summary>
+            Encodes the compressed part of AI[90] field into the binary bit stream.
+            </summary>
+        </member>
+        <member name="M:ZintNet.BitStreamEncoder.EncodeAI90(System.Int32)">
+            <summary>
+            Process the rest of the AI[90] field.
+            </summary>
+            <param name="aiValue"></param>
+        </member>
+        <member name="M:ZintNet.BitStreamEncoder.AddPadding(System.Int32)">
+            <summary>
+            Adds the required padding to the binary bit stream.
+            </summary>
+            <param name="targetBitSize"></param>
+        </member>
+        <member name="M:ZintNet.BitStreamEncoder.Convert13">
+            <summary>
+            Encodes 13 digits into 44 bits.
+            </summary>
+        </member>
+        <member name="M:ZintNet.BitStreamEncoder.Convert12">
+            <summary>
+            Encodes 12 digits into 40 bits.
+            </summary>
+        </member>
+        <member name="M:ZintNet.BitStreamEncoder.ConvertDate">
+            <summary>
+            Encodes a date into 16 bits.
+            </summary>
+        </member>
+        <member name="M:ZintNet.CheckSum.Mod43CheckDigit(System.Char[])">
+            <summary>
+            Mod43 checksum calculator.
+            </summary>
+            <param name="data">data to calculate checksum</param>
+            <returns>check character</returns>
+        </member>
+        <member name="M:ZintNet.Encoders.AztecEncoder.Aztec">
+            <summary>
+            Generates an Aztec (ISO 24778) symbol.
+            </summary>
+        </member>
+        <member name="M:ZintNet.Encoders.AztecEncoder.AdjustBinaryData(ZintNet.BitVector,System.Int32)">
+            <summary>
+            Adjusts the binary data and add padding.
+            </summary>
+            <param name="binaryData">bit stream</param>
+            <param name="codewordBitSize">number of bits in the codeword</param>
+        </member>
+        <member name="M:ZintNet.Encoders.AztecEncoder.AztecRunes">
+            <summary>
+            Generate an Aztec Runes symbol.
+            </summary>
+        </member>
+        <member name="T:ZintNet.Encoders.CharacterSetTable">
+            <summary>
+            CodablockF analysing map.
+            </summary>
+        </member>
+        <member name="M:ZintNet.Encoders.CodaBlockEncoder.CreateCharacterSetTable(System.Collections.ObjectModel.Collection{ZintNet.Encoders.CharacterSetTable},System.Byte[],System.Int32)">
+            <summary>
+            Creates a table for each data charater.
+            </summary>
+            <remarks>
+            int CharacterSet: is and or of CodeA,CodeB,CodeC,CodeFNC1, in dependency which character set is applicable. (Result of GetPossibleCharacterSet)
+            int AFollowing, BFollowing: The number of source characters you still may encode in this character set.
+            int CFollowing: The number of characters encodable in CodeC if we start here.
+            </remarks>
+            <param name="characterSetTables"></param>
+            <param name="data"></param>
+            <param name="dataLength"></param>
+        </member>
+        <member name="M:ZintNet.Encoders.CodaBlockEncoder.GetPossibleCharacterSet(System.Byte)">
+            <summary>
+            Find the possible Code-128 Character sets for a character.
+            </summary>
+            <remarks>
+            The result is an or of CodeA, CodeB, CodeC, CodeFNC1 in dependency of the
+            possible Code 128 character sets.
+            </remarks>
+            <param name="currentCharacter"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZintNet.Encoders.CodeOneEncoder">
+            <summary>
+            Builds a Code1 Symbol
+            </summary>
+        </member>
+        <member name="T:ZintNet.Encoders.Code11Encoder">
+            <summary>
+            Builds a Code 11 symbol.
+            </summary>
+        </member>
+        <member name="M:ZintNet.Encoders.Code128Encoder.GroupBlocks(System.Int32@)">
+            <summary>
+            Brings together the same size block.
+            </summary>
+            <param name="listIndex">the list index</param>
+        </member>
+        <member name="M:ZintNet.Encoders.Code128Encoder.C128SetB(System.Char,System.Int32[],System.Int32@)">
+            Translate Code 128 Set B characters into barcodes.
+            This set handles all characters which are not part of long numbers and not
+            control characters.
+        </member>
+        <member name="M:ZintNet.Encoders.DatabarEncoder.DatabarExpanded">
+            <summary>
+            Encodes the Databar Expanded symbol.
+            </summary>
+        </member>
+        <member name="M:ZintNet.Encoders.DatabarEncoder.BuildExpandedStackedSymbol(System.Int32[],System.Int32,System.Int32)">
+            <summary>
+            Builds the Databar Expanded Stacked symbol.
+            </summary>
+            <remarks>builds the symbol top down</remarks>
+            <param name="elements"></param>
+            <param name="dataCharacters"></param>
+            <param name="patternWidth"></param>
+        </member>
+        <member name="T:ZintNet.Encoders.PlesseyEncoder">
+            <summary>
+            Builds Plessey Symbols
+            </summary>
+        </member>
+        <member name="M:ZintNet.Encoders.QRCodeEncoder.MicroQRCode">
+            <summary>
+            MicroQR Encoder.
+            </summary>
+        </member>
+        <member name="M:ZintNet.Encoders.CompositeEncoder.Initialize928">
+            <summary>
+            Initialize pwr928 encoding table.
+            </summary>
+        </member>
+        <member name="M:ZintNet.Encoders.Code2of5Encoder.DataLogic2of5">
+            <summary>
+            Code 2of5 Data Logic.
+            </summary>
+        </member>
+        <member name="M:ZintNet.Encoders.Code2of5Encoder.ITF14">
+            <summary>
+            Encodes ITF14
+            </summary>
+        </member>
+        <member name="M:ZintNet.Encoders.Code2of5Encoder.Interleaved2of5">
+            <summary>
+            Encodes Interleaved 2 of 5.
+            </summary>
+        </member>
+        <member name="M:ZintNet.Encoders.Code39Encoder.Code32">
+            <summary>
+            Encode Code 32 (Italian PhamaCode)
+            </summary>
+        </member>
+        <member name="T:ZintNet.Encoders.DataMatrixEncoder">
+            <summary>
+            Builds a DataMatrix Symbol
+            </summary>
+        </member>
+        <member name="M:ZintNet.Encoders.EANUPCEncoder.ExpandToUPCA(System.Int32)">
+            <summary>
+            Expands the UPC-E barcodeData to UPC-A for checksum calculation.
+            </summary>
+            <param name="inputLength">barcode data length</param>
+            <returns>check sum</returns>
+        </member>
+        <member name="M:ZintNet.Encoders.EANUPCEncoder.EanUpcSuppliment">
+            <summary>
+            Appends the 2 or 5 digit supplement to this existing barcode.
+            </summary>
+        </member>
+        <member name="M:ZintNet.Encoders.PDF417Encoder.GetMode(System.Char)">
+            <summary>
+            Determines the encoding mode for a particular character.
+            </summary>
+            <param name="asciiValue">character to test for mode</param>
+            <returns>encoding mode for the current character</returns>
+        </member>
+        <member name="M:ZintNet.Encoders.PDF417Encoder.MicroPDF417">
+            <summary>
+            Generate a Micro PDF barcode.
+            </summary>
+        </member>
+        <member name="T:ZintNet.Encoders.SymbolEncoder">
+            <summary>
+            Provides the base class for all symbol encoders.
+            </summary>
+        </member>
+        <member name="P:ZintNet.Encoders.SymbolEncoder.BarcodeText">
+            <summary>
+            Gets the barcode's human readable text.
+            </summary>
+        </member>
+        <member name="P:ZintNet.Encoders.SymbolEncoder.CheckDigitText">
+            <summary>
+            Gets the barcode's check digit(s) string.
+            </summary>
+        </member>
+        <member name="P:ZintNet.Encoders.SymbolEncoder.LeftHandCharacter">
+            <summary>
+            Gets the barcode's left hand character.
+            </summary>
+        </member>
+        <member name="P:ZintNet.Encoders.SymbolEncoder.LeftHandText">
+            <summary>
+            Gets the barcode's left hand text.
+            </summary>
+        </member>
+        <member name="P:ZintNet.Encoders.SymbolEncoder.RightHandText">
+            <summary>
+            Returns the barcode's right hand text.
+            </summary>
+        </member>
+        <member name="P:ZintNet.Encoders.SymbolEncoder.RightHandCharacter">
+            <summary>
+            Gets the barcode's right hand character.
+            </summary>
+        </member>
+        <member name="P:ZintNet.Encoders.SymbolEncoder.SupplementText">
+            <summary>
+            Gets the barcode's supplement text.
+            </summary>
+        </member>
+        <member name="P:ZintNet.Encoders.SymbolEncoder.SupplimentBars">
+            <summary>
+            Gets the number of elements in the supplement.
+            </summary>
+        </member>
+        <member name="P:ZintNet.Encoders.SymbolEncoder.ElementsPerCharacter">
+            <summary>
+            Gets the number of elements that represents one character.
+            </summary>
+        </member>
+        <member name="T:ZintNet.MessagePreProcessor">
+            <summary>
+            Performs preprocessing checks of the barcode data.
+            </summary>
+        </member>
+        <member name="M:ZintNet.MessagePreProcessor.HIBCParser(System.String)">
+            <summary>
+            Check that the message format conforms with the HIBC stardard.
+            </summary>
+            <param name="message">input message</param>
+            <returns>character array holding the formated message</returns>
+        </member>
+        <member name="M:ZintNet.MessagePreProcessor.GS1Parser(System.String)">
+            <summary>
+            Checks for valid characters and the correct formation of the AI's.
+            </summary>
+            <param name="message">input message</param>
+            <returns>character array holding the message</returns>
+        </member>
+        <member name="M:ZintNet.MessagePreProcessor.TildeParser(System.String)">
+            <summary>
+            Parse the barcode message and process any 'tilde' values.
+            </summary>
+            <remarks>
+            Takes the message string and copies it to the barcode character array, processing any 'tilde' values.
+            1 digit decimal values ~@ to ~'
+            Or 3 digit decimal values from ~000 to ~255
+            Suitable for symbols that accept values 0 to 255
+            </remarks>
+            <param name="message">barcode message string</param>
+            <returns>character array holding the message</returns>
+        </member>
+        <member name="M:ZintNet.MessagePreProcessor.MessageParser(System.String)">
+            <summary>
+            Returns the message as a character array without any preprocessing or checks.
+            </summary>
+            <param name="message">input message</param>
+            <returns>character array holding the message</returns>
+        </member>
+        <member name="M:ZintNet.MessagePreProcessor.NumericParser(System.String)">
+            <summary>
+            Passes an input message of numeric values only.
+            </summary>
+            <param name="message">input message</param>
+            <returns>character array holding the message</returns>
+        </member>
+        <member name="M:ZintNet.ReedSolomon.RSInitialise(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Initialises the Reed Solomon polynomials.
+            </summary>
+            <param name="polynomial"></param>
+            <param name="numberOfEccSymbols"></param>
+            <param name="index"></param>
+        </member>
+        <member name="T:ZintNet.SymbolBuilder">
+            <summary>
+            Build the symbols row data.
+            </summary>
+        </member>
+        <member name="M:ZintNet.SymbolBuilder.BuildFourStateSymbol(System.Collections.ObjectModel.Collection{ZintNet.SymbolData},System.Text.StringBuilder)">
+            <summary>
+            // Translate 4-state data pattern to symbol.
+            </summary>
+            <param name="Symbol">barcode</param>
+            <param name="barPattern">pattern to translate</param>
+        </member>
+        <member name="T:ZintNet.ZintNetLib">
+            <summary>
+            ZintNet DLL Libaray.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.Font">
+            <summary>
+            Gets or sets the font of the human readable text to be displayed with the sysmbol.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.BarcodeMessage">
+            <summary>
+            Gets or Sets the barcode text to be encoded.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.SupplementMessage">
+            <summary>
+            Gets or sets the EAN or UPC supplement text.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.CompositeMessage">
+            <summary>
+            Gets or sets the text to be encoded as the composited part of the symbol.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.CompositeMode">
+            <summary>
+            Gets or sets the mode for the composite part of the symbol.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.EncodingMode">
+            <summary>
+            Gets or sets the encoding mode as Standard, GS1 or HIBC.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.ElementXDimension">
+            <summary>
+            Gets or sets to barcodes element width in millimeters.(X dimension)
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.Multiplier">
+            <summary>
+            Gets or sets the multiplier for XDimension.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.BarcodeHeight">
+            <summary>
+            Gets or sets the height of the barcode.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.TextMargin">
+            <summary>
+            Gets or sets the margin between the barcode and the text.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.TextAlignment">
+            <summary>
+            Get or sets the barcodes text alignment.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.TextPosition">
+            <summary>
+            Gets or sets the text position as above or below the barcode.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.TextVisible">
+            <summary>
+            Gets or sets the text visiblity status.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.ShowCheckDigit">
+            <summary>
+            Determines if the check digit is included in the human readable text.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.Rotation">
+            <summary>
+            Gets or sets the rotation of the barcode in degrees.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.BarcodeColor">
+            <summary>
+            Gets or sets the barcode fore color.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.BarcodeTextColor">
+            <summary>
+            Gets or sets the barcode text fore color.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.OptionalCheckDigit">
+            <summary>
+            Gets or sets the optional check digit status.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.I2of5CheckDigitType">
+            <summary>
+            Gets or sets the check digit type for Interleaved 2of5.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.MSICheckDigitType">
+            <summary>
+            Gets or sets the check digit type for MSI symbol.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.Code11CheckDigits">
+            <summary>
+            Gets or sets the number of Code11 check digits.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.ITF14BearerStyle">
+            <summary>
+            Gets or sets the style of the ITF14 bearer bars.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.ECIMode">
+            <summary>
+            Gets or sets the ECI mode.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.AusPostEncoding">
+            <summary>
+            Gets or sets Australia Post encoding mode.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.MaxicodeMode">
+            <summary>
+            Gets or sets Maxicode mode.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.QRVersion">
+            <summary>
+            Gets or sets QR Code version.
+            </summary>
+            <remarks> 0 = Automatic mode</remarks>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.QRCodeEccLevel">
+            <summary>
+            Gets or sets QR code error correction level.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.DataMatrixSize">
+            <summary>
+            Get or sets the Datamatrix symbol size.
+            </summary>
+            <remarks>0 = Automatic mode</remarks>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.DataMatrixSquare">
+            <summary>
+            Gets or sets permission to use square only Datamatrix symbols.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.DataMatrixRectExtn">
+            <summary>
+            Get or sets permission to use Datamatrix rectangular extensions.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.AztecSize">
+            <summary>
+            Gets or sets the Aztec Code size.
+            </summary>
+            <remarks> 0 = Automatic Mode</remarks>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.AztecErrorLevel">
+            <summary>
+            Gets or sets Aztec code error correction level.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.HanXinVersion">
+            <summary>
+            Gets or sets the Han Xin Code version.
+            </summary>
+            <remarks> 0 = Automatic Mode</remarks>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.HanXinErrorLevel">
+            <summary>
+            Gets or set the Han Xin Code error correction level.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.UltracodeCompression">
+            <summary>
+            Gets or sets the Ultracode compression.
+            </summary>
+            <remarks> 0 = No compression</remarks>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.UltracodeErrorLevel">
+            <summary>
+            Gets or sets Ultracode error correction level.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.PDF417Columns">
+            <summary>
+            Gets or sets the number of PDF417 columns.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.PDF417ErrorLevel">
+            <summary>
+            Gets or sets the PDF417 error correction level.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.PDF417RowHeight">
+            <summary>
+            Gets or sets the row height of the PDF417 symbol.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.DatabarExpandedSegments">
+            <summary>
+            Gets or sets the number of Databar Expanded segments.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.ChannelCodeLevel">
+            <summary>
+            Gets or set the number of Channel Code channels.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.CodablockFRows">
+            <summary>
+            Gets or sets the number of Codablock rows.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.CodablockFColumns">
+            <summary>
+            Gets or sets the number of codablock columns.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.DotCodeColumns">
+            <summary>
+            Gets or sets the number of Dot Code columns.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.CodeOneSize">
+            <summary>
+            Gets or sets the Code One size.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.GridMatixVersion">
+            <summary>
+            Gets or sets the Grid Matrix version.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.GridMatrixEccLevel">
+            <summary>
+            Gets or sets the Grid Matrix error correction level.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.Symbology">
+            <summary>
+            Gets the current symbol ID.
+            </summary>
+        </member>
+        <member name="P:ZintNet.ZintNetLib.IsValid">
+            <summary>
+            Returns true if a symbol was successfully generated.
+            </summary>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.#ctor">
+            <summary>
+            Initializes a new instantance of the ZintNetLib object.
+            </summary>
+            <remarks>Constructor</remarks>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.Finalize">
+            <summary>
+            Dispose method for the ZintNetLib object.
+            </summary>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.Dispose">
+            <summary>
+            Public implementation of Dispose method for the ZintNetLib object.
+            </summary>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.Dispose(System.Boolean)">
+            <summary>
+            Protected implementation of Dispose method for the ZintNetLib object. 
+            </summary>
+            <param name="disposing">true if disposing</param>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.ToString">
+            <summary>
+            Gets encoded data as a string.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.CreateBarcode(System.String,System.String)">
+            <summary>
+            Creates a new barcode.
+            </summary>
+            <param name="symbolName">symbol name</param>
+            <param name="barcodeMessage">barcode message</param>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.CreateBarcode(ZintNet.Symbology,System.String)">
+            <summary>
+            Creates a new barcode.
+            </summary>
+            <param name="symbolId">symbol id number</param>
+            <param name="barcodeMessage">barcode message</param>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.GetSymbolId(System.String)">
+            <summary>
+            Gets the symbol ID from the symbol name.
+            </summary>
+            <param name="symbolName">symbol name</param>
+            <returns>ID number</returns>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.GetSymbolNames">
+            <summary>
+            Gets the names of supported symbologies.
+            </summary>
+            <returns>array containing symbology names.</returns>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.DrawBarcode(System.Drawing.Graphics,System.Drawing.PointF)">
+            <summary>
+            Renders the barcode to a user supplied graphics surface.
+            </summary>
+            <param name="graphics">graphics to render the barcode</param>
+            <param name="startXY">point to start the rendering (in pixels)</param>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.Initialize">
+            <summary>
+            Initialise property and general fields to default values.
+            </summary>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.SymbolSize(System.Drawing.Graphics)">
+            <summary>
+            Calculates the final dimensions of the symbol including any displayed text.
+            </summary>
+            <param name="graphics">graphics surface to render the barcode</param>
+            <returns>returns the symbol dimensions in pixels</returns>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.EncodeData">
+            <summary>
+            Encodes the barcode symbol data.
+            </summary>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.IsEanUpc">
+            <summary>
+            Tests if the current symbol is a member of the EAN/UPC family.
+            </summary>
+            <returns>true if is</returns>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.IsGS1Databar">
+            <summary>
+            Tests if the current symbol is a member of GS1 Databar family.
+            </summary>
+            <returns>true if is</returns>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.GetSymbolOnlySize">
+            <summary>
+            Calculate the size of the barcode symbol including any bearers and binders.
+            </summary>
+            <returns>symbol dimensions</returns>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.GetTotalSymbolSize(System.Drawing.Graphics)">
+            <summary>
+            Gets the overall size of the symbol including any text.
+            </summary>
+            <param name="graphics">render graphics</param>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.GetTextSize(System.Drawing.Graphics)">
+            <summary>
+            Optimize the font size to the linear symbol.
+            </summary>
+            <param name="graphics">the graphics surface the barcode will be drawn on.</param>
+        </member>
+        <member name="M:ZintNet.ZintNetLib.GetEanUpcTextSize(System.Drawing.Graphics)">
+            <summary>
+            Opimize the text font size that will fit between the guard bars.
+            </summary>
+            <param name="graphics">the graphics surface the barcode will be drawn on</param>
+        </member>
+        <member name="T:ZintNet.SymbolData">
+            <summary>
+            Class for defining a row of barcode data.
+            </summary>
+        </member>
+        <member name="P:ZintNet.SymbolData.RowHeight">
+            <summary>
+            Gets the height of the module in the row.
+            </summary>
+        </member>
+        <member name="P:ZintNet.SymbolData.RowCount">
+            <summary>
+            Gets the number of elements in the row.
+            </summary>
+        </member>
+        <member name="P:ZintNet.SymbolData.RowData">
+            <summary>
+            Sets the row data.
+            </summary>
+        </member>
+        <member name="M:ZintNet.SymbolData.GetRowData">
+            <summary>
+            Gets the row data.
+            </summary>
+            <returns>a copy of the row data</returns>
+        </member>
+        <member name="M:ZintNet.SymbolData.#ctor(System.Byte[],System.Single)">
+            <summary>
+            Creates a new instance of SymbolData object.
+            </summary>
+            <param name="data">row data</param>
+            <param name="height">element row height</param>
+        </member>
+        <member name="M:ZintNet.SymbolData.#ctor(System.Byte[])">
+            <summary>
+            Creates a new instance of SymbolData object.
+            </summary>
+            <param name="data">row data</param>
+        </member>
+        <member name="T:DisplayMetrics.Convert">
+            <summary>
+            Class for converting display scales.
+            </summary>
+        </member>
+        <member name="M:DisplayMetrics.Convert.MillimetersToPixels(System.Single,System.Single)">
+            <summary>
+            Convert millimeters to pixels for a given display resolution.
+            </summary>
+            <param name="millimeter">measurement in millimeters.</param>
+            <param name="dpi">display resolution</param>
+            <returns>pixels.</returns>
+        </member>
+        <member name="M:DisplayMetrics.Convert.InchesToPixels(System.Single,System.Single)">
+            <summary>
+            Convert inches to pixels for a given display resolution.
+            </summary>
+            <param name="inches">measurement in inches(mils)</param>
+            <param name="dpi">display resolution</param>
+            <returns>pixels</returns>
+            <remarks>inches in tenths</remarks>
+        </member>
+        <member name="M:DisplayMetrics.Convert.PixelsToMillimeter(System.Single,System.Single)">
+            <summary>
+            Convert pixels to millimeters for a given display resolution.
+            </summary>
+            <param name="pixels">number of pixels</param>
+            <param name="dpi">display resolution</param>
+            <returns>millimeters</returns>
+        </member>
+        <member name="M:DisplayMetrics.Convert.PixelsToInches(System.Single,System.Single)">
+            <summary>
+            Convert pixels to inches for a given display resolution.
+            </summary>
+            <param name="pixels">number of pixles</param>
+            <param name="dpi">display resolution</param>
+            <returns></returns>
+        </member>
+        <member name="T:System.Text.Extensions.SBExtensions">
+            <summary>
+            StringBuilder class extensions.
+            </summary>
+        </member>
+        <member name="M:System.Text.Extensions.SBExtensions.Clear(System.Text.StringBuilder)">
+            <summary>
+            Clears the contents of the string builder.
+            </summary>
+            <param name="value">the stringbuilder to clear</param>
+        </member>
+        <member name="M:System.Text.Extensions.SBExtensions.Contains(System.Text.StringBuilder,System.String)">
+            <summary>
+            Tests for a substring within the string builder
+            </summary>
+            <param name="value"></param>
+            <param name="c"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

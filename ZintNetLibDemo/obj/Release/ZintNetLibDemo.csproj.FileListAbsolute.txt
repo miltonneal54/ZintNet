@@ -1,0 +1,15 @@
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\bin\Release\ZintNetLibDemo.exe.config
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\bin\Release\ZintNetLibDemo.exe
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\bin\Release\ZintNetLibDemo.pdb
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\bin\Release\ZintNetLib.dll
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\bin\Release\ArrayEx.dll
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\bin\Release\ZintNetLib.pdb
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\bin\Release\ZintNetLib.xml
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\obj\Release\ZintNetLibDemo.csproj.AssemblyReference.cache
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\obj\Release\ZintNetLibTest.Form1.resources
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\obj\Release\ZintNetLibTest.Properties.Resources.resources
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\obj\Release\ZintNetLibDemo.csproj.GenerateResource.cache
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\obj\Release\ZintNetLibDemo.csproj.CoreCompileInputs.cache
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\obj\Release\ZintNetLibDemo.csproj.CopyComplete
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\obj\Release\ZintNetLibDemo.exe
+C:\Users\Milton\source\repos\C#\ZintNetDemo\ZintNetLibDemo\obj\Release\ZintNetLibDemo.pdb
