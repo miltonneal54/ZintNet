@@ -1,12 +1,12 @@
 ﻿/* EANUPCEncoder.cs Handles EAN UPC & ISMB 1D symbols */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
   
     libzint - the open source barcode library
-    Copyright (C) 2009-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2009-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -37,18 +37,25 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.ComponentModel;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Text;
-
-using ArrayExt;
 
 namespace ZintNet.Encoders
 {
     internal class EANUPCEncoder : SymbolEncoder
     {
-        # region Tables and Constants
+        #region Constants
+
+        private const char NORMAL = 'n';
+        private const char GUARD = 'g';
+        private const char SUPPLEMENT = 's';
+        private const string ISBN978prefix = "978";
+        private const string ISBN979prefix = "979";
+
+        #endregion
+
+        #region Tables
+
         /*LEFT-HAND ENCODING        RIGHT-HAND ENCODING 
             ODD PARITY (A) EVEN PARITY (B) ALL CHARACTERS 
         0   0001101        0100111         1110010 
@@ -62,75 +69,81 @@ namespace ZintNet.Encoders
         8   0110111        0001001         1001000 
         9   0001011        0010111         1110100 */
 
-        private const char NORMAL = 'n';
-        private const char GUARD = 'g';
-        private const char SUPPLEMENT = 's';
-        private const string ISBNprefix = "978";
+
 
         // Encoding for righthand and lefthand odd.
-        private static string[] RHandLHandOddTable = {
+        private static readonly string[] RHandLHandOddTable = {
             "3211", "2221", "2122", "1411", "1132",
             "1231", "1114", "1312", "1213", "3112" };
 
         // Encoding for lefthand even.
-        private static string[] LeftHandEvenTable = {
+        private static readonly string[] LeftHandEvenTable = {
             "1123", "1222", "2212", "1141", "2311",
             "1321", "4111", "2131", "3121", "2113" };
 
         // Parity Data '0' = even '1' = odd.
-        private static string[] EanParityTable = {
+        private static readonly string[] EanParityTable = {
             "111111", "110100", "110010", "110001", "101100",
             "100110", "100011", "101010", "101001", "100101" };
 
         // Parity Data '0' = even '1' = odd.
-        private static string[] UpcParityTable = {
+        private static readonly string[] UpcParityTable = {
             "000111", "001011", "001101", "001110", "010011",
             "011001", "011100", "010101", "010110", "011010" };
 
         // Plus 2 Parity  '0' = even '1' = odd.
-        private static string[] Plus2Parity = {
+        private static readonly string[] Plus2Parity = {
             "11", "10", "01", "00" };
 
         // Plus 5 Parity  '0' = even '1' = odd.
-        private static string[] Plus5Parity = {
+        private static readonly string[] Plus5Parity = {
             "00111", "01011", "01101", "01110", "10011",
             "11001", "11100", "10101", "10110", "11010" };
         # endregion
 
         StringBuilder binaryString;
-        private string supplementMessage;
-        private bool hasSupplementSymbol;
+        private readonly bool hasSupplementSymbol;
         private int linearWidth = 0;            // Linear width of the sysmbol excluding supplement.
         private int compositeOffSet = 0;        // Offset applied to symbol if is a composite.
 
-        public EANUPCEncoder(Symbology symbology, string barcodeMessage, string supplementMessage, string compositeMessage, CompositeMode compositeMode)
+        // ISBN.
+        public EANUPCEncoder(Symbology symbolId, char[] barcodeMessage, char[] supplementMessage)
+            : this(symbolId, barcodeMessage, supplementMessage, null, CompositeMode.CCA)
+        { }
+
+        public EANUPCEncoder(Symbology symbolId, char[] barcodeMessage, char[] supplementMessage, char[] compositeMessage, CompositeMode compositeMode)
         {
-            this.symbolId = symbology;
+            this.symbolId = symbolId;
             this.barcodeMessage = barcodeMessage;
             this.supplementMessage = supplementMessage;
             this.compositeMessage = compositeMessage;
             this.compositeMode = compositeMode;
-            if (!string.IsNullOrEmpty(supplementMessage))
+            if (supplementMessage != null)
+            {
                 hasSupplementSymbol = true;
+            }
 
-            if (!string.IsNullOrEmpty(compositeMessage))
+            if (compositeMessage != null)
+            {
                 isCompositeSymbol = true;
+            }
 
             elementsPerCharacter = 7;
-            compositeOffSet = (isCompositeSymbol) ? 1 : 0;
+            compositeOffSet = isCompositeSymbol ? 1 : 0;
         }
 
         public override Collection<SymbolData> EncodeData()
         {
             Symbol = new Collection<SymbolData>();
             if (symbolId != Symbology.ISBN)
+            {
                 barcodeData = MessagePreProcessor.NumericParser(barcodeMessage);
+            }
 
             switch (symbolId)
             {
                 case Symbology.ISBN:
-                    barcodeData = MessagePreProcessor.MessageParser(barcodeMessage.Replace('-', ' '));
-                    isCompositeSymbol = false;
+                    barcodeData = barcodeMessage;
                     ISBN();
                     break;
 
@@ -152,24 +165,29 @@ namespace ZintNet.Encoders
             }
 
             if (hasSupplementSymbol)
-                EanUpcSuppliment();
+            {
+                AddSuppliment();
+            }
 
             // Expand the row pattern into the symbol data.
             List<byte> rowData = new List<byte>();
             if (compositeOffSet == 1)
+            {
                 rowData.Add(0);
+            }
 
             bool latch = true;
-            int position = compositeOffSet;
             for (int i = 0; i < binaryString.Length; i++)
             {
                 char value = binaryString[i];
                 // Suppliment switch.
                 if (value == SUPPLEMENT)
                 {
-                    // Add 12 '0' elements for the supplement margin.
-                    for (int e = 0; e < 12; e++)
+                    // Add '0' elements for the supplement margin.
+                    for (int m = 0; m < supplementMargin; m++)
+                    {
                         rowData.Add(0);
+                    }
 
                     rowData.Add((byte)'S');
                     latch = true;
@@ -177,17 +195,23 @@ namespace ZintNet.Encoders
 
                 // Guard bar switch.
                 else if (value == GUARD)
+                {
                     rowData.Add((byte)'G');
+                }
 
                 // Normal bar switch.
                 else if (value == NORMAL)
+                {
                     rowData.Add((byte)'N');
+                }
 
                 else
                 {
                     value -= '0';
                     for (int j = 0; j < value; j++)
-                        rowData.Add((latch == true)  ? (byte)1 : (byte)0);
+                    {
+                        rowData.Add(latch ? (byte)1 : (byte)0);
+                    }
 
                     latch = !latch;
                 }
@@ -223,53 +247,85 @@ namespace ZintNet.Encoders
             char checkDigit;
             int inputLength = barcodeData.Length;
 
+            // ISBN 10
             if (inputLength == 9 || inputLength == 10)
             {
+                if (inputLength == 9)   // SBN.
+                {
+                    barcodeData = ArrayHelper.Insert(barcodeData, 0, '0');
+                    inputLength++;
+                }
+
                 // Catch any invalid characters.
-                for (int i = 0; i < inputLength; i++)
+                // First 9 characters must be numeric.
+                for (int i = 0; i < inputLength - 1; i++)
                 {
-                    if (!char.IsDigit(barcodeData[i]) && char.ToUpper(barcodeData[i], CultureInfo.CurrentCulture) != 'X')  // Can have 'X' as check digit.
-                        throw new InvalidDataException("ISBN-10: Invalid data in input");
+                    if (!char.IsDigit(barcodeData[i]))  
+                    {
+                        throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                            "ISBN-10: Numeric only data expected.\nInvalid character '{0}' at position {1}.", barcodeData[i], i + 1));
+                    }
                 }
 
-                if (inputLength == 10)
+                // Confirm supplied a valid check digit, then discard it.
+                // Can have 'X' as check digit.
+                char cd = char.ToUpper(barcodeData[inputLength - 1], CultureInfo.CurrentCulture);
+                barcodeData = ArrayHelper.Remove(barcodeData, inputLength - 1);
+                checkDigit = GetCheckDigit.Mod11CheckDigit(barcodeData);
+                if (checkDigit != cd)
                 {
-                    // Confirm supplied a valid check digit, then discard it.
-                    char cd = char.ToUpper(barcodeData[inputLength - 1], CultureInfo.CurrentCulture);
-                    Array.Resize(ref barcodeData, inputLength - 1);
-                    checkDigit = CheckSum.Mod11CheckDigit(barcodeData);
-                    if (checkDigit != cd)
-                        throw new InvalidDataException("ISBN-10: Invalid check digit.");
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "ISBN-10: Invalid check digit '{0}' in input data, expected '{1}'.", cd, checkDigit));
                 }
 
-                barcodeData = ArrayEx.Insert(barcodeData, 0, ISBNprefix);
+                barcodeData = ArrayHelper.Insert(barcodeData, 0, ISBN978prefix);
             }
 
-            else if (inputLength == 12 || inputLength == 13)
+            // ISBN 13
+            else if (inputLength == 13)
             {
                 // Catch any invalid characters.
                 for (int i = 0; i < inputLength; i++)
                 {
                     if (!char.IsDigit(barcodeData[i]))
-                        throw new InvalidDataException("ISBN-13: Invalid data in input");
+                    {
+                        throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                            "ISBN-13: Numeric only data expected.\nInvalid character '{0}' at position {1}.", barcodeData[i], i + 1));
+                    }
                 }
 
-                if (inputLength == 13)
+                // Validate the check digit.
+                char cd = barcodeData[inputLength - 1];
+                Array.Resize(ref barcodeData, inputLength - 1);
+                checkDigit = GetCheckDigit.Mod10CheckDigit(barcodeData);
+                if (checkDigit != cd)
                 {
-                    char cd = barcodeData[inputLength - 1];
-                    Array.Resize(ref barcodeData, inputLength - 1);
-                    checkDigit = CheckSum.Mod10CheckDigit(barcodeData);
-                    if (checkDigit != cd)
-                        throw new InvalidDataException("ISBN-13: Invalid check digit.");
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "ISBN-13: Invalid check digit '{0}' in input data, expected '{1}'.", cd, checkDigit));
+                }
+
+
+                // Check for a valid prefix.
+                string prefix = new string(barcodeData, 0, 3);
+                if (prefix != ISBN978prefix && prefix != ISBN979prefix)
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "ISBN-13: A valid ISBN must begin with '{0}' or '{1}'.", ISBN978prefix, ISBN979prefix));
                 }
             }
 
             else
-                throw new InvalidDataLengthException("ISBN: Invalid number of characters in the input data.");
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "ISBN: Input data wrong length.\n Expecting a length of 9, 10 or 13 characters."));
+            }
 
             EAN13();
         }
 
+        /// <summary>
+        /// EAN-13 barcode.
+        /// </summary>
         private void EAN13()
         {
             int dataValue;
@@ -280,10 +336,17 @@ namespace ZintNet.Encoders
             int inputLength = barcodeData.Length;
             binaryString = new StringBuilder();
 
+            if (inputLength < 12)
+            {
+                string zeros = new string('0', 12 - inputLength);
+                barcodeData = ArrayHelper.Insert(barcodeData, 0, zeros);
+                inputLength = barcodeData.Length;
+            }
+
             if (inputLength == 12)
             {
-                checkDigit = CheckSum.Mod10CheckDigit(barcodeData);
-                barcodeData = ArrayEx.Insert(barcodeData, inputLength, checkDigit);
+                checkDigit = GetCheckDigit.Mod10CheckDigit(barcodeData);
+                barcodeData = ArrayHelper.Insert(barcodeData, inputLength, checkDigit);
                 inputLength = barcodeData.Length;
             }
 
@@ -291,14 +354,20 @@ namespace ZintNet.Encoders
             {
                 // Confirm supplied a valid check digit.
                 char cd = barcodeData[inputLength - 1];
-                checkDigit = CheckSum.Mod10CheckDigit(barcodeData, inputLength - 1);
+                checkDigit = GetCheckDigit.Mod10CheckDigit(barcodeData, inputLength - 1);
 
                 if (checkDigit != cd)
-                    throw new InvalidDataException("EAN-13: Invalid check digit.");
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "EAN-13: Invalid check digit '{0}' in input data, expected '{1}'.", cd, checkDigit));
+                }
             }
 
             else
-                throw new InvalidDataLengthException("EAN-13: Requires 13 characters in the input data.");
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "EAN-13: Input data too long.\nMaximum length is {0} characters.", 13));
+            }
 
             binaryString.Append("g111n");	// Add the left guard bars with tall and short switches.
 
@@ -311,18 +380,26 @@ namespace ZintNet.Encoders
                 if (i < 7)
                 {
                     parityBit = parity[i - 1];
-                    if (parityBit == '0')	// Even.
+                    if (parityBit == '0')   // Even.
+                    {
                         binaryString.Append(LeftHandEvenTable[dataValue]);
+                    }
 
-                    else	// Odd.
+                    else    // Odd.
+                    {
                         binaryString.Append(RHandLHandOddTable[dataValue]);
+                    }
                 }
 
                 if (i == 7)
-                    binaryString.Append("g11111n");	// Insert the center guard bars with guard and normal switches.
+                {
+                    binaryString.Append("g11111n");    // Insert the center guard bars with guard and normal switches.
+                }
 
                 if (i > 6)
+                {
                     binaryString.Append(RHandLHandOddTable[dataValue]);
+                }
             }
 
             binaryString.Append("g111"); // Append the right guard bars with the tall switch.
@@ -332,24 +409,35 @@ namespace ZintNet.Encoders
             leftHandCharacter = barcodeText.Substring(0, 1);
             leftHandText = barcodeText.Substring(1, 6);
             rightHandText = barcodeText.Substring(7, 6);
-            if(String.IsNullOrEmpty(supplementMessage))
+            if (!hasSupplementSymbol)
+            {
                 rightHandCharacter = ">";
+            }
 
             linearWidth = 95;
         }
 
+        /// <summary>
+        /// EAN-8 barcode.
+        /// </summary>
         private void EAN8()
         {
             int dataValue;
             char checkDigit;
-
             int inputLength = barcodeData.Length;
             binaryString = new StringBuilder();
 
+            if (inputLength < 7)
+            {
+                string zeros = new string('0', 7 - inputLength);
+                barcodeData = ArrayHelper.Insert(barcodeData, 0, zeros);
+                inputLength = barcodeData.Length;
+            }
+
             if (inputLength == 7)
             {
-                checkDigit = CheckSum.Mod10CheckDigit(barcodeData);
-                barcodeData = ArrayEx.Insert(barcodeData, inputLength, checkDigit);
+                checkDigit = GetCheckDigit.Mod10CheckDigit(barcodeData);
+                barcodeData = ArrayHelper.Insert(barcodeData, inputLength, checkDigit);
                 inputLength = barcodeData.Length;
             }
 
@@ -357,14 +445,20 @@ namespace ZintNet.Encoders
             {
                 // Confirm supplied a valid check digit.
                 char cd = barcodeData[inputLength - 1];
-                checkDigit = CheckSum.Mod10CheckDigit(barcodeData, inputLength - 1);
+                checkDigit = GetCheckDigit.Mod10CheckDigit(barcodeData, inputLength - 1);
 
                 if (checkDigit != cd)
-                    throw new InvalidDataException("EAN-8: Invalid check digit.");
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "EAN-8: Invalid check digit '{0}' in input data, expected '{1}'.", cd, checkDigit));
+                }
             }
 
             else
-                throw new InvalidDataLengthException("EAN-8: Requires 8 characters in the input data.");
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "EAN-8: Input data too long.\nMaximum length is {0} characters.", 8));
+            }
 
             // Encode the barcodeData.
             binaryString.Append("g111n");	// Left guard bars.
@@ -374,7 +468,9 @@ namespace ZintNet.Encoders
                 dataValue = barcodeData[i] - '0';
                 binaryString.Append(RHandLHandOddTable[dataValue]);
                 if (i == 3)
-                    binaryString.Append("g11111n");	// The center guard bars.
+                {
+                    binaryString.Append("g11111n");    // The center guard bars.
+                }
             }
 
             binaryString.Append("g111"); // End guard bars.
@@ -383,23 +479,35 @@ namespace ZintNet.Encoders
             leftHandCharacter = "<";
             leftHandText = barcodeText.Substring(0, 4);
             rightHandText = barcodeText.Substring(4, 4);
-            if (String.IsNullOrEmpty(supplementMessage))
+            if (!hasSupplementSymbol)
+            {
                 rightHandCharacter = ">";
+            }
+
             linearWidth = 67;
         }
 
+        /// <summary>
+        /// UPC-A barcode.
+        /// </summary>
         private void UPCA()
         {
             int dataValue;
             char checkDigit;
-
             int inputLength = barcodeData.Length;
             binaryString = new StringBuilder();
 
+            if (inputLength < 11)
+            {
+                string zeros = new string('0', 11 - inputLength);
+                barcodeData = ArrayHelper.Insert(barcodeData, 0, zeros);
+                inputLength = barcodeData.Length;
+            }
+
             if (inputLength == 11)
             {
-                checkDigit = CheckSum.Mod10CheckDigit(barcodeData);
-                barcodeData = ArrayEx.Insert(barcodeData, inputLength, checkDigit);
+                checkDigit = GetCheckDigit.Mod10CheckDigit(barcodeData);
+                barcodeData = ArrayHelper.Insert(barcodeData, inputLength, checkDigit);
                 inputLength = barcodeData.Length;
             }
 
@@ -407,14 +515,20 @@ namespace ZintNet.Encoders
             {
                 // Confirm supplied a valid check digit.
                 char cd = barcodeData[inputLength - 1];
-                checkDigit = CheckSum.Mod10CheckDigit(barcodeData, inputLength - 1);
+                checkDigit = GetCheckDigit.Mod10CheckDigit(barcodeData, inputLength - 1);
 
                 if (checkDigit != cd)
-                    throw new InvalidDataException("UPC-A: Invalid check digit.");
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "UPC-A: Invalid check digit '{0}' in input data, expected '{1}'.", cd, checkDigit));
+                }
             }
 
             else
-                throw new InvalidDataLengthException("UPC-A: Requires 12 characters in the input data.");
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "UPC-A: Input data too long.\nMaximum length is {0} characters.", 12));
+            }
 
             // Encode the barcodeData.
             binaryString.Append("g111");	// Add the left guard bars.
@@ -424,13 +538,19 @@ namespace ZintNet.Encoders
                 dataValue = barcodeData[i] - '0';
                 binaryString.Append(RHandLHandOddTable[dataValue]);
                 if (i == 0)
-                    binaryString.Append("n");		// Normal switch.
+                {
+                    binaryString.Append("n");      // Normal switch.
+                }
 
                 if (i == 5)
-                    binaryString.Append("g11111n");	// Insert the center guard bars.
+                {
+                    binaryString.Append("g11111n");    // Insert the center guard bars.
+                }
 
                 if (i == 10)
-                    binaryString.Append("g");		// Guard switch.		
+                {
+                    binaryString.Append("g");      // Guard switch.		
+                }
             }
 
             binaryString.Append("111"); // End guard bars.
@@ -443,18 +563,22 @@ namespace ZintNet.Encoders
             linearWidth = 95;
         }
 
+        /// <summary>
+        /// UPC-E barcode.
+        /// </summary>
         private void UPCE()
         {
             string parity;
             char parityBit;
             char checkDigit;
             int dataValue;
-
             int inputLength = barcodeData.Length;
             binaryString = new StringBuilder();
 
             if (inputLength == 6)
+            {
                 checkDigit = ExpandToUPCA(inputLength);
+            }
 
             else if (inputLength == 7)
             {
@@ -463,13 +587,17 @@ namespace ZintNet.Encoders
                 inputLength--;
                 checkDigit = ExpandToUPCA(inputLength);
                 if (checkDigit != cd)
+                {
                     throw new InvalidDataException("UPC-A: Invalid check digit.");
+                }
 
                 Array.Resize(ref barcodeData, inputLength);
             }
 
             else
+            {
                 throw new InvalidDataLengthException("UPC-E: Requires 7 characters in the input data.");
+            }
 
             // Encode the barcodeData.
             parity = UpcParityTable[checkDigit - '0'];
@@ -479,11 +607,14 @@ namespace ZintNet.Encoders
             {
                 dataValue = barcodeData[i] - '0';
                 parityBit = parity[i];
-                if (parityBit == '0')	// Even.
+                if (parityBit == '0')   // Even.
+                {
                     binaryString.Append(LeftHandEvenTable[dataValue]);
-
-                else					// Odd.
+                }
+                else                    // Odd.
+                {
                     binaryString.Append(RHandLHandOddTable[dataValue]);
+                }
             }
 
             binaryString.Append("g111111");	// Append the right guard bars.
@@ -508,7 +639,7 @@ namespace ZintNet.Encoders
             char[] upceData = new char[inputLength];
 
             Array.Copy(barcodeData, upceData, inputLength);
-            upceData = ArrayEx.Insert(upceData, 0, '0');
+            upceData = ArrayHelper.Insert(upceData, 0, '0');
 
             switch (upceData[6])
             {
@@ -549,13 +680,13 @@ namespace ZintNet.Encoders
                     break;
             }
 
-            return CheckSum.Mod10CheckDigit(upcaCode.ToString().ToCharArray());
+            return GetCheckDigit.Mod10CheckDigit(upcaCode.ToString().ToCharArray());
         }
 
         /// <summary>
         /// Appends the 2 or 5 digit supplement to this existing barcode.
         /// </summary>
-        private void EanUpcSuppliment()
+        private void AddSuppliment()
         {
             char[] supplimentData = MessagePreProcessor.NumericParser(supplementMessage);
             int inputLength = supplimentData.Length;
@@ -571,10 +702,11 @@ namespace ZintNet.Encoders
                     break;
 
                 default:
-                    throw new InvalidDataLengthException("EAN/UPC Suppliment: Invalid number of characters in the input data.");
+                    throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                        "EAN/UPC Suppliment: Invalid number of characters in suppliment.\nMust be 2 or 5 characters."));
             }
 
-            supplementText = supplementMessage;
+            supplementText = new string(supplementMessage);
         }
 
         private void AddPlus2(char[] supplimentData)
@@ -585,21 +717,27 @@ namespace ZintNet.Encoders
             int parityValue;
             int inputLength = supplimentData.Length;
 
-            parityValue = (Int32.Parse(supplementMessage, CultureInfo.CurrentCulture)) % 4;
+            parityValue = (int.Parse(new string(supplementMessage), CultureInfo.CurrentCulture)) % 4;
             parity = Plus2Parity[parityValue];
             binaryString.Append("s112");
             for (int i = 0; i < inputLength; i++)
             {
                 dataValue = supplimentData[i] - '0';
                 parityBit = parity[i];
-                if (parityBit == '0')	// Even.
+                if (parityBit == '0')   // Even.
+                {
                     binaryString.Append(LeftHandEvenTable[dataValue]);
+                }
 
-                else					// Odd.
+                else                    // Odd.
+                {
                     binaryString.Append(RHandLHandOddTable[dataValue]);
+                }
 
                 if (i < inputLength - 1)
+                {
                     binaryString.Append("11");
+                }
             }
 
             supplementBars = 20;
@@ -629,14 +767,20 @@ namespace ZintNet.Encoders
             {
                 dataValue = supplimentData[i] - '0';
                 parityBit = parity[i];
-                if (parityBit == '0')	// Even.
+                if (parityBit == '0')   // Even.
+                {
                     binaryString.Append(LeftHandEvenTable[dataValue]);
+                }
 
-                else					// Odd.
+                else                    // Odd.
+                {
                     binaryString.Append(RHandLHandOddTable[dataValue]);
+                }
 
                 if (i < inputLength - 1)
+                {
                     binaryString.Append("11");
+                }
             }
 
             supplementBars = 47;

@@ -1,12 +1,12 @@
 ﻿/* Code11Encoder.cs - Handles Code 11 1D symbol */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
   
-    libzint - the open source barcode library
-    Copyright (C) 2008-2020 Robin Stuart <rstuart114@gmail.com>
+    libzint - the open source barcode library.
+    Copyright (C) 2008-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -34,112 +34,128 @@
     SUCH DAMAGE.
  */
 
-using System;
-using System.ComponentModel;
+using System.Globalization;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Text;
 
 namespace ZintNet.Encoders
 {
     /// <summary>
-    /// Builds a Code 11 symbol.
+    /// Code 11 symbol encoder.
     /// </summary>
     internal class Code11Encoder : SymbolEncoder
     {
+        #region Tables
+
         private static string[] Code11Table = {
-		    "111131", "311131", "131131", "331111", "113131", "313111",
-		    "133111", "111331", "311311", "311111", "113111", "113311" };
+            "111131", "311131", "131131", "331111", "113131", "313111",
+            "133111", "111331", "311311", "311111", "113111", "113311" };
 
-        private int numberOfCheckDigits;
-        private bool optionalCheckDigit;
+        #endregion
 
-        public Code11Encoder(string barcodeMessage, bool optionalCheckDigit, int numberOfCheckDigits)
+        private readonly Code11CheckDigits numberOfCheckDigits;
+
+        public Code11Encoder(Symbology symbolId, char[] barcodeMessage, Code11CheckDigits numberOfCheckDigits)
         {
+            this.symbolId = symbolId;
             this.barcodeMessage = barcodeMessage;
-            this.optionalCheckDigit = optionalCheckDigit;
             this.numberOfCheckDigits = numberOfCheckDigits;
         }
 
         public override Collection<SymbolData> EncodeData()
         {
             Symbol = new Collection<SymbolData>();
-            barcodeData = MessagePreProcessor.MessageParser(barcodeMessage);
+            barcodeData = barcodeMessage;
             Code11();
             return Symbol;
         }
 
         private void Code11()
         {
-            int index;
+            int maxLength = 140;
             StringBuilder rowPattern = new StringBuilder();
             int inputLength = barcodeData.Length;
 
-            if (inputLength > 121)
-                throw new InvalidDataLengthException("Code 11: Input data too long.");
+            if (inputLength > maxLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Code 11: Input data too long.\nMaximum length is {0} characters.", maxLength));
+            }
 
             // Catch any invalid characters.
             for (int i = 0; i < inputLength; i++)
             {
                 if (CharacterSets.Code11Set.IndexOf(barcodeData[i]) == -1)
-                    throw new InvalidDataException("Code 11: Invalid data in input.");
-            }
-
-            if (optionalCheckDigit)
-            {
-                // Calculate the "C" & "K" checksums.
-                int cCount = 1;
-                int kCount = 2;
-                int cWeight = 0;
-                int kWeight = 0;
-                int checkDigitC = 0;
-                int checkDigitK = 0;
-
-                for (int i = inputLength - 1; i >= 0; i--)
                 {
-                    index = CharacterSets.Code11Set.IndexOf(barcodeData[i]);
-                    cWeight += (index * cCount);
-                    cCount++;
-                    if (cCount == 11)
-                        cCount = 1;
-
-                    kWeight += (index * kCount);
-                    kCount++;
-                    if (kCount == 10)
-                        kCount = 1;
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "Code 11: Invalid character in input data.\nCharacter '{0}' at position {1}.", barcodeData[i], i + 1));
                 }
-
-                checkDigitC = (cWeight % 11);
-                kWeight += checkDigitC;
-
-                checkDigitK = (kWeight % 11);
-                checkDigitText = checkDigitText += CharacterSets.Code11Set[checkDigitC];
-
-                // Using 2 check digits.
-                if (numberOfCheckDigits == 2)
-                    checkDigitText += CharacterSets.Code11Set[checkDigitK];
             }
 
             // Add the start character.
             rowPattern.Append(Code11Table[11]);
+            int index;
             for (int i = 0; i < inputLength; i++)
             {
                 index = CharacterSets.Code11Set.IndexOf(barcodeData[i]);
                 rowPattern.Append(Code11Table[index]);
             }
 
-            for (int i = 0; i < checkDigitText.Length; i++)
+            // Calculate the checksums and add the check digits.
+            if (numberOfCheckDigits != Code11CheckDigits.None)
             {
-                index = CharacterSets.Code11Set.IndexOf(checkDigitText[i]);
-                rowPattern.Append(Code11Table[index]);
+                // Calculate the "C" & "K" checksums.
+                int cCount = 0;
+                int cWeight = 1;
+                int kCount = 0;
+                int kWeight = 1;
+
+                for (int i = inputLength - 1; i >= 0; i--)
+                {
+                    index = CharacterSets.Code11Set.IndexOf(barcodeData[i]);
+                    cCount += index * cWeight;
+                    cWeight++;
+                    if (cWeight > 10)
+                    {
+                        cWeight = 1;
+                    }
+                }
+
+                int checkDigitC = cCount % 11;
+                checkDigitText += CharacterSets.Code11Set[checkDigitC];
+                barcodeData = ArrayHelper.Insert(barcodeData, inputLength, checkDigitText[0]);
+                rowPattern.Append(Code11Table[checkDigitC]);
+                inputLength++;
+
+                if (numberOfCheckDigits == Code11CheckDigits.Two)
+                {
+                    for (int i = inputLength - 1; i >= 0; i--)
+                    {
+                        index = CharacterSets.Code11Set.IndexOf(barcodeData[i]);
+                        kCount += index * kWeight;
+                        kWeight++;
+                        if (kWeight > 9)
+                        {
+                            kWeight = 1;
+                        }
+                    }
+
+                    int checkDigitK = kCount % 11;
+                    checkDigitText += CharacterSets.Code11Set[checkDigitK];
+                    barcodeData = ArrayHelper.Insert(barcodeData, inputLength, checkDigitText[1]);
+                    rowPattern.Append(Code11Table[checkDigitK]);
+                }
             }
 
             // Add stop character.
             rowPattern.Append(Code11Table[11]);
-            barcodeText = barcodeMessage;
 
             // Expand row into the symbol data.
-            SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 0.0f);
+            SymbolBuilder.BuildSymbol(Symbol, rowPattern, 0.0f);
+
+            // Set the human readable text.
+            barcodeText = new string(barcodeMessage);
+            barcodeText += checkDigitText;
         }
     }
 }

@@ -1,12 +1,12 @@
 ﻿/* Code16Encoder.cs - Handles Code16K 2D symbol */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
  
     libzint - the open source barcode library
-    Copyright (C) 2008-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2008-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -33,19 +33,22 @@
     OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
     SUCH DAMAGE.
  */
-using System;
-using System.Collections.Generic;
+
+using System.Globalization;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Text;
 
 namespace ZintNet.Encoders
 {
+    /// <summary>
+    /// Code 16K encoder.
+    /// </summary>
     internal class Code16KEncoder : SymbolEncoder
     {
-        #region Tables and Constants
-        private static string[] Code16KTable = {
-		    "212222", "222122", "222221", "121223", "121322", "131222", "122213",
+        #region Tables.
+
+        private readonly string[] Code16KTable = {
+            "212222", "222122", "222221", "121223", "121322", "131222", "122213",
             "122312", "132212", "221213", "221312", "231212", "112232", "122132", "122231", "113222",
             "123122", "123221", "223211", "221132", "221231", "213212", "223112", "312131", "311222",
             "321122", "321221", "312212", "322112", "322211", "212123", "212321", "232121", "111323",
@@ -60,29 +63,35 @@ namespace ZintNet.Encoders
             "211133" };
 
         // EN 12323 Table 3 and Table 4 - Start patterns and stop patterns.
-        private static string[] C16KStartStop = { "3211", "2221", "2122", "1411", "1132", "1231", "1114", "3112" };
+        private readonly string[] C16KStartStop = { "3211", "2221", "2122", "1411", "1132", "1231", "1114", "3112" };
 
 
         // EN 12323 Table 5 - Start and stop values defining row numbers.
-        private static int[] C16KStartValues = { 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7 };
-        private static int[] C16KStopValues = {  0, 1, 2, 3, 4, 5, 6, 7, 4, 5, 6, 7, 0, 1, 2, 3 };
+        private readonly int[] C16KStartValues = { 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7 };
+        private readonly int[] C16KStopValues = { 0, 1, 2, 3, 4, 5, 6, 7, 4, 5, 6, 7, 0, 1, 2, 3 };
 
-        private const int SHIFTA = 90;
-        private const int LATCHA = 91;
-        private const int SHIFTB = 92;
-        private const int LATCHB = 93;
-        private const int SHIFTC = 94;
-        private const int LATCHC = 95;
-        private const int AORB = 96;
-        private const int ABORC = 97;
         #endregion
 
-        public Code16KEncoder(Symbology symbology, string barcodeMessage, EncodingMode encodingMode)
+        #region Constants.
+
+        private const char SHIFTA = 'a';
+        private const char LATCHA = 'A';
+        private const char SHIFTB = 'b';
+        private const char LATCHB = 'B';
+        private const char LATCHC = 'C';
+        private const char AORB = 'Z';
+        private const char ABORC = '9';
+        #endregion
+
+        private int optionMinimumRows;
+
+        public Code16KEncoder(Symbology symbolId, char[] barcodeMessage, int optionMinimumRows, EncodingFormat encodingMode)
         {
-            this.symbolId = symbology;
+            this.symbolId = symbolId;
             this.barcodeMessage = barcodeMessage;
             this.encodingMode = encodingMode;
-            this.elementsPerCharacter = 11;
+            this.optionMinimumRows = optionMinimumRows;
+            elementsPerCharacter = 11;
         }
 
         public override Collection<SymbolData> EncodeData()
@@ -90,13 +99,13 @@ namespace ZintNet.Encoders
             Symbol = new Collection<SymbolData>();
             switch (encodingMode)
             {
-                case EncodingMode.Standard:
+                case EncodingFormat.Standard:
                     isGS1 = false;
                     barcodeData = MessagePreProcessor.TildeParser(barcodeMessage);
                     Code16K();
                     break;
 
-                case EncodingMode.GS1:
+                case EncodingFormat.GS1:
                     isGS1 = true;
                     barcodeData = MessagePreProcessor.GS1Parser(barcodeMessage);
                     Code16K();
@@ -108,89 +117,42 @@ namespace ZintNet.Encoders
 
         private void Code16K()
         {
+            int maxLength = 256;
             int rowsRequired;
             int padding;
-            bool fState;
-            int mode, lastSet, currentSet;
-            int[,] encodingList = new int[2, 170];
-            char[] set = new char[160];
-            char[] fset = new char[160];
-            int m, position;
-            int[] values = new int[160];
+            int extraPadding = 0;
+            int mode;
+            char currentSet;
             int barCharacters;
-            float glyphCount;
-            int glyphs;
+            int[,] encodingList = new int[2, maxLength];
+            char[] set = new char[maxLength];
+            char[] fset = new char[maxLength];
+            int[] values = new int[maxLength];
+            int m, position;
             int checkValue1, checkValue2;
             int checkSum1, checkSum2;
             int inputLength;
-            int j = 0;
             StringBuilder rowPattern;
             inputLength = barcodeData.Length;
 
-            if (inputLength > 157)
-                throw new InvalidDataLengthException("Code 16K: Input data too long.");
-
-            // Initialise set and fset to spaces.
-            for (int i = 0; i < set.Length; i++)
+            if (inputLength > maxLength)
             {
-                set[i] = ' ';
-                fset[i] = ' ';
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Code 16K: Input data too long.\nMaximum length is {0} characters.", maxLength));
             }
 
-            barCharacters = 0;
             // Detect extended ASCII characters.
             for (int i = 0; i < inputLength; i++)
             {
-                if (barcodeData[i] >= 128)
-                    fset[i] = 'f';
+                fset[i] = barcodeData[i] >= 128 ? 'f' : ' ';
             }
 
-            // Decide when to latch to extended mode - Annex E note 3.
-            for (int i = 0; i < inputLength; i++)
-            {
-                if (fset[i] == 'f')
-                    j++;
+            // Note: to be safe not using extended ASCII latch as not mentioned in BS EN 12323:2005.
 
-                else
-                    j = 0;
-
-                if (j >= 5)
-                {
-                    for (int k = i; k > (i - 5); k--)
-                        fset[k] = 'F';
-                }
-
-                if ((j >= 3) && (i == (inputLength - 1)))
-                {
-                    for (int k = i; k > (i - 3); k--)
-                        fset[k] = 'F';
-                }
-            }
-
-            // Decide if it is worth reverting to 646 encodation for a few characters as described in 4.3.4.2 (d).
-            for (int i = 1; i < inputLength; i++)
-            {
-                if ((fset[i - 1] == 'F') && (fset[i] == ' '))
-                {
-                    // Detected a change from 8859-1 to 646 - count how long for.
-                    for (j = 0; (fset[i + j] == ' ') && ((i + j) < inputLength); j++) ;
-                    if ((j < 5) || ((j < 3) && ((i + j) == (inputLength - 1))))
-                    {
-                        // Uses the same figures recommended by Annex E note 3.
-                        // Change to shifting back rather than latching back.
-                        for (int k = 0; k < j; k++)
-                            fset[i + k] = 'n';
-                    }
-                }
-            }
-
-            // Decide on mode using of ISO 15417 Annex E
+            // Detect mode A, B and C characters.
             int listIndex = 0;
             int sourceIndex = 0;
-            mode = GetMode(barcodeData[sourceIndex]);
-            if (barcodeData[sourceIndex] == '[')
-                mode = ABORC;
-
+            mode = GetMode(barcodeData[sourceIndex], isGS1);
             do
             {
                 encodingList[1, listIndex] = mode;
@@ -198,171 +160,21 @@ namespace ZintNet.Encoders
                 {
                     encodingList[0, listIndex]++;
                     sourceIndex++;
-                    if (sourceIndex >= inputLength)
+                    if (sourceIndex == inputLength)
+                    {
                         break;
+                    }
 
-                    mode = GetMode(barcodeData[sourceIndex]);
-                    if (isGS1 && barcodeData[sourceIndex] == '[')
-                        mode = ABORC;
+                    mode = GetMode(barcodeData[sourceIndex], isGS1);
                 }
 
                 listIndex++;
             } while (sourceIndex < inputLength);
 
             DxSmooth(encodingList, ref listIndex);
+
             // Put set data into set[].
-            position = 0;
-            for (int i = 0; i < listIndex; i++)
-            {
-                for (j = 0; j < encodingList[0, i]; j++)
-                {
-                    switch (encodingList[1, i])
-                    {
-                        case SHIFTA:
-                            set[position] = 'a';
-                            break;
-
-                        case LATCHA:
-                            set[position] = 'A';
-                            break;
-
-                        case SHIFTB:
-                            set[position] = 'b';
-                            break;
-
-                        case LATCHB:
-                            set[position] = 'B';
-                            break;
-
-                        case LATCHC:
-                            set[position] = 'C';
-                            break;
-                    }
-
-                    position++;
-                }
-            }
-
-            // Adjust for strings which start with shift characters - make them latch instead.
-            if (set[0] == 'a')
-            {
-                int idx = 0;
-                do
-                {
-                    set[idx] = 'A';
-                    idx++;
-                } while (set[idx] == 'a');
-            }
-
-            if (set[0] == 'b')
-            {
-                int idx = 0;
-                do
-                {
-                    set[idx] = 'B';
-                    idx++;
-                } while (set[idx] == 'b');
-            }
-
-            // Watch out for odd-length Mode C blocks.
-            int count = 0;
-            int x;
-
-            for (x = 0; x < position; x++)
-            {
-                if (set[x] == 'C')
-                {
-                    if (barcodeData[x] == '[')
-                    {
-                        if ((count & 1) > 0)
-                        {
-                            if ((x - count) != 0)
-                                set[x - count] = 'B';
-
-                            else
-                                set[x - 1] = 'B';
-                        }
-
-                        count = 0;
-                    }
-
-                    else
-                        count++;
-                }
-
-                else
-                {
-                    if ((count & 1) > 0)
-                    {
-                        if ((x - count) != 0)
-                            set[x - count] = 'B';
-
-                        else
-                            set[x - 1] = 'B';
-                    }
-
-                    count = 0;
-                }
-            }
-
-            if ((count & 1) > 0)
-            {
-                if ((x - count) != 0)
-                    set[x - count] = 'B';
-
-                else
-                    set[x - 1] = 'B';
-            }
-
-            for (x = 1; x < position - 1; x++)
-            {
-                if ((set[x] == 'C') && ((set[x - 1] == 'B') && (set[x + 1] == 'B')))
-                    set[x] = 'B';
-            }
-
-            // Now we can calculate how long the barcode is going to be - and stop it from being too long.
-            lastSet = ' ';
-            glyphCount = 0.0f;
-
-            for (int i = 0; i < inputLength; i++)
-            {
-                if ((set[i] == 'a') || (set[i] == 'b'))
-                    glyphCount = glyphCount + 1.0f;
-
-                if ((fset[i] == 'f') || (fset[i] == 'n'))
-                    glyphCount = glyphCount + 1.0f;
-
-                if (((set[i] == 'A') || (set[i] == 'B')) || (set[i] == 'C'))
-                {
-                    if (set[i] != lastSet)
-                    {
-                        lastSet = set[i];
-                        glyphCount = glyphCount + 1.0f;
-                    }
-                }
-
-                if ((set[i] == 'C') && (barcodeData[i] != '['))
-                    glyphCount = glyphCount + 0.5f;
-
-                else
-                    glyphCount = glyphCount + 1.0f;
-            }
-
-            if (isGS1 && (set[0] != 'A'))   // FNC1 can be integrated with mode character.
-                glyphCount--;
-
-            if (glyphCount > 77.0)
-                throw new InvalidDataLengthException("Code 16K: Input data too long.");
-
-            // Calculate how tall the symbol will be.
-            glyphCount = glyphCount + 2.0f;
-            glyphs = (int)glyphCount;
-            rowsRequired = (glyphs / 5);
-            if (glyphs % 5 > 0)
-                rowsRequired++;
-
-            if (rowsRequired == 1)
-                rowsRequired = 2;
+            PutInSet(encodingList, listIndex, set, barcodeData);
 
             // Start with the mode character - Table 2.
             m = 0;
@@ -423,146 +235,73 @@ namespace ZintNet.Encoders
             else
             {
                 if ((set[0] == 'B') && (set[1] == 'C'))
-                    m = 5;
-
-                if (((set[0] == 'B') && (set[1] == 'B')) && (set[2] == 'C'))
-                    m = 6;
-            }
-
-            values[barCharacters] = (7 * (rowsRequired - 2)) + m; // See 4.3.4.2
-            barCharacters++;
-
-            currentSet = set[0];
-            fState = false;    // fState remembers if we are in Extended ASCII mode (value true) or in ISO/IEC 646 mode (value false) 
-            
-            if (fset[0] == 'F')
-            {
-                switch (currentSet)
                 {
-                    case 'A':
-                        values[barCharacters] = 101;
-                        values[barCharacters + 1] = 101;
-                        break;
-
-                    case 'B':
-                        values[barCharacters] = 100;
-                        values[barCharacters + 1] = 100;
-                        break;
-
+                    m = fset[0] == 'f' ? 6 : 5;
                 }
 
-                barCharacters += 2;
-                fState = true;
+                else if (((set[0] == 'B') && (set[1] == 'B')) && (set[2] == 'C') && fset[0] != 'f' && fset[1] != 'f')
+                {
+                    m = 6;
+                }
             }
 
+            barCharacters = 1;
+            currentSet = set[0];
             position = 0;
 
             // Encode the data.
             do
             {
-
-                if ((position != 0) && (set[position] != set[position - 1]))
+                if ((position != 0) && (set[position] != currentSet))
                 {
-                    /* Latch different code set */
+                    // Latch different code set.
                     switch (set[position])
                     {
                         case 'A':
-                            values[barCharacters] = 101;
-                            barCharacters++;
+                            values[barCharacters++] = 101;
                             currentSet = 'A';
                             break;
 
                         case 'B':
-                            values[barCharacters] = 100;
-                            barCharacters++;
+                            values[barCharacters++] = 100;
                             currentSet = 'B';
                             break;
 
                         case 'C':
-                            if (!((position == 1) && (set[0] == 'B')))
+                            if (!(position == 1 && m >= 5) && !(position == 2 && m == 6))
                             {
-                                // Not Mode C, Shift B.
-                                if (!((position == 2) && ((set[0] == 'B') && (set[1] == 'B'))))
-                                {
-                                    // Not Mode C, Double Shift B.
-                                    values[barCharacters] = 99;
-                                    barCharacters++;
-                                }
+                                values[barCharacters++] = 99;
                             }
 
                             currentSet = 'C';
+
                             break;
                     }
                 }
 
-                if (position != 0)
-                {
-                    if ((fset[position] == 'F') && (fState == false))
-                    {
-                        // Latch beginning of extended mode.
-                        switch (currentSet)
-                        {
-                            case 'A':
-                                values[barCharacters] = 101;
-                                values[barCharacters + 1] = 101;
-                                break;
-
-                            case 'B':
-                                values[barCharacters] = 100;
-                                values[barCharacters + 1] = 100;
-                                break;
-                        }
-
-                        barCharacters += 2;
-                        fState = true;
-                    }
-
-                    if ((fset[position] == ' ') && (fState == true))
-                    {
-                        // Latch end of extended mode.
-                        switch (currentSet)
-                        {
-                            case 'A':
-                                values[barCharacters] = 101;
-                                values[barCharacters + 1] = 101;
-                                break;
-
-                            case 'B':
-                                values[barCharacters] = 100;
-                                values[barCharacters + 1] = 100;
-                                break;
-                        }
-
-                        barCharacters += 2;
-                        fState = false;
-                    }
-                }
-
-                if ((fset[glyphs] == 'f') || (fset[glyphs] == 'n'))
+                if (fset[position] == 'f')
                 {
                     // Shift extended mode.
                     switch (currentSet)
                     {
                         case 'A':
-                            values[barCharacters] = 101; /* FNC 4 */
+                            values[barCharacters++] = 101;  //FNC4.
                             break;
 
                         case 'B':
-                            values[barCharacters] = 100; /* FNC 4 */
+                            values[barCharacters++] = 100;  // FNC4.
                             break;
                     }
-
-                    barCharacters++;
                 }
 
-                if ((set[glyphs] == 'a') || (set[glyphs] == 'b'))
+
+                if ((set[position] == 'a') || (set[position] == 'b'))
                 {
                     // Insert shift character.
-                    values[barCharacters] = 98;
-                    barCharacters++;
+                    values[barCharacters++] = 98;
                 }
 
-                if (!((isGS1) && (barcodeData[position] == '[')))
+                if (!isGS1 || barcodeData[position] != '\x1d')
                 {
                     switch (set[position])
                     {
@@ -575,11 +314,12 @@ namespace ZintNet.Encoders
 
                         case 'B':
                         case 'b':
-                            Code16KSetB(barcodeData[position], values, ref barCharacters);
+                            _ = Code16KSetB(barcodeData[position], values, ref barCharacters);
                             position++;
                             break;
 
-                        case 'C': Code16KSetC(barcodeData[position], barcodeData[position + 1], values, ref barCharacters);
+                        case 'C':
+                            Code16KSetC(barcodeData[position], barcodeData[position + 1], values, ref barCharacters);
                             position += 2;
                             break;
                     }
@@ -587,24 +327,44 @@ namespace ZintNet.Encoders
 
                 else
                 {
-                    values[barCharacters] = 102;
-                    barCharacters++;
+                    values[barCharacters++] = 102;
                     position++;
                 }
-            } while (position < inputLength);
+
+                if (barCharacters > 80 - 2)
+                {
+                    // Max rows 16 * 5 - 2 check chars.
+                    throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                        "Code 16K: Input too long, requires {0} symbol characters(maximum 78)", barCharacters));
+                }
+
+                } while (position < inputLength);
 
             padding = 5 - ((barCharacters + 2) % 5);
             if (padding == 5)
+            {
                 padding = 0;
+            }
 
             if ((barCharacters + padding) < 8)
-                padding += 8 - (barCharacters + padding);
-
-            for (int i = 0; i < padding; i++)
             {
-                values[barCharacters] = 106;
-                barCharacters++;
+                padding += 8 - (barCharacters + padding);
             }
+
+            rowsRequired = (barCharacters + padding + 4) / 5;
+            // User defined rows.
+            if (optionMinimumRows > rowsRequired)
+            {
+                extraPadding = (optionMinimumRows - rowsRequired) * 5;
+                rowsRequired = optionMinimumRows;
+            }
+
+            for (int i = 0; i < padding + extraPadding; i++)
+            {
+                values[barCharacters++] = 103;
+            }
+
+            values[0] = (7 * (rowsRequired - 2)) + m; // See 4.3.4.2
 
             // Calculate check digits.
             checkSum1 = 0;
@@ -620,7 +380,6 @@ namespace ZintNet.Encoders
             checkValue2 = checkSum2 % 107;
             values[barCharacters] = checkValue1;
             values[barCharacters + 1] = checkValue2;
-            barCharacters += 2;
 
             for (int row = 0; row < rowsRequired; row++)
             {
@@ -628,186 +387,317 @@ namespace ZintNet.Encoders
                 rowPattern.Append(C16KStartStop[C16KStartValues[row]]);
                 rowPattern.Append("1");
                 for (int i = 0; i < 5; i++)
+                {
                     rowPattern.Append(Code16KTable[values[(row * 5) + i]]);
+                }
 
                 rowPattern.Append(C16KStartStop[C16KStopValues[row]]);
 
                 // Expand row into the symbol data.
-                SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 10.0f);
+                SymbolBuilder.BuildSymbol(Symbol, rowPattern, 10.0f);
+            }
+        }
+
+        private void PutInSet(int[,] encodingList, int listIndex, char[] set, char[] source)
+        {
+            int position = 0;
+            int i, j;
+            int cCount = 0;
+            bool haveNonC = false;
+
+            for (i = 0; i < listIndex; i++)
+            {
+                for (j = 0; j < encodingList[0, i]; j++)
+                {
+                    set[position++] = (char)(encodingList[1, i]);
+                }
+            }
+
+            // Watch out for odd-length Mode C blocks.
+            for (i = 0; i < position; i++)
+            {
+                if (set[i] == 'C')
+                {
+                    if (source[i] == '\x1d')
+                    {
+                        if ((cCount & 1) > 0)
+                        {
+                            haveNonC = true;
+                            if (i > cCount)
+                            {
+                                set[i - cCount] = 'B';
+                            }
+
+                            else
+                            {
+                                set[i - 1] = 'B';
+                            }
+                        }
+
+                        cCount = 0;
+                    }
+
+                    else
+                    {
+                        cCount++;
+                    }
+                }
+
+                else
+                {
+                    haveNonC = true;
+                    if ((cCount & 1) > 0)
+                    {
+                        if (i > cCount)
+                        {
+                            set[i - cCount] = 'B';
+                        }
+
+                        else
+                        {
+                            set[i - 1] = 'B';
+                        }
+                    }
+                    cCount = 0;
+                }
+            }
+
+            if ((cCount & 1) > 0)
+            {
+                if (i > cCount && haveNonC)
+                {
+                    set[i - cCount] = 'B';
+                    if (cCount < 4)
+                    {
+                        // Rule 1b.
+                        for (j = i - cCount + 1; j < i; j++)
+                        {
+                            set[j] = 'B';
+                        }
+                    }
+                }
+                else
+                {
+                    set[i - 1] = 'B';
+                }
+            }
+            for (i = 1; i < position - 1; i++)
+            {
+                if (set[i] == 'C' && set[i - 1] != 'C' && set[i + 1] != 'C')
+                {
+                    set[i] = set[i + 1];
+                }
+            }
+            if (position > 1 && set[position - 1] == 'C' && set[position - 2] != 'C')
+            {
+                set[position - 1] = set[position - 2];
             }
         }
 
         // Determine appropriate mode for a given character.
-        private static int GetMode(char value)
+        private int GetMode(char value, bool checkFNC1)
         {
-            int mode = 0;
+            int mode;
 
             if (value <= 31)
-                mode = SHIFTA;
+            {
+                mode = checkFNC1 && value == '\x1D' ? ABORC : SHIFTA;
+            }
 
             else if ((value >= 48) && (value <= 57))
+            {
                 mode = ABORC;
+            }
 
             else if (value <= 95)
+            {
                 mode = AORB;
+            }
 
             else if (value <= 127)
+            {
                 mode = SHIFTB;
+            }
 
             else if (value <= 159)
+            {
                 mode = SHIFTA;
+            }
 
             else if (value <= 223)
+            {
                 mode = AORB;
+            }
 
             else
+            {
                 mode = SHIFTB;
+            }
 
             return mode;
         }
 
         // Implements rules from ISO 15417 Annex E
-        private static void DxSmooth(int[,] encodingList, ref int listIndex)
+        private void DxSmooth(int[,] encodingList, ref int listIndex)
         {
-            int current, last, next, length;
+            int nextShift = 0;
+            int nextShiftI = 0;
 
             for (int i = 0; i < listIndex; i++)
             {
-                current = encodingList[1, i];
-                length = encodingList[0, i];
+                int current = encodingList[1, i];   // Either ABORC, AORB, SHIFTA or SHIFTB.
+                int length = encodingList[0, i];
 
-                if (i != 0)
-                    last = encodingList[1, i - 1];
-
-                else
-                    last = 0;
-
-                if (i != encodingList.Length - 1)
-                    next = encodingList[1, i + 1];
-
-                else
-                    next = 0;
+                if (i == nextShiftI)
+                {
+                    nextShift = 0;
+                    // Set next shift to aid deciding between latching to A or B - taken from Okapi, props Daniel Gredler.
+                    for (int j = i + 1; j < listIndex; j++)
+                    {
+                        if (encodingList[1, j] == SHIFTA || encodingList[1, j] == SHIFTB)
+                        {
+                            nextShift = encodingList[1, j];
+                            nextShiftI = j;
+                            break;
+                        }
+                    }
+                }
 
                 if (i == 0) // First block.
                 {
-
-                    if ((listIndex == 1) && ((length == 2) && (current == ABORC)))    // Rule 1a.
-                        encodingList[1, i] = LATCHC;
-
-
                     if (current == ABORC)
                     {
-                        if (length >= 4)    // Rule 1b.
+                        // Rule 1a.
+                        if ((listIndex == 1) && (length == 2))
+                        {
                             encodingList[1, i] = LATCHC;
+                            current = LATCHC;
+                        }
+
+                        // Rule 1b.
+                        else if (length >= 4)
+                        {
+                            encodingList[1, i] = LATCHC;
+                            current = LATCHC;
+                        }
 
                         else
                         {
-                            encodingList[1, i] = AORB;
-                            current = AORB;
+                            current = AORB; // Determined below.
                         }
-                    }
-
-                    if (current == SHIFTA)  // Rule 1c.
-                        encodingList[1, i] = LATCHA;
-
-                    if ((current == AORB) && (next == SHIFTA))  // Rule 1c.
-                    {
-                        encodingList[1, i] = LATCHA;
-                        current = LATCHA;
-                    }
-
-                    if (current == AORB)    // Rule 1d.
-                        encodingList[1, i] = LATCHB;
-                }
-
-                else
-                {
-                    if ((current == ABORC) && (length >= 4))    // Rule 3.
-                    {
-                        encodingList[1, i] = LATCHC;
-                        current = LATCHC;
-                    }
-
-                    if (current == ABORC)
-                    {
-                        encodingList[1, i] = AORB;
-                        current = AORB;
-                    }
-
-                    if ((current == AORB) && (last == LATCHA))
-                    {
-                        encodingList[1, i] = LATCHA;
-                        current = LATCHA;
-                    }
-
-                    if ((current == AORB) && (last == LATCHB))
-                    {
-                        encodingList[1, i] = LATCHB;
-                        current = LATCHB;
-                    }
-
-                    if ((current == AORB) && (next == SHIFTA))
-                    {
-                        encodingList[1, i] = LATCHA;
-                        current = LATCHA;
-                    }
-
-                    if ((current == AORB) && (next == SHIFTB))
-                    {
-                        encodingList[1, i] = LATCHB;
-                        current = LATCHB;
                     }
 
                     if (current == AORB)
                     {
-                        encodingList[1, i] = LATCHB;
-                        current = LATCHB;
-                    }
+                        if (nextShift == SHIFTA)
+                        {
+                            // Rule 1c.
+                            encodingList[1, i] = LATCHA;
+                        }
 
-                    if ((current == SHIFTA) && (length > 1))    // Rule 4.
+                        else
+                        {
+                            // Rule 1d.
+                            encodingList[1, i] = LATCHB;
+                        }
+                    }
+                }
+
+                else
+                {
+                    int last = encodingList[1, i - 1];
+                    if (current == ABORC)
                     {
+                        if (length >= 4)
+                        {
+                            // Rule 3 - note Rule 3b (odd C blocks) dealt with later.
+                            encodingList[1, i] = LATCHC;
+                            current = LATCHC;
+                        }
 
-                        encodingList[1, i] = LATCHA;
-                        current = LATCHA;
+                        else
+                        {
+                            current = AORB; // Determine below.
+                        }
                     }
 
-                    if ((current == SHIFTB) && (length > 1))    // Rule 5
+                    if (current == AORB)
                     {
+                        if (last == LATCHA || last == SHIFTB)
+                        {
 
-                        encodingList[1, i] = LATCHB;
-                        current = LATCHB;
+                            encodingList[1, i] = LATCHA;
+                        }
+
+                        else if (last == LATCHB || last == SHIFTA)
+                        {
+                            // Maintain state.
+                            encodingList[1, i] = LATCHB;
+                        }
+
+                        else if (nextShift == SHIFTA)
+                        {
+                            encodingList[1, i] = LATCHA;
+                        }
+
+                        else
+                        {
+                            encodingList[1, i] = LATCHB;
+                        }
                     }
 
-                    if ((current == SHIFTA) && (last == LATCHA))
+                    else if (current == SHIFTA)
                     {
-                        encodingList[1, i] = LATCHA;
-                        current = LATCHA;
+                        if (length > 1)
+                        {
+                            // Rule 4.
+                            encodingList[1, i] = LATCHA;
+                        }
+
+                        else if (last == LATCHA || last == SHIFTB)
+                        {
+                            // Maintain state.
+                            encodingList[1, i] = LATCHA;
+                        }
+
+                        else if (last == LATCHC)
+                        {
+                            encodingList[1, i] = LATCHA;
+                        }
                     }
 
-                    if ((current == SHIFTB) && (last == LATCHB))
+                    else if (current == SHIFTB)
                     {
-                        encodingList[1, i] = LATCHB;
-                        current = LATCHB;
-                    }
+                        // Unless LATCHX set above, can only be C16K_SHIFTB.
+                        if (length > 1)
+                        {
+                            // Rule 5.
+                            encodingList[1, i] = LATCHB;
+                        }
 
-                    if ((current == SHIFTA) && (last == LATCHC))
-                    {
-                        encodingList[1, i] = LATCHA;
-                        current = LATCHA;
-                    }
+                        else if (last == LATCHB || last == SHIFTA)
+                        {
+                            // Maintain state.
+                            encodingList[1, i] = LATCHB;
+                        }
 
-                    if ((current == SHIFTB) && (last == LATCHC))
-                    {
-                        encodingList[1, i] = LATCHB;
-                        current = LATCHB;
+                        else if (last == LATCHC)
+                        {
+                            encodingList[1, i] = LATCHB;
+                        }
                     }
-                } // Rule 2 is implimented elsewhere, Rule 6 is implied.
+                } // Rule 2 is implemented elsewhere, Rule 6 is implied.
             }
 
             GroupBlocks(encodingList, ref listIndex);
         }
 
-        private static void GroupBlocks(int[,] encodingList, ref int listIndex)
+        /// <summary>
+        /// Bring together same type blocks.
+        /// </summary>
+        /// <param name="encodingList"></param>
+        /// <param name="listIndex"></param>
+        private void GroupBlocks(int[,] encodingList, ref int listIndex)
         {
             int i, j;
 
@@ -840,24 +730,32 @@ namespace ZintNet.Encoders
             }
         }
 
-        private static void Code16KSetA(char source, int[] values, ref int barCharacters)
+        private void Code16KSetA(char source, int[] values, ref int barCharacters)
         {
-            if (source > 127)
+            if (source >= 128)
             {
                 if (source < 160)
-                    values[barCharacters] = (source + 64) - 128;
+                {
+                    values[barCharacters] = (source - 128) + 64;
+                }
 
                 else
-                    values[barCharacters] = (source - 32) - 128;
+                {
+                    values[barCharacters] = (source - 128) - 32;
+                }
             }
 
             else
             {
                 if (source < 32)
+                {
                     values[barCharacters] = source + 64;
+                }
 
                 else
+                {
                     values[barCharacters] = source - 32;
+                }
             }
 
             barCharacters++;
@@ -867,24 +765,40 @@ namespace ZintNet.Encoders
          * This set handles all characters which are not part of long numbers and not
          * control characters.
          */
-        private static void Code16KSetB(char source, int[] values, ref int barCharacters)
+        private bool Code16KSetB(char source, int[] values, ref int barCharacters)
         {
-            if (source > 127)
+            if (source >= 128 + 32)
+            {
                 values[barCharacters] = source - 32 - 128;
+            }
+
+            else if (source >= 128)
+            {
+                // Should never happen.
+                return false;
+            }
+
+            else if( source >= 32)
+            {
+                values[barCharacters] = source - 32;
+            }
 
             else
-                values[barCharacters] = source - 32;
+            {
+                // Should never happen.
+                return false;
+            }
 
             barCharacters++;
+            return true;
         }
 
         /* Translate Code 128 Set C characters into barcodes
          * This set handles numbers in a compressed form
          */
-        private static void Code16KSetC(char sourceA, char sourceB, int[] values, ref int barCharacters)
+        private void Code16KSetC(char sourceA, char sourceB, int[] values, ref int barCharacters)
         {
-            int weight = (10 * (sourceA - '0')) + (sourceB - '0');
-            values[barCharacters] = weight;
+            values[barCharacters] = (10 * (sourceA - '0')) + (sourceB - '0');
             barCharacters++;
         }
     }

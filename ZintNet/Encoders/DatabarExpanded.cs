@@ -1,12 +1,12 @@
 ﻿/* DatabarExpanded.cs Handles the Databar Expanded 1D + composite 2D symbol */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
   
     libzint - the open source barcode library
-    Copyright (C) 2009-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2009-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -35,25 +35,21 @@
  */
 
 using System;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Data;
-using System.Text;
 
 namespace ZintNet.Encoders
 {
     internal partial class DatabarEncoder
     {
         # region Tables
+
         // RSS Expanded Tables.
-        static int[] GroupSumExpanded = { 0, 348, 1388, 2948, 3988 };
-        static int[] EvenExpanded = { 4, 20, 52, 104, 204 };
-        static int[] OddModulesExpanded = { 12, 10, 8, 6, 4 };
-        static int[] EvenModulesExpanded = { 5, 7, 9, 11, 13 };
-        static int[] WidestOddExpanded = { 7, 5, 4, 3, 1 };
-        static int[] WidestEvenExpanded = { 2, 4, 5, 6, 8 };
-        static int[] ChecksumWeightExpanded = {
+        static readonly int[] GroupSumExpanded = { 0, 348, 1388, 2948, 3988 };
+        static readonly int[] EvenExpanded = { 4, 20, 52, 104, 204 };
+        static readonly int[] OddModulesExpanded = { 12, 10, 8, 6, 4 };
+        static readonly int[] EvenModulesExpanded = { 5, 7, 9, 11, 13 };
+        static readonly int[] WidestOddExpanded = { 7, 5, 4, 3, 1 };
+        static readonly int[] WidestEvenExpanded = { 2, 4, 5, 6, 8 };
+        static readonly int[] ChecksumWeightExpanded = {
             // Table 14.
 	        1, 3, 9, 27, 81, 32, 96, 77,
 	        20, 60, 180, 118, 143, 7, 21, 63,
@@ -79,7 +75,7 @@ namespace ZintNet.Encoders
 	        55, 165, 73, 8, 24, 72, 5, 15,
 	        45, 135, 194, 160, 58, 174, 100, 89};
 
-        static int[] FinderPatternExpanded = {
+        static readonly int[] FinderPatternExpanded = {
             // Table 15.
 	        1, 8, 4, 1, 1,
 	        1, 1, 4, 8, 1,
@@ -94,7 +90,7 @@ namespace ZintNet.Encoders
 	        2, 2, 9, 1, 1,
 	        1, 1, 9, 2, 2};
 
-        static int[] FinderSequence = {
+        static readonly int[] FinderSequence = {
             // Table 16.
 	        1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	        1, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -107,7 +103,7 @@ namespace ZintNet.Encoders
 	        1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 0,
 	        1, 2, 3, 4, 5, 8, 7, 10, 9, 12, 11};
 
-        static int[] RowWeights = {
+        static readonly int[] RowWeights = {
 	        0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	        0, 5, 6, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	        0, 9, 10, 3, 4, 13, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -122,7 +118,7 @@ namespace ZintNet.Encoders
         # endregion
 
         /// <summary>
-        /// Encodes the Databar Expanded symbol.
+        /// Encodes the Databar Expanded and Expanded Stacked symbols.
         /// </summary>
         private void DatabarExpanded()
         {
@@ -130,12 +126,16 @@ namespace ZintNet.Encoders
             int[] checkWidths = new int[8];
 
             if (segments == 0)   // Auto.
+            {
                 segments = 4;
+            }
             // There shall be a minimum of 4 symbol segments (2 columns) in the
             // first row of an RSS Expanded Stacked symbol when it is the linear
             // component of a Composite symbol.
             if (isCompositeSymbol && segments < 4)
+            {
                 segments = 4;
+            }
 
             binaryData = BitStreamEncoder.DatabarExpBitStream(symbolId, barcodeData, isCompositeSymbol, segments);
             int dataCharacters = binaryData.SizeInBits / 12;
@@ -154,7 +154,9 @@ namespace ZintNet.Encoders
                 while (mask > 0)
                 {
                     if (binaryData[(i * 12) + j] == 1)
+                    {
                         vs[i] += mask;
+                    }
 
                     mask >>= 1;
                     j++;
@@ -164,19 +166,29 @@ namespace ZintNet.Encoders
             for (int i = 0; i < dataCharacters; i++)
             {
                 if (vs[i] <= 347)
+                {
                     group[i] = 1;
+                }
 
                 if (vs[i] >= 348 && vs[i] <= 1387)
+                {
                     group[i] = 2;
+                }
 
                 if (vs[i] >= 1388 && vs[i] <= 2947)
+                {
                     group[i] = 3;
+                }
 
                 if (vs[i] >= 2948 && vs[i] <= 3987)
+                {
                     group[i] = 4;
+                }
 
                 if (vs[i] >= 3988)
+                {
                     group[i] = 5;
+                }
 
                 vOdd[i] = (vs[i] - GroupSumExpanded[group[i] - 1]) / EvenExpanded[group[i] - 1];
                 vEven[i] = (vs[i] - GroupSumExpanded[group[i] - 1]) % EvenExpanded[group[i] - 1];
@@ -203,25 +215,37 @@ namespace ZintNet.Encoders
             {
                 int r = RowWeights[(((dataCharacters - 2) / 2) * 21) + i];
                 for (int j = 0; j < 8; j++)
+                {
                     checksum += charWidths[i, j] * ChecksumWeightExpanded[(r * 8) + j];
+                }
             }
 
             int checkCharacter = (211 * ((dataCharacters + 1) - 4)) + (checksum % 211);
 
             if (checkCharacter <= 347)
+            {
                 checkGroup = 1;
+            }
 
             if (checkCharacter >= 348 && checkCharacter <= 1387)
+            {
                 checkGroup = 2;
+            }
 
             if (checkCharacter >= 1388 && checkCharacter <= 2947)
+            {
                 checkGroup = 3;
+            }
 
             if (checkCharacter >= 2948 && checkCharacter <= 3987)
+            {
                 checkGroup = 4;
+            }
 
             if (checkCharacter >= 3988)
+            {
                 checkGroup = 5;
+            }
 
             int checkOdd = (checkCharacter - GroupSumExpanded[checkGroup - 1]) / EvenExpanded[checkGroup - 1];
             int checkEven = (checkCharacter - GroupSumExpanded[checkGroup - 1]) % EvenExpanded[checkGroup - 1];
@@ -239,50 +263,64 @@ namespace ZintNet.Encoders
             checkWidths[7] = RSSWidths[3];
 
             // Initialise element array.
-            int patternWidth = ((((dataCharacters + 1) / 2) + ((dataCharacters + 1) & 1)) * 5) + ((dataCharacters + 1) * 8) + 4;
-            int[] elements = new int[patternWidth];
+            int[] elements = new int[((((dataCharacters + 1) / 2) + ((dataCharacters + 1) & 1)) * 5) + ((dataCharacters + 1) * 8) + 4];
+            //int[] elements = new int[patternWidth];
 
             // Put finder patterns in element array.
             for (int i = 0; i < ((dataCharacters + 1) / 2) + ((dataCharacters + 1) & 1); i++)
             {
                 int index = ((((((dataCharacters + 1) - 2) / 2) + ((dataCharacters + 1) & 1)) - 1) * 11) + i;
                 for (int j = 0; j < 5; j++)
+                {
                     elements[(21 * i) + j + 10] = FinderPatternExpanded[((FinderSequence[index] - 1) * 5) + j];
+                }
             }
 
             // Put check character in element array.
             for (int i = 0; i < 8; i++)
+            {
                 elements[i + 2] = checkWidths[i];
+            }
 
             // Put forward reading data characters in element array.
             for (int i = 1; i < dataCharacters; i += 2)
             {
                 for (int j = 0; j < 8; j++)
+                {
                     elements[(((i - 1) / 2) * 21) + 23 + j] = charWidths[i, j];
+                }
             }
 
             // Put reversed data characters in element array.
             for (int i = 0; i < dataCharacters; i += 2)
             {
                 for (int j = 0; j < 8; j++)
+                {
                     elements[((i / 2) * 21) + 15 + j] = charWidths[i, 7 - j];
+                }
             }
 
             // Build the elements into the symbol.
             if (symbolId == Symbology.DatabarExpanded)
-                BuildExpandedSymbol(elements, patternWidth);
+            {
+                BuildExpandedSymbol(elements);
+            }
 
             else
-                BuildExpandedStackedSymbol(elements, dataCharacters, patternWidth);
+            {
+                BuildExpandedStackedSymbol(elements, dataCharacters);
+            }
         }
 
-        private void BuildExpandedSymbol(int[] elements, int patternWidth)
+        /// <summary>
+        /// Builds the Expanded symbol.
+        /// </summary>
+        /// <param name="elements">Symbol elements.</param>
+        private void BuildExpandedSymbol(int[] elements)
         {
-            // Builds the symbol for databar expanded.
-            byte[] rowData;
             SymbolData symbolData;
-
-            bool latch = false;
+            int patternWidth = elements.Length;
+            byte[] rowData;
             int symbolWidth = 0;
             int position = 0;
 
@@ -294,15 +332,21 @@ namespace ZintNet.Encoders
 
             // Get the total length of the bit pattern.
             for (int i = 0; i < patternWidth; i++)
+            {
                 symbolWidth += elements[i];
+            }
 
             rowData = new byte[symbolWidth];
+
+            bool latch = false;
             for (int i = 0; i < patternWidth; i++)
             {
                 for (int j = 0; j < elements[i]; j++)
                 {
                     if (latch)
+                    {
                         rowData[position] = 1;
+                    }
 
                     position++;
                 }
@@ -320,7 +364,9 @@ namespace ZintNet.Encoders
                 for (int i = 4; i < symbolWidth - 4; i++)
                 {
                     if (Symbol[0].GetRowData()[i] == 0)
+                    {
                         rowData[i] = 1;
+                    }
                 }
 
                 // Finder bar adjustment.
@@ -337,28 +383,29 @@ namespace ZintNet.Encoders
         /// Builds the Databar Expanded Stacked symbol.
         /// </summary>
         /// <remarks>builds the symbol top down</remarks>
-        /// <param name="elements"></param>
-        /// <param name="dataCharacters"></param>
-        /// <param name="patternWidth"></param>
-        private void BuildExpandedStackedSymbol(int[] elements, int dataCharacters, int patternWidth)
+        /// <param name="elements">Symbol elements.</param>
+        /// <param name="dataCharacters">Number of data blocks.</param>
+        private void BuildExpandedStackedSymbol(int[] elements, int dataCharacters)
         {
             SymbolData symbolData;
             byte[] rowData;
             int[] subElements;
+            int patternWidth = elements.Length;
             int row;
             int currentRow;
             int position;
             int symbolWidth;
             bool isSpecialRow;
             bool isLeftToRight;
-            bool latch = false;
             int column = 0;
             int columnsPerRow = segments / 2;
             int maxWidth = 0;
 
             int codeBlocks = ((dataCharacters + 1) / 2) + ((dataCharacters + 1) % 2);
             if (columnsPerRow > codeBlocks) // User supplied segments is large than needed to encode symbol.
+            {
                 columnsPerRow = codeBlocks;
+            }
 
             int stackedRows = (codeBlocks / columnsPerRow) + (codeBlocks % columnsPerRow > 0 ? 1 : 0);
             int subElementCount = 0;
@@ -388,7 +435,9 @@ namespace ZintNet.Encoders
                         for (int j = 0; j < 21; j++)
                         {
                             if ((i + j) < patternWidth)
+                            {
                                 subElements[j + (column * 21) + 2] = elements[i + j];
+                            }
 
                             subElementCount++;
                         }
@@ -402,7 +451,9 @@ namespace ZintNet.Encoders
                         for (int j = 0; j < 21; j++)
                         {
                             if ((i + j) < patternWidth)
+                            {
                                 subElements[(20 - j) + (column * 21) + 2] = elements[i + j];
+                            }
 
                             subElementCount++;
                         }
@@ -418,7 +469,7 @@ namespace ZintNet.Encoders
                 subElements[subElementCount + 1] = 1;
                 subElementCount += 2;
 
-                latch = !((currentRow & 1) != 0);
+                bool latch = !((currentRow & 1) != 0);
                 if (currentRow == stackedRows && codeBlocks != (currentRow * columnsPerRow) &&
                     ((((currentRow * columnsPerRow) - codeBlocks) & 1) != 0) && ((columnsPerRow & 1) == 0))
                 {
@@ -431,7 +482,9 @@ namespace ZintNet.Encoders
                 symbolWidth = 0;
                 position = 0;
                 for (int i = 0; i < subElementCount; i++)
+                {
                     symbolWidth += subElements[i];
+                }
 
                 rowData = new byte[symbolWidth];
                 for (int i = 0; i < subElementCount; i++)
@@ -439,7 +492,9 @@ namespace ZintNet.Encoders
                     for (int j = 0; j < subElements[i]; j++)
                     {
                         if (latch)
+                        {
                             rowData[position] = 1;
+                        }
 
                         position++;
                     }
@@ -458,7 +513,9 @@ namespace ZintNet.Encoders
                     row = Symbol.Count - 1;
 
                     for (int j = 5; j < length; j += 2)
+                    {
                         rowData[j] = 1;
+                    }
 
                     symbolData = new SymbolData(rowData, 1.0f);
                     Symbol.Insert(row, symbolData);
@@ -470,7 +527,9 @@ namespace ZintNet.Encoders
                     for (int j = 4; j < (symbolWidth - 4); j++)
                     {
                         if (Symbol[row].GetRowData()[j] == 0)
+                        {
                             rowData[j] = 1;
+                        }
                     }
 
                     FinderAdjustment(rowData, column, row, isSpecialRow, isLeftToRight);
@@ -487,7 +546,9 @@ namespace ZintNet.Encoders
                     for (int j = 4; j < (symbolWidth - 4); j++)
                     {
                         if (Symbol[row].GetRowData()[j] == 0)
+                        {
                             rowData[j] = 1;
+                        }
                     }
 
                     FinderAdjustment(rowData, column, row, isSpecialRow, isLeftToRight);
@@ -505,7 +566,9 @@ namespace ZintNet.Encoders
                 for (int i = 4; i < maxWidth - 4; i++)
                 {
                     if (Symbol[0].GetRowData()[i] == 0)
+                    {
                         rowData[i] = 1;
+                    }
                 }
 
                 FinderAdjustment(rowData, column, 0, false, true);
@@ -521,13 +584,15 @@ namespace ZintNet.Encoders
         {
             for (int j = 0; j < column; j++)
             {
-                int k = (49 * j) + ((isSpecialRow) ? 19 : 18);
+                int k = (49 * j) + (isSpecialRow ? 19 : 18);
                 if (isLeftToRight)
                 {
                     for (int i = 0; i < 15; i++)
                     {
                         if (Symbol[row].GetRowData()[i + k - 1] == 0 && Symbol[row].GetRowData()[i + k] == 0 && rowData[i + k - 1] == 1)
+                        {
                             rowData[i + k] = 0;
+                        }
                     }
                 }
 
@@ -536,7 +601,9 @@ namespace ZintNet.Encoders
                     for (int i = 14; i >= 0; i--)
                     {
                         if (Symbol[row].GetRowData()[i + k + 1] == 0 && Symbol[row].GetRowData()[i + k] == 0 && rowData[i + k + 1] == 1)
+                        {
                             rowData[i + k] = 0;
+                        }
                     }
                 }
             }

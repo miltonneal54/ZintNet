@@ -1,12 +1,12 @@
 ﻿/* DatabarLimited.cs Handles Databar Limited 1D + composite 2D symbol */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
   
     libzint - the open source barcode library
-    Copyright (C) 2009-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2009-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -36,19 +36,15 @@
 
 using System;
 using System.Globalization;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Data;
-using System.Text;
 
 namespace ZintNet.Encoders
 {
     internal partial class DatabarEncoder
     {
         # region Tables
+
         // RSS Limited Tables.
-        static int[] OddEvenTable = {
+        static readonly int[] OddEvenTable = {
 			17, 6, 9, 3, 28, 183064,
             13, 5, 13, 4, 728, 637000,
             9, 3, 17, 6, 6454, 180712,
@@ -57,9 +53,9 @@ namespace ZintNet.Encoders
             19, 8, 7, 1, 1, 17094,
             7, 1, 19, 8, 16632, 16632};
 
-        static int[] LeftWeights = { 1, 3, 9, 27, 81, 65, 17, 51, 64, 14, 42, 37, 22, 66 };
-        static int[] RightWeights = { 20, 60, 2, 6, 18, 54, 73, 41, 34, 13, 39, 28, 84, 74 };
-        static byte[] FinderPatternsLimited = {
+        static readonly int[] LeftWeights = { 1, 3, 9, 27, 81, 65, 17, 51, 64, 14, 42, 37, 22, 66 };
+        static readonly int[] RightWeights = { 20, 60, 2, 6, 18, 54, 73, 41, 34, 13, 39, 28, 84, 74 };
+        static readonly byte[] FinderPatternsLimited = {
 	        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 1,
 	        1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 2, 1, 1,
 	        1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 1, 1,
@@ -148,6 +144,7 @@ namespace ZintNet.Encoders
 	        2, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 1, 1, 1,
 	        2, 1, 1, 1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 1,
 	        2, 1, 1, 2, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1};
+
         # endregion
 
         private void DatabarLimited()
@@ -164,27 +161,26 @@ namespace ZintNet.Encoders
             int characterValue, leftCharacterValue;
             int index;
             byte[] bars = new byte[46];
+            int maxLength = 13;
             int inputLength = barcodeData.Length;
 
-            if (inputLength > 13)
-                throw new InvalidDataLengthException("Databar Limited: Input too long.");
-
-            for (int i = 0; i < inputLength; i++)
+            if (inputLength > maxLength)
             {
-                if (i == 0)
-                {
-                    if (barcodeData[i] != '0' && barcodeData[i] != '1')
-                        throw new InvalidDataException("DataBar Limited: Requires the first character to be '0' or '1'.");
-                }
-
-                if (!Char.IsDigit(barcodeData[i]))
-                    throw new InvalidDataException("Databar Limited: Non numeric data in input.");
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Databar Limited: Input data too long.\nMaximum length is {0} characters.", maxLength));
             }
 
-            dataValue = double.Parse(barcodeMessage, CultureInfo.CurrentCulture);
+            if (barcodeData[0] != '0' && barcodeData[0] != '1')
+            {
+                throw new InvalidDataException("DataBar Limited: Requires the first character to be '0' or '1'.");
+            }
+
+            dataValue = double.Parse(new string(barcodeMessage), CultureInfo.CurrentCulture);
 
             if (isCompositeSymbol)
+            {
                 dataValue += COMPOSITE_FLAG;
+            }
 
             // Calculate left (high order) symbol half value.
             characterValue = leftCharacterValue = (int)(dataValue / LEFT_MULTIPLIER);
@@ -198,8 +194,8 @@ namespace ZintNet.Encoders
             }
 
             // Get odd elements N and Max.
-            elementN = (int)OddEvenTable[index];
-            elementMax = (int)OddEvenTable[index + 1];
+            elementN = OddEvenTable[index];
+            elementMax = OddEvenTable[index + 1];
             numberValue = value = characterValue / OddEvenTable[index + 4];
 
             // Generate and store odd element widths.
@@ -209,7 +205,7 @@ namespace ZintNet.Encoders
             {
                 bars[2 + (i * 2)] = (byte)RSSWidths[i];
                 parity += LeftWeights[i * 2] * RSSWidths[i];
-                parity = parity % PARITY_MODULAS;
+                parity %= PARITY_MODULAS;
             }
 
             // Calculate even elements value.
@@ -223,7 +219,7 @@ namespace ZintNet.Encoders
             {
                 bars[3 + (i * 2)] = (byte)RSSWidths[i];
                 parity += LeftWeights[(i * 2) + 1] * RSSWidths[i];
-                parity = parity % PARITY_MODULAS;
+                parity %= PARITY_MODULAS;
             }
 
             // Calculate right (low order) symbol half value.
@@ -238,9 +234,9 @@ namespace ZintNet.Encoders
             }
 
             // Get odd elements N and Max.
-            elementN = (int)OddEvenTable[index];
-            elementMax = (int)OddEvenTable[index + 1];
-            numberValue = value = (characterValue / OddEvenTable[index + 4]);
+            elementN = OddEvenTable[index];
+            elementMax = OddEvenTable[index + 1];
+            numberValue = value = characterValue / OddEvenTable[index + 4];
 
             // Generate and store odd element widths.
             GetRSSWidths(value, elementN, K, elementMax, true);
@@ -248,13 +244,13 @@ namespace ZintNet.Encoders
             {
                 bars[30 + (i * 2)] = (byte)RSSWidths[i];
                 parity += RightWeights[i * 2] * RSSWidths[i];
-                parity = parity % PARITY_MODULAS;
+                parity %= PARITY_MODULAS;
             }
 
             // Calculate even elements value:
-            value = (int)(characterValue - (OddEvenTable[index + 4] * numberValue));
-            elementN = (int)OddEvenTable[index + 2];
-            elementMax = (int)OddEvenTable[index + 3];
+            value = characterValue - (OddEvenTable[index + 4] * numberValue);
+            elementN = OddEvenTable[index + 2];
+            elementMax = OddEvenTable[index + 3];
 
             // Generate and store even element widths.
             GetRSSWidths(value, elementN, K, elementMax, false);
@@ -262,12 +258,14 @@ namespace ZintNet.Encoders
             {
                 bars[31 + (i * 2)] = (byte)RSSWidths[i];
                 parity += RightWeights[(i * 2) + 1] * RSSWidths[i];
-                parity = parity % PARITY_MODULAS;
+                parity %= PARITY_MODULAS;
             }
 
             // Store parity character in bars.
             for (int i = 0; i < 14; i++)
+            {
                 bars[16 + i] = FinderPatternsLimited[(parity * 14) + i];
+            }
 
             // Insert guard bars.
             bars[0] = 1;
@@ -281,7 +279,9 @@ namespace ZintNet.Encoders
             bool latch = false;
 
             for (int i = 0; i < 46; i++)
+            {
                 symbolWidth += bars[i];
+            }
 
             byte[] rowData = new byte[symbolWidth];
 
@@ -290,7 +290,9 @@ namespace ZintNet.Encoders
                 for (int j = 0; j < bars[i]; j++)
                 {
                     if (latch)
+                    {
                         rowData[position] = 1;
+                    }
 
                     position++;
                 }
@@ -302,7 +304,9 @@ namespace ZintNet.Encoders
             Symbol.Add(symbolData);
 
             if (isCompositeSymbol)
+            {
                 AddComposite(symbolWidth);
+            }
         }
     }
 }

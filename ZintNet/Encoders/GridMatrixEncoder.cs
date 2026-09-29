@@ -1,12 +1,12 @@
 ﻿/* GridMatrixEncodeEncoder.cs - Handles encoding Grid Matrix 2D symbol */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
  
     libzint - the open source barcode library
-    Copyright (C) 2008-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2008-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
     SUCH DAMAGE.
  */
 using System;
-using System.Collections.Generic;
+using System.Globalization;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
@@ -45,7 +45,7 @@ namespace ZintNet.Encoders
     {
         # region Tables
 
-        private static char[] ShiftSet = {
+        private readonly char[] ShiftSet = {
             // From Table 7 - Encoding of control characters.
             (char)0x00, (char)0x01, (char)0x02, (char)0x03, (char)0x04, (char)0x05, (char)0x06, (char)0x07,
             (char)0x08, (char)0x09, (char)0x0a, (char)0x0b, (char)0x0c, (char)0x0d, (char)0x0e, (char)0x0f, /* NULL -> SI */
@@ -54,13 +54,13 @@ namespace ZintNet.Encoders
             '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':',
             ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~' };
 
-        private static int[] RecommendCodewords = {
+        private readonly int[] RecommendCodewords = {
             9, 30, 59, 114, 170, 237, 315, 405, 506, 618, 741, 875, 1021 };
 
-        private static int[] GMMaximumCodewords = {
+        private readonly int[] GMMaximumCodewords = {
             11, 40, 79, 146, 218, 305, 405, 521, 650, 794, 953, 1125, 1313 };
 
-        private static int[] DataCodewords = {
+        private readonly int[] DataCodewords = {
             0, 15, 13, 11, 9,
             45, 40, 35, 30, 25,
             89, 79, 69, 59, 49,
@@ -75,18 +75,18 @@ namespace ZintNet.Encoders
             1125, 1000, 875, 750, 625,
             1313, 1167, 1021, 875, 729 };
 
-        private static int[] GMN1 = {
+        private readonly int[] GMN1 = {
             18, 50, 98, 81, 121, 113, 113, 116, 121, 126, 118, 125, 122 };
 
-        private static int[] GMB1 = {
+        private readonly int[] GMB1 = {
             1, 1, 1, 2, 2, 2, 2, 3, 2, 7, 5, 10, 6 };
 
-        private static int[] GMB2 = {
+        private readonly int[] GMB2 = {
             0, 0, 0, 0, 0, 1, 2, 2, 4, 0, 4, 0, 6 };
 
         // Values from table A.1.
-        private static int[] GMEBValues = {
-            /* E1 B3 E2 B4 */
+        private readonly int[] GMEBValues = {
+         /* E1 B3 E2 B4 */
             0, 0, 0, 0, // version 1
             3, 1, 0, 0,
             5, 1, 0, 0,
@@ -153,7 +153,7 @@ namespace ZintNet.Encoders
             49, 7, 48, 5,
             61, 9, 60, 3 };
 
-        private static int[] MacroMatrix = {
+        private readonly int[] MacroMatrix = {
             728, 625, 626, 627, 628, 629, 630, 631, 632, 633, 634, 635, 636, 637, 638, 639, 640, 641, 642, 643, 644, 645, 646, 647, 648, 649, 650,
             727, 624, 529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 651,
             726, 623, 528, 441, 442, 443, 444, 445, 446, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 553, 652,
@@ -162,16 +162,16 @@ namespace ZintNet.Encoders
             723, 620, 525, 438, 359, 288, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 307, 382, 465, 556, 655,
             722, 619, 524, 437, 358, 287, 224, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 241, 308, 383, 466, 557, 656,
             721, 618, 523, 436, 357, 286, 223, 168, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 183, 242, 309, 384, 467, 558, 657,
-            720, 617, 522, 435, 356, 285, 222, 167, 120, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 133, 184, 243, 310, 385, 468, 559, 658,
-            719, 616, 521, 434, 355, 284, 221, 166, 119, 80, 49, 50, 51, 52, 53, 54, 55, 56, 91, 134, 185, 244, 311, 386, 469, 560, 659,
-            718, 615, 520, 433, 354, 283, 220, 165, 118, 79, 48, 25, 26, 27, 28, 29, 30, 57, 92, 135, 186, 245, 312, 387, 470, 561, 660,
-            717, 614, 519, 432, 353, 282, 219, 164, 117, 78, 47, 24, 9, 10, 11, 12, 31, 58, 93, 136, 187, 246, 313, 388, 471, 562, 661,
-            716, 613, 518, 431, 352, 281, 218, 163, 116, 77, 46, 23, 8, 1, 2, 13, 32, 59, 94, 137, 188, 247, 314, 389, 472, 563, 662,
-            715, 612, 517, 430, 351, 280, 217, 162, 115, 76, 45, 22, 7, 0, 3, 14, 33, 60, 95, 138, 189, 248, 315, 390, 473, 564, 663,
-            714, 611, 516, 429, 350, 279, 216, 161, 114, 75, 44, 21, 6, 5, 4, 15, 34, 61, 96, 139, 190, 249, 316, 391, 474, 565, 664,
-            713, 610, 515, 428, 349, 278, 215, 160, 113, 74, 43, 20, 19, 18, 17, 16, 35, 62, 97, 140, 191, 250, 317, 392, 475, 566, 665,
-            712, 609, 514, 427, 348, 277, 214, 159, 112, 73, 42, 41, 40, 39, 38, 37, 36, 63, 98, 141, 192, 251, 318, 393, 476, 567, 666,
-            711, 608, 513, 426, 347, 276, 213, 158, 111, 72, 71, 70, 69, 68, 67, 66, 65, 64, 99, 142, 193, 252, 319, 394, 477, 568, 667,
+            720, 617, 522, 435, 356, 285, 222, 167, 120,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90, 133, 184, 243, 310, 385, 468, 559, 658,
+            719, 616, 521, 434, 355, 284, 221, 166, 119,  80,  49,  50,  51,  52,  53,  54,  55,  56,  91, 134, 185, 244, 311, 386, 469, 560, 659,
+            718, 615, 520, 433, 354, 283, 220, 165, 118,  79,  48,  25,  26,  27,  28,  29,  30,  57,  92, 135, 186, 245, 312, 387, 470, 561, 660,
+            717, 614, 519, 432, 353, 282, 219, 164, 117,  78,  47,  24,   9,  10,  11,  12,  31,  58,  93, 136, 187, 246, 313, 388, 471, 562, 661,
+            716, 613, 518, 431, 352, 281, 218, 163, 116,  77,  46,  23,   8,   1,   2,  13,  32,  59,  94, 137, 188, 247, 314, 389, 472, 563, 662,
+            715, 612, 517, 430, 351, 280, 217, 162, 115,  76,  45,  22,   7,   0,   3,  14,  33,  60,  95, 138, 189, 248, 315, 390, 473, 564, 663,
+            714, 611, 516, 429, 350, 279, 216, 161, 114,  75,  44,  21,   6,   5,   4,  15,  34,  61,  96, 139, 190, 249, 316, 391, 474, 565, 664,
+            713, 610, 515, 428, 349, 278, 215, 160, 113,  74,  43,  20,  19,  18,  17,  16,  35,  62,  97, 140, 191, 250, 317, 392, 475, 566, 665,
+            712, 609, 514, 427, 348, 277, 214, 159, 112,  73,  42,  41,  40,  39,  38,  37,  36,  63,  98, 141, 192, 251, 318, 393, 476, 567, 666,
+            711, 608, 513, 426, 347, 276, 213, 158, 111,  72,  71,  70,  69,  68,  67,  66,  65,  64,  99, 142, 193, 252, 319, 394, 477, 568, 667,
             710, 607, 512, 425, 346, 275, 212, 157, 110, 109, 108, 107, 106, 105, 104, 103, 102, 101, 100, 143, 194, 253, 320, 395, 478, 569, 668,
             709, 606, 511, 424, 345, 274, 211, 156, 155, 154, 153, 152, 151, 150, 149, 148, 147, 146, 145, 144, 195, 254, 321, 396, 479, 570, 669,
             708, 605, 510, 423, 344, 273, 210, 209, 208, 207, 206, 205, 204, 203, 202, 201, 200, 199, 198, 197, 196, 255, 322, 397, 480, 571, 670,
@@ -181,8 +181,6 @@ namespace ZintNet.Encoders
             704, 601, 506, 505, 504, 503, 502, 501, 500, 499, 498, 497, 496, 495, 494, 493, 492, 491, 490, 489, 488, 487, 486, 485, 484, 575, 674,
             703, 600, 599, 598, 597, 596, 595, 594, 593, 592, 591, 590, 589, 588, 587, 586, 585, 584, 583, 582, 581, 580, 579, 578, 577, 576, 675,
             702, 701, 700, 699, 698, 697, 696, 695, 694, 693, 692, 691, 690, 689, 688, 687, 686, 685, 684, 683, 682, 681, 680, 679, 678, 677, 676 };
-
-
 
         #endregion
 
@@ -196,7 +194,7 @@ namespace ZintNet.Encoders
         private const char GM_MIXED = 'M';
         private const char GM_BYTE = 'B';
         // Must be in same order as GM_H etc.
-        private readonly char[] modeTypes = { GM_CHINESE, GM_NUMBER, GM_LOWER, GM_UPPER, GM_MIXED, GM_BYTE };
+        private readonly char[] ModeTypes = { GM_CHINESE, GM_NUMBER, GM_LOWER, GM_UPPER, GM_MIXED, GM_BYTE };
 
         // Indexes into mode_types array.
         private const int GM_H = 0; // Chinese (Hanzi)
@@ -218,18 +216,18 @@ namespace ZintNet.Encoders
         private readonly string NumeralNonDigits = " +-.,"; // Non-digit numeral set, excluding EOL (carriage return/linefeed)
 
         // Initial mode costs.
-        static int[] InitHeadCosts = {
+        private readonly int[] InitHeadCosts = {
                 /*  H            N (+pad prefix)    L            U            M            B (+byte count) */
                     4 * GM_MULT, (4 + 2) * GM_MULT, 4 * GM_MULT, 4 * GM_MULT, 4 * GM_MULT, (4 + 9) * GM_MULT };
 
         #endregion
 
-        private int optionEccLevel;
-        private int optionSymbolSize;
+        private readonly int optionEccLevel;
+        private readonly int optionSymbolSize;
 
-        public GridMatrixEncoder(Symbology symbology, string barcodeMessage, int optionSymbolSize, int optionEccLevel, int eci)
+        public GridMatrixEncoder(Symbology symbolId, char[] barcodeMessage, int optionSymbolSize, int optionEccLevel, int eci)
         {
-            this.symbolId = symbology;
+            this.symbolId = symbolId;
             this.barcodeMessage = barcodeMessage;
             this.optionEccLevel = optionEccLevel;
             this.optionSymbolSize = optionSymbolSize;
@@ -246,7 +244,6 @@ namespace ZintNet.Encoders
 
         private void GridMatrix()
         {
-            int size, modules, dark;
             int autoLayers, minimumLayers, layers;
             int autoEccLevel, minimumEccLevel, eccLevel;
             byte[] symbolGrid;
@@ -261,32 +258,46 @@ namespace ZintNet.Encoders
             for (int i = 0; i < inputLength; i++)
             {
                 if (barcodeData[i] <= 0xff)
+                {
                     gbData[i] = barcodeData[i];
+                }
 
                 else
+                {
                     gbData[i] = GetGB2312Character(barcodeData[i]);
+                }
             }
 
             if (eci > 811799)
-                throw new InvalidDataException("Grid Matrix: Invalid ECI value.");
+            {
+                throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                    "Grid Matrix: ECI code {0} out of range. (0 - 811799)", eci));
+            }
 
-            if (!GridMatrixEncode(bitStream, gbData, inputLength))
-                throw new InvalidDataLengthException("Grid Matrix: Input data too long.");
+            if (!GMEncode(gbData, inputLength, bitStream))
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Grid Matrix: Input too long, requires too many codewords. (Maximum allowed: 1313)"));
+            }
 
             // Determine the size of the symbol.
             dataCodewords = bitStream.SizeInBits / 7;
             autoLayers = 13;
             for (int i = 12; i > 0; i--)
             {
-                if (RecommendCodewords[(i - 1)] >= dataCodewords)
+                if (RecommendCodewords[i - 1] >= dataCodewords)
+                {
                     autoLayers = i;
+                }
             }
 
             minimumLayers = 13;
             for (int i = 12; i > 0; i--)
             {
-                if (GMMaximumCodewords[(i - 1)] >= dataCodewords)
+                if (GMMaximumCodewords[i - 1] >= dataCodewords)
+                {
                     minimumLayers = i;
+                }
             }
 
             layers = autoLayers;
@@ -294,34 +305,52 @@ namespace ZintNet.Encoders
             {
                 inputLatch = true;
                 if (optionSymbolSize >= minimumLayers)
+                {
                     layers = optionSymbolSize;
+                }
 
                 else
-                    throw new InvalidDataLengthException("Grid Matrix: Input data too long for selected symbol size.");
+                {
+                    throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                        "Grid Matrix: Input too long for Version {0}.\nRequires {1} codewords. (Maximum allowed: {2})",
+                        optionSymbolSize, dataCodewords, GMMaximumCodewords[optionSymbolSize - 1]));
+                }
             }
 
             autoEccLevel = 3;
             if (layers == 1)
+            {
                 autoEccLevel = 5;
+            }
 
-            if ((layers == 2) || (layers == 3))
+            else if ((layers == 2) || (layers == 3))
+            {
                 autoEccLevel = 4;
+            }
 
             eccLevel = autoEccLevel;
             minimumEccLevel = 1;
             if (layers == 1)
+            {
                 minimumEccLevel = 4;
+            }
 
-            if ((layers == 2))
+            else if ((layers == 2))
+            {
                 minimumEccLevel = 2;
+            }
 
             if ((optionEccLevel >= 1) && (optionEccLevel <= 5))
             {
                 if (optionEccLevel >= minimumEccLevel)
+                {
                     eccLevel = optionEccLevel;
+                }
 
                 else
+                {
                     eccLevel = minimumEccLevel;
+                }
             }
 
             if (dataCodewords > DataCodewords[(5 * (layers - 1)) + (eccLevel - 1)])
@@ -342,7 +371,7 @@ namespace ZintNet.Encoders
 
                 while (dataCodewords > DataCodewords[(5 * (layers - 1)) + (eccLevel - 1)] && eccLevel > 1)
                 {
-                    /* ECC min level 1 for layers > 2 */
+                    // ECC min level 1 for layers > 2.
                     eccLevel--;
                 }
             }
@@ -367,11 +396,14 @@ namespace ZintNet.Encoders
             }
 
             if (dataCodewords > dataMaximum)
-                throw new InvalidDataLengthException("Grid Matix: Input data too long.");
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Grid Matrix: Input too long for ECC level {0}.\nRequires {1} codewords. (Maximum allowed: {2})", eccLevel, dataCodewords, dataMaximum));
+            }
 
             AddErrorCorrection(bitStream, dataCodewords, layers, eccLevel, eccData);
-            size = 6 + (layers * 12);
-            modules = 1 + (layers * 2);
+            int size = 6 + (layers * 12);
+            int modules = 1 + (layers * 2);
             symbolGrid = new byte[size * size];
             PlaceDataInGrid(symbolGrid, eccData, modules, size);
             PlaceLayerId(symbolGrid, size, layers, modules, eccLevel);
@@ -379,7 +411,7 @@ namespace ZintNet.Encoders
             // Add macro module frames.
             for (int x = 0; x < modules; x++)
             {
-                dark = 1 - (x & 1);
+                int dark = 1 - (x & 1);
                 for (int y = 0; y < modules; y++)
                 {
                     if (dark == 1)
@@ -397,7 +429,9 @@ namespace ZintNet.Encoders
                     }
 
                     else
+                    {
                         dark = 1;
+                    }
                 }
             }
 
@@ -407,14 +441,16 @@ namespace ZintNet.Encoders
             {
                 rowData = new byte[size];
                 for (int x = 0; x < size; x++)
+                {
                     rowData[x] = symbolGrid[(size * y) + x];
+                }
 
                 SymbolData symbolData = new SymbolData(rowData, 1.0f);
                 Symbol.Add(symbolData);
             }
         }
 
-        private static void PlaceMacroModule(byte[] symbolGrid, int x, int y, int word1, int word2, int size)
+        private void PlaceMacroModule(byte[] symbolGrid, int x, int y, int word1, int word2, int size)
         {
             int i, j;
 
@@ -422,49 +458,77 @@ namespace ZintNet.Encoders
             j = (y * 6) + 1;
 
             if ((word2 & 0x40) > 0)
+            {
                 symbolGrid[(j * size) + i + 2] = 1;
+            }
 
             if ((word2 & 0x20) > 0)
+            {
                 symbolGrid[(j * size) + i + 3] = 1;
+            }
 
             if ((word2 & 0x10) > 0)
+            {
                 symbolGrid[((j + 1) * size) + i] = 1;
+            }
 
             if ((word2 & 0x08) > 0)
+            {
                 symbolGrid[((j + 1) * size) + i + 1] = 1;
+            }
 
             if ((word2 & 0x04) > 0)
+            {
                 symbolGrid[((j + 1) * size) + i + 2] = 1;
+            }
 
             if ((word2 & 0x02) > 0)
+            {
                 symbolGrid[((j + 1) * size) + i + 3] = 1;
+            }
 
             if ((word2 & 0x01) > 0)
+            {
                 symbolGrid[((j + 2) * size) + i] = 1;
+            }
 
             if ((word1 & 0x40) > 0)
+            {
                 symbolGrid[((j + 2) * size) + i + 1] = 1;
+            }
 
             if ((word1 & 0x20) > 0)
+            {
                 symbolGrid[((j + 2) * size) + i + 2] = 1;
+            }
 
             if ((word1 & 0x10) > 0)
+            {
                 symbolGrid[((j + 2) * size) + i + 3] = 1;
+            }
 
             if ((word1 & 0x08) > 0)
+            {
                 symbolGrid[((j + 3) * size) + i] = 1;
+            }
 
             if ((word1 & 0x04) > 0)
+            {
                 symbolGrid[((j + 3) * size) + i + 1] = 1;
+            }
 
             if ((word1 & 0x02) > 0)
+            {
                 symbolGrid[((j + 3) * size) + i + 2] = 1;
+            }
 
             if ((word1 & 0x01) > 0)
+            {
                 symbolGrid[((j + 3) * size) + i + 3] = 1;
+            }
         }
 
-        private static void PlaceDataInGrid(byte[] symbolGrid, int[] eccData, int modules, int size)
+        private void PlaceDataInGrid(byte[] symbolGrid, int[] eccData, int modules, int size)
         {
             int macroModule, offset;
 
@@ -480,7 +544,7 @@ namespace ZintNet.Encoders
         }
 
         // Place the layer ID into each macromodule.
-        private static void PlaceLayerId(byte[] symbolGrid, int size, int layers, int modules, int eccLevel)
+        private void PlaceLayerId(byte[] symbolGrid, int size, int layers, int modules, int eccLevel)
         {
             int layer, start, stop;
             int[] layerid = new int[layers + 1];
@@ -490,16 +554,22 @@ namespace ZintNet.Encoders
             for (int i = 0; i <= layers; i++)
             {
                 if (eccLevel == 1)
+                {
                     layerid[i] = 3 - (i % 4);
+                }
 
                 else
+                {
                     layerid[i] = (i + 5 - eccLevel) % 4;
+                }
             }
 
             for (int i = 0; i < modules; i++)
             {
                 for (int j = 0; j < modules; j++)
+                {
                     id[(i * modules) + j] = 0;
+                }
             }
 
             // Calculate which value goes in each macro module.
@@ -525,19 +595,23 @@ namespace ZintNet.Encoders
                 for (int j = 0; j < modules; j++)
                 {
                     if ((id[(i * modules) + j] & 0x02) > 0)
+                    {
                         symbolGrid[(((i * 6) + 1) * size) + (j * 6) + 1] = 1;
+                    }
 
                     if ((id[(i * modules) + j] & 0x01) > 0)
+                    {
                         symbolGrid[(((i * 6) + 1) * size) + (j * 6) + 2] = 1;
+                    }
                 }
             }
         }
 
-        private bool GridMatrixEncode(BitVector bitStream, char[] gbData, int inputLength)
+        private bool GMEncode(char[] gbData, int length, BitVector bitStream)
         {
             int c1, c2;
             char nextMode;
-            char lastMode = '\0';
+            char lastMode;
             char currentMode = '\0';
             int sourceIndex = 0;
             int glyph = 0;
@@ -548,30 +622,32 @@ namespace ZintNet.Encoders
             int byteCountPosition = 0;
             int byteCount = 0;
             int shift;
-            bool done = false;
             int[] numericBuffer = new int[3];
-            char[] mode = new char[inputLength];
+            char[] mode = new char[length];
+
             if (eci != 0)
             {
                 // ECI assignment according to Table 8.
                 bitStream.AppendBits(12, 4); // ECI.
                 if (eci <= 1023)
+                {
                     bitStream.AppendBits(eci, 11);
+                }
 
-                if ((eci >= 1024) && (eci <= 32767))
+                else if (eci <= 32767)
                 {
                     bitStream.AppendBits(2, 2);
                     bitStream.AppendBits(eci, 15);
                 }
 
-                if (eci >= 32768)
+                else
                 {
                     bitStream.AppendBits(3, 2);
                     bitStream.AppendBits(eci, 20);
                 }
             }
 
-            DefineModes(mode, gbData, inputLength);
+            DefineModes(mode, gbData, length);
             do
             {
                 nextMode = mode[sourceIndex];
@@ -764,7 +840,7 @@ namespace ZintNet.Encoders
                 switch (currentMode)
                 {
                     case GM_CHINESE:
-                        done = false;
+                        bool done = false;
                         if (gbData[sourceIndex] > 0xff)
                         {
                             // GB2312 character.
@@ -772,17 +848,21 @@ namespace ZintNet.Encoders
                             c2 = gbData[sourceIndex] & 0xff;
 
                             if ((c1 >= 0xa0) && (c1 <= 0xa9))
+                            {
                                 glyph = (0x60 * (c1 - 0xa1)) + (c2 - 0xa0);
+                            }
 
                             if ((c1 >= 0xb0) && (c1 <= 0xf7))
+                            {
                                 glyph = (0x60 * (c1 - 0xb0 + 9)) + (c2 - 0xa0);
+                            }
 
                             done = true;
                         }
 
                         if (!done)
                         {
-                            if (sourceIndex != (inputLength - 1))
+                            if (sourceIndex != (length - 1))
                             {
                                 if ((gbData[sourceIndex] == 0x13) && (gbData[sourceIndex + 1] == 0x10))
                                 {
@@ -796,19 +876,22 @@ namespace ZintNet.Encoders
 
                         if (!done)
                         {
-                            if (sourceIndex != (inputLength - 1))
+                            if (sourceIndex != (length - 1))
                             {
-                                if (Char.IsDigit(gbData[sourceIndex]) && Char.IsDigit(gbData[sourceIndex + 1]))
+                                if (char.IsDigit(gbData[sourceIndex]) && char.IsDigit(gbData[sourceIndex + 1]))
                                 {
                                     // Two digits.
                                     glyph = 8033 + (10 * (gbData[sourceIndex] - '0')) + (gbData[sourceIndex + 1] - '0');
                                     sourceIndex++;
+                                    done = true;
                                 }
                             }
                         }
 
                         if (!done)
+                        {
                             glyph = 7777 + gbData[sourceIndex]; // Byte value.
+                        }
 
                         bitStream.AppendBits(glyph, 13);
                         sourceIndex++;
@@ -831,26 +914,30 @@ namespace ZintNet.Encoders
                         numericBuffer[2] = '0';
                         do
                         {
-                            if (Char.IsDigit(gbData[sourceIndex]))
+                            if (char.IsDigit(gbData[sourceIndex]))
                             {
                                 numericBuffer[position] = gbData[sourceIndex];
                                 position++;
                             }
 
-                            else if (NumeralNonDigits.Contains(gbData[sourceIndex]))
+                            else if(NumeralNonDigits.IndexOf(gbData[sourceIndex]) != -1)
                             {
                                 if (punctuationPosition != -1)
+                                {
                                     break;
+                                }
 
                                 punctuation = gbData[sourceIndex];
                                 punctuationPosition = position;
                             }
 
-                            else if (sourceIndex < (inputLength - 1) && (gbData[sourceIndex] == 0x13) && (gbData[sourceIndex + 1] == 0x10))
+                            else if (sourceIndex < (length - 1) && (gbData[sourceIndex] == 0x13) && (gbData[sourceIndex + 1] == 0x10))
                             {
                                 // End of line. 
                                 if (punctuationPosition != -1)
+                                {
                                     break;
+                                }
 
                                 punctuation = gbData[sourceIndex];
                                 sourceIndex++;
@@ -858,10 +945,12 @@ namespace ZintNet.Encoders
                             }
 
                             else
+                            {
                                 break;
+                            }
 
                             sourceIndex++;
-                        } while ((position < 3) && (sourceIndex < inputLength));
+                        } while ((position < 3) && (sourceIndex < length) && mode[sourceIndex] == GM_NUMBER);
 
                         if (punctuationPosition != -1)
                         {
@@ -910,14 +999,14 @@ namespace ZintNet.Encoders
                         }
 
                         glyph = gbData[sourceIndex];
-                        if (byteCount == 512 || (glyph > 0xFF && byteCount == 511))
+                        if (byteCount == 512 || (glyph > 0xff && byteCount == 511))
                         {
                             // Maximum byte block size is 512 bytes. If longer, need to start a new block.
-                            if (glyph > 0xFF && byteCount == 511)
+                            if (glyph > 0xff && byteCount == 511)
                             {
                                 // Split double-byte.
                                 bitStream.AppendBits(glyph >> 8, 8);
-                                glyph &= 0xFF;
+                                glyph &= 0xff;
                                 byteCount++;
                             }
 
@@ -932,23 +1021,33 @@ namespace ZintNet.Encoders
                         sourceIndex++;
                         byteCount++;
                         if (glyph > 0xff)
+                        {
                             byteCount++;
+                        }
 
                         break;
 
                     case GM_MIXED:
                         shift = 1;
-                        if (Char.IsDigit(gbData[sourceIndex]))
+                        if (char.IsDigit(gbData[sourceIndex]))
+                        {
                             shift = 0;
+                        }
 
-                        if (Char.IsUpper(gbData[sourceIndex]))
+                        if (char.IsUpper(gbData[sourceIndex]))
+                        {
                             shift = 0;
+                        }
 
-                        if (Char.IsLower(gbData[sourceIndex]))
+                        if (char.IsLower(gbData[sourceIndex]))
+                        {
                             shift = 0;
+                        }
 
                         if (gbData[sourceIndex] == ' ')
+                        {
                             shift = 0;
+                        }
 
                         if (shift == 0)
                         {
@@ -969,11 +1068,15 @@ namespace ZintNet.Encoders
 
                     case GM_UPPER:
                         shift = 1;
-                        if (Char.IsUpper(gbData[sourceIndex]))
+                        if (char.IsUpper(gbData[sourceIndex]))
+                        {
                             shift = 0;
+                        }
 
-                        if (gbData[sourceIndex] == ' ')
+                        else if (gbData[sourceIndex] == ' ')
+                        {
                             shift = 0;
+                        }
 
                         if (shift == 0)
                         {
@@ -994,11 +1097,15 @@ namespace ZintNet.Encoders
 
                     case GM_LOWER:
                         shift = 1;
-                        if (Char.IsLower(gbData[sourceIndex]))
+                        if (char.IsLower(gbData[sourceIndex]))
+                        {
                             shift = 0;
+                        }
 
-                        if (gbData[sourceIndex] == ' ')
+                        else if (gbData[sourceIndex] == ' ')
+                        {
                             shift = 0;
+                        }
 
                         if (shift == 0)
                         {
@@ -1019,9 +1126,11 @@ namespace ZintNet.Encoders
                 }
 
                 if (bitStream.SizeInBits > 9191)
+                {
                     return false;
+                }
 
-            } while (sourceIndex < inputLength);
+            } while (sourceIndex < length);
 
             if (currentMode == GM_NUMBER)
             {
@@ -1077,19 +1186,20 @@ namespace ZintNet.Encoders
 
             // Add padding bits if required.
             position = 7 - (bitStream.SizeInBits % 7);
-            if (position == 7)
-                position = 0;
-
-            if (position > 0)
+            if (position % 7 > 0)
+            {
                 bitStream.AppendBits(0, position);
+            }
 
             if (bitStream.SizeInBits > 9191)
+            {
                 return false;
+            }
 
             return true;
         }
 
-        private static void AddErrorCorrection(BitVector binaryStream, int dataPosition, int layers, int eccLevel, int[] eccData)
+        private void AddErrorCorrection(BitVector binaryStream, int dataPosition, int layers, int eccLevel, int[] eccData)
         {
             int codewords, dataIndex;
             int n1, b1, n2, b2, e1, b3, e2;
@@ -1106,7 +1216,9 @@ namespace ZintNet.Encoders
                 for (int p = 0; p < 7; p++)
                 {
                     if (binaryStream[(i * 7) + p] == 1)
+                    {
                         data[i] += (byte)(0x40 >> p);
+                    }
                 }
             }
 
@@ -1115,10 +1227,14 @@ namespace ZintNet.Encoders
             for (int i = dataPosition + 1; i < codewords; i++)
             {
                 if ((i & 1) == 1)
+                {
                     data[i] = 0x7e;
+                }
 
                 else
+                {
                     data[i] = 0x00;
+                }
             }
 
             // Get block sizes.
@@ -1135,16 +1251,24 @@ namespace ZintNet.Encoders
             for (int i = 0; i < (b1 + b2); i++)
             {
                 if (i < b1)
+                {
                     blockSize = n1;
+                } 
 
                 else
+                {
                     blockSize = n2;
+                }
 
                 if (i < b3)
+                {
                     eccSize = e1;
+                }
 
                 else
+                {
                     eccSize = e2;
+                }
 
                 dataSize = blockSize - eccSize;
                 dataBlock = new byte[dataSize];
@@ -1161,16 +1285,24 @@ namespace ZintNet.Encoders
 
                 // Correct error correction data but in reverse order.
                 for (int j = 0; j < dataSize; j++)
+                {
                     block[j] = dataBlock[j];
+                }
 
                 for (int j = 0; j < eccSize; j++)
+                {
                     block[(j + dataSize)] = eccBlock[eccSize - j - 1];
+                }
 
                 for (int j = 0; j < n2; j++)
+                {
                     eccData[((b1 + b2) * j) + i] = block[j];
+                }
 
                 if (blockSize == n1)
+                {
                     eccData[((b1 + b2) * (n1 - 1)) + i] = block[(n1 - 1)];
+                }
             }
         }
 
@@ -1183,21 +1315,27 @@ namespace ZintNet.Encoders
             int nonDigit;
 
             if (posn < numericEnd)
+            {
                 return true;
+            }
 
-            /* Attempt to calculate the average 'cost' of using numeric mode in number of bits (times GM_MULT) */
+            // Attempt to calculate the average 'cost' of using numeric mode in number of bits (times GM_MULT).
             /* Also ensures that numeric mode is not selected when it cannot be used: for example in
                a string which has "2.2.0" (cannot have more than one non-numeric character for each
                block of three numeric characters) */
             for (i = posn, digitCount = 0, nonDigit = 0, nonDigitPosition = 0; i < length && i < posn + 4 && digitCount < 3; i++)
             {
-                if (Char.IsDigit(data[i]))
+                if (char.IsDigit(data[i]))
+                {
                     digitCount++;
+                }
 
                 else if (NumeralNonDigits.Contains(data[i]))
                 {
                     if (nonDigit > 0)
+                    {
                         break;
+                    }
 
                     nonDigit = 1;
                     nonDigitPosition = i;
@@ -1206,7 +1344,9 @@ namespace ZintNet.Encoders
                 else if (i < length - 1 && data[i] == 13 && data[i + 1] == 10)
                 {
                     if (nonDigit > 0)
+                    {
                         break;
+                    }
 
                     i++;
                     nonDigit = 2;
@@ -1214,7 +1354,9 @@ namespace ZintNet.Encoders
                 }
 
                 else
+                {
                     break;
+                }
             }
 
             if (digitCount == 0)
@@ -1233,18 +1375,24 @@ namespace ZintNet.Encoders
             numericEnd = posn + digitCount + nonDigit;
             // Calculate per-numeral cost where 120 == (10 + 10) * GM_MULT, 60 == 10 * GM_MULT.
             if (digitCount == 3)
+            {
                 numericCost = nonDigit == 2 ? 24 /* (120 / 5) */ : nonDigit == 1 ? 30 /* (120 / 4) */ : 20 /* (60 / 3) */;
+            }
 
             else if (digitCount == 2)
+            {
                 numericCost = nonDigit == 2 ? 30 /* (120 / 4) */ : nonDigit == 1 ? 40 /* (120 / 3) */ : 30 /* (60 / 2) */;
+            }
 
             else
+            {
                 numericCost = nonDigit == 2 ? 40 /* (120 / 3) */ : nonDigit == 1 ? 60 /* (120 / 2) */ : 60 /* (60 / 1) */;
+            }
 
             return true;
         }
 
-        private static char GetGB2312Character(char data)
+        private char GetGB2312Character(char data)
         {
             byte[] gb2312Bytes;
             char[] gb2312 = new char[1];
@@ -1271,16 +1419,16 @@ namespace ZintNet.Encoders
         private void DefineModes(char[] mode, char[] data, int inputLength)
         {
             int[] state = { 0 /*numeral_end*/, 0 /*numeral_cost*/, 0 /*byte_count*/ };
-            CharacterModes.DefineModes(mode, data, inputLength, state, modeTypes, GM_NUM_MODES, HeadCost, SwitchCost, EodCost, CurrentCost);
+            CharacterModes.DefineModes(mode, data, inputLength, state, ModeTypes, GM_NUM_MODES, HeadCost, SwitchCost, EodCost, CurrentCost);
         }
 
-        private static int[] HeadCost(int[] state)
+        private int[] HeadCost(int[] state)
         {
             return InitHeadCosts;
         }
 
         // Cost of switching modes from k to j - see AIMD014 Rev. 1.63 Table 9 – Type conversion codes.
-        private static int SwitchCost(int[] state, int k, int j)
+        private int SwitchCost(int[] state, int k, int j)
         {
             int[,] switchCosts = {
                 /*      H             N                   L             U             M             B  */
@@ -1295,7 +1443,7 @@ namespace ZintNet.Encoders
         }
 
         // Final end-of-data cost - see AIMD014 Rev. 1.63 Table 9 – Type conversion codes.
-        private static int EodCost(int k)
+        private int EodCost(int k)
         {
             int[] eodCosts = {
                 /*  H             N             L            U            M             B  */
@@ -1304,7 +1452,7 @@ namespace ZintNet.Encoders
             return eodCosts[k];
         }
 
-        /* Calculate cost of encoding current character */
+        // Calculate cost of encoding current character.
         private void CurrentCost(int[] state, char[] data, int length, int position, char[] characterModes, int[] previousCosts, int[] currentCosts)
         {
 
@@ -1313,11 +1461,11 @@ namespace ZintNet.Encoders
 
             doubleByte = data[position] > 0xFF;
             space = data[position] == ' ';
-            numeric = Char.IsDigit(data[position]);
-            lower = Char.IsLower(data[position]);
-            upper = Char.IsUpper(data[position]);
-            control = !space && !numeric && !lower && !upper && data[position] < 0x7F; /* Exclude DEL */
-            doubleDigit = position < length - 1 && numeric && Char.IsDigit(data[position + 1]);
+            numeric = char.IsDigit(data[position]);
+            lower = char.IsLower(data[position]);
+            upper = char.IsUpper(data[position]);
+            control = !space && !numeric && !lower && !upper && data[position] < 0x7F; // Exclude DEL.
+            doubleDigit = position < length - 1 && numeric && char.IsDigit(data[position + 1]);
             eol = position < length - 1 && data[position] == 13 && data[position + 1] == 10;
 
             // Hanzi mode can encode anything.
@@ -1379,21 +1527,25 @@ namespace ZintNet.Encoders
         }
 
         // Add the length indicator for byte encoded blocks.
-        private static void AddByteCount(BitVector binaryStream, int position, int byteCount)
+        private void AddByteCount(BitVector binaryStream, int position, int byteCount)
         {
             byteCount--;
             for (int p = 0; p < 9; p++)
             {
                 if ((byteCount & (0x100 >> p)) > 0)
+                {
                     binaryStream[position + p] = 1;
+                }
 
                 else
+                {
                     binaryStream[position + p] = 0;
+                }
             }
         }
 
         // Add a control character to the data stream
-        private static void AddShiftCharacter(BitVector binaryStream, int shiftY)
+        private void AddShiftCharacter(BitVector binaryStream, int shiftY)
         {
             int glyph = 0;
 

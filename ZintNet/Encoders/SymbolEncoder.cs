@@ -1,8 +1,8 @@
 ﻿/*  SymbolEncoder.cs - Base class for all symbol encoders. */
 
 /* 
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -31,10 +31,7 @@
  */
 
 using System;
-using System.ComponentModel;
 using System.Collections.ObjectModel;
-using System.Data;
-using System.Text;
 
 namespace ZintNet.Encoders
 {
@@ -43,31 +40,34 @@ namespace ZintNet.Encoders
     /// </summary>
     internal abstract class SymbolEncoder
     {
-        protected const char FNC1 = '[';
         protected Symbology symbolId;
-        protected string barcodeMessage = String.Empty;
-        protected string compositeMessage = String.Empty;
+        protected char[] barcodeMessage;
+        protected char[] compositeMessage;
+        protected char[] supplementMessage;
         protected CompositeMode compositeMode;
         protected char[] barcodeData;
         protected Collection<SymbolData> Symbol;
-        protected EncodingMode encodingMode;
+        protected EncodingFormat encodingMode;
         protected int eci;
         protected bool isCompositeSymbol = false;
         protected bool isGS1 = false;
+        //protected GS1Mode gs1Mode = GS1Mode.GS1Mode0;
 
         // Strings for returning variable length barcode text elements.
-        protected string barcodeText = String.Empty;
-        protected string checkDigitText = String.Empty;
+        protected string barcodeText = string.Empty;
+        protected string checkDigitText = string.Empty;
 
         // Strings for returning EAN/UPC barcode text elements.
-        protected string rightHandText = String.Empty;
-        protected string leftHandText = String.Empty;
-        protected string rightHandCharacter = String.Empty;
-        protected string leftHandCharacter = String.Empty;
-        protected string supplementText = String.Empty;
+        protected string rightHandText = string.Empty;
+        protected string leftHandText = string.Empty;
+        protected string rightHandCharacter = string.Empty;
+        protected string leftHandCharacter = string.Empty;
+        protected string supplementText = string.Empty;
         protected int supplementBars = 0;
         protected int elementsPerCharacter = 0;     // The number of bars for one character;
         public const int supplementMargin = 12;     // Suppliment gap of 12 elements.
+
+        public int aztecAutoSize;
 
         // Readonly properties.
         /// <summary>
@@ -124,6 +124,14 @@ namespace ZintNet.Encoders
         public string SupplementText
         {
             get { return supplementText; }
+        }
+
+        /// <summary>
+        /// Set true if it is a Composite Symbol.
+        /// </summary>
+        public bool IsCompositeSymbol
+        {
+            get { return isCompositeSymbol;  }
         }
 
         /// <summary>

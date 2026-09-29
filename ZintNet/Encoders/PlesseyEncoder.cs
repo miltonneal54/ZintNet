@@ -1,12 +1,12 @@
 ﻿/* PlesseyEncoder.cs - Handles UK Plessey and MSI Plessey 1D symbols */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
   
-    libzint - the open source barcode library
-    Copyright (C) 2008-2020 Robin Stuart <rstuart114@gmail.com>
+    libzint - the open source barcode library.
+    Copyright (C) 2008-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -34,38 +34,45 @@
     SUCH DAMAGE.
  */
 
-using System;
-using System.ComponentModel;
+using System.Globalization;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Text;
-
-using ArrayExt;
 
 namespace ZintNet.Encoders
 {
     /// <summary>
-    /// Builds Plessey Symbols
+    /// Plessey based symbol encoder.
     /// </summary>
     internal class PlesseyEncoder : SymbolEncoder
     {
-        # region Tables
-        private static string[] UKPlesseyTable = {
-            "13131313", "31131313", "13311313", "31311313", "13133113", "31133113",
-	        "13313113", "31313113", "13131331", "31131331", "13311331", "31311331",
-            "13133131", "31133131", "13313131", "31313131", "31311331", "31311313"};
+        #region Constants
 
-        private static string[] MSIPlesseyTable = {
+        private const int IBM = 7;
+        private const int NCR = 9;
+
+        #endregion
+
+        #region Tables
+
+        private static readonly string[] UKPlesseyTable = {
+            "13131313", "31131313", "13311313", "31311313", "13133113", "31133113",
+            "13313113", "31313113", "13131331", "31131331", "13311331", "31311331",
+            "13133131", "31133131", "13313131", "31313131", "31311331", "431311313"};
+
+        private static readonly string[] MSIPlesseyTable = {
             "12121212","12121221","12122112","12122121","12211212","12211221",
             "12212112","12212121","21121212","21121221","21","121"};
-        # endregion
 
-        MSICheckDigitType checkDigitType;
+        #endregion
 
-        public PlesseyEncoder(Symbology symbology, string barcodeMessage, MSICheckDigitType checkDigitType)
+        private readonly bool showCheckDigit;
+        private readonly MSICheckDigitType checkDigitType;
+
+        public PlesseyEncoder(Symbology symbolId, char[] barcodeMessage, bool showCheckDigit, MSICheckDigitType checkDigitType)
         {
-            this.symbolId = symbology;
+            this.symbolId = symbolId;
             this.barcodeMessage = barcodeMessage;
+            this.showCheckDigit = showCheckDigit;
             this.checkDigitType = checkDigitType;
         }
 
@@ -80,7 +87,7 @@ namespace ZintNet.Encoders
                     break;
 
                 case Symbology.UKPlessey:
-                    barcodeData = MessagePreProcessor.MessageParser(barcodeMessage);
+                    barcodeData = barcodeMessage;
                     UKPlessey();
                     break;
             }
@@ -88,96 +95,64 @@ namespace ZintNet.Encoders
             return Symbol;
         }
 
+        /// <summary>
+        /// MSI Plessey
+        /// </summary>
         private void MSIPlessey()
         {
-            char checkDigit;
-            int mod10Count = 0;
-            int intputLength = barcodeData.Length;
+            int maxLength = 92;
+            int inputLength = barcodeData.Length;
             StringBuilder rowPattern = new StringBuilder();
 
-            if (intputLength > 55)
-                throw new InvalidDataLengthException("MSI Plessey: Input data too long.");
-
-            // Set the human readable text before appending any check digits.
-            barcodeText = barcodeMessage;
-
-            // Use Mod 11 to calculate the optional check digit.
-            // The Mod 11 check digit is calculated first.
-            // If the check digit = 10 the message is deemed invalid.
-
-            if (checkDigitType != MSICheckDigitType.None)
+            if (inputLength > maxLength)
             {
-                if (checkDigitType == MSICheckDigitType.Mod11Mod10 || checkDigitType == MSICheckDigitType.Mod10)
-                    mod10Count = 1;
-
-                else if (checkDigitType == MSICheckDigitType.Mod10Mod10)
-                    mod10Count = 2;
-
-                if (checkDigitType == MSICheckDigitType.Mod11 || checkDigitType == MSICheckDigitType.Mod11Mod10)
-                {
-                    // Mod 11 checksum. 
-                    int weight = 0;
-                    int weightFactor = 2;
-                    int maxWeightFactor = 7;    // N.B. Weight Factor = 7 for IBM or 9 for NCR.
-
-                    for (int i = intputLength - 1; i >= 0; i--)
-                    {
-                        int value = (int)(barcodeData[i] - '0');
-                        weight += (value * weightFactor);
-                        weightFactor++;
-                        if (weightFactor > maxWeightFactor)
-                            weightFactor = 2;
-                    }
-
-                    int checkValue = (int)(((11 - (weight % 11)) % 11));
-                    if (checkValue == 10)
-                        throw new InvalidDataException("MSI Plessey: Invalid data for Mod11 check sum.");
-
-                    else
-                    {
-                        checkDigit = (char)(checkValue + '0');
-                        checkDigitText += checkDigit.ToString();
-                        barcodeData = ArrayEx.Insert(barcodeData, intputLength, checkDigit);
-                        intputLength = barcodeData.Length;
-                    }
-                }
-
-                if (mod10Count > 0)
-                {
-                    // Calculate the Mod 10 checksum.
-                    // If using Mod10Mod10 loop through twice.
-                    do
-                    {
-                        int weight = 0;
-                        bool odd = true;
-                        for (int i = intputLength - 1; i >= 0; i--)
-                        {
-                            int value = (int)(barcodeData[i] - '0');
-                            if (odd)
-                            {
-                                value *= 2;
-                                if (value > 9)
-                                    value -= 9;
-                            }
-
-                            weight += value;
-                            odd = !odd;
-                        }
-
-                        checkDigit = (char)(((10 - (weight % 10)) % 10) + '0');
-                        barcodeData = ArrayEx.Insert(barcodeData, intputLength, checkDigit);
-                        checkDigitText += checkDigit.ToString();
-                        intputLength = barcodeData.Length;
-                        mod10Count--;
-
-                    } while (mod10Count > 0);
-                }
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "MSI Plessey: Input data too long.\nMaximum length is {0} characters.", maxLength));
             }
 
+            // Get the checksum.
+            switch (checkDigitType)
+            {
+                case MSICheckDigitType.None:
+                    break;
+
+                case MSICheckDigitType.Mod10:
+                    Mod10Checksum();
+                    inputLength = barcodeData.Length;
+                    break;
+
+                case MSICheckDigitType.Mod10Mod10:
+                    Mod10Checksum();
+                    Mod10Checksum();
+                    inputLength = barcodeData.Length;
+                    break;
+
+                case MSICheckDigitType.Mod11IBM:
+                    Mod11Checksum(IBM);
+                    inputLength = barcodeData.Length;
+                    break;
+
+                case MSICheckDigitType.Mod11IBMMod10:
+                    Mod11Checksum(IBM);
+                    Mod10Checksum();
+                    inputLength = barcodeData.Length;
+                    break;
+
+                case MSICheckDigitType.Mod11NCR:
+                    Mod11Checksum(NCR);
+                    inputLength = barcodeData.Length;
+                    break;
+
+                case MSICheckDigitType.Mod11NCRMod10:
+                    Mod11Checksum(NCR);
+                    Mod10Checksum();
+                    inputLength = barcodeData.Length;
+                    break;
+            }
 
             // Add the start character.
             rowPattern.Append(MSIPlesseyTable[10]);
-            for (int i = 0; i < intputLength; i++)
+            for (int i = 0; i < inputLength; i++)
             {
                 int value = CharacterSets.NumberOnlySet.IndexOf(barcodeData[i]);
                 rowPattern.Append(MSIPlesseyTable[value]);
@@ -187,27 +162,42 @@ namespace ZintNet.Encoders
             rowPattern.Append(MSIPlesseyTable[11]);
 
             // Expand row into the symbol data.
-            SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 0.0f);
+            SymbolBuilder.BuildSymbol(Symbol, rowPattern, 0.0f);
+
+            // Set the human readable text.
+            barcodeText = new string(barcodeData);
+            if (checkDigitType != MSICheckDigitType.None && showCheckDigit)
+            {
+                barcodeText += checkDigitText;
+            }
+
         }
 
+        /// <summary>
+        /// UK Plessey.
+        /// </summary>
         private void UKPlessey()
         {
-            int value;
+            int maxLength = 67;
             int intputLength = barcodeData.Length;
             byte[] checkBuffer = new byte[(intputLength * 4) + 8];
             byte[] grid = { 1, 1, 1, 1, 0, 1, 0, 0, 1 };
             StringBuilder rowPattern = new StringBuilder();
 
-            if (intputLength > 65)
-                throw new InvalidDataLengthException("UK Plessey: Input data too long.");
+            if (intputLength > maxLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "UK Plessey: Input data too long.\nMaximum length is {0} characters.", maxLength));
+            }
 
             for (int i = 0; i < intputLength; i++)
             {
                 if (CharacterSets.UKPlesseySet.IndexOf(barcodeData[i]) == -1)
-                    throw new InvalidDataException("UK Plessey: Invalid data in input.");
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "UK Plessey: Invalid character in input data.\nCharacter '{0}' at Position {1}.", barcodeData[i], i));
+                }
             }
-
-            barcodeText = barcodeMessage;
 
             // Start character.
             rowPattern.Append(UKPlesseyTable[16]);
@@ -215,7 +205,7 @@ namespace ZintNet.Encoders
             // Data.
             for (int i = 0; i < intputLength; i++)
             {
-                value = CharacterSets.UKPlesseySet.IndexOf(barcodeData[i]);
+                int value = CharacterSets.UKPlesseySet.IndexOf(barcodeData[i]);
                 rowPattern.Append(UKPlesseyTable[value]);
                 checkBuffer[4 * i] = (byte)(value & 1);
                 checkBuffer[4 * i + 1] = (byte)((value >> 1) & 1);
@@ -229,7 +219,9 @@ namespace ZintNet.Encoders
                 if (checkBuffer[i] != 0)
                 {
                     for (int j = 0; j < 9; j++)
+                    {
                         checkBuffer[i + j] ^= grid[j];
+                    }
                 }
             }
 
@@ -247,11 +239,64 @@ namespace ZintNet.Encoders
                 }
             }
 
-            rowPattern.Append("4");  // Termination code.
-            rowPattern.Append(UKPlesseyTable[17]);  // Stop character.
+            rowPattern.Append(UKPlesseyTable[17]);  // Termination + Stop character.
 
             // Expand row into the symbol data.
-            SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 0.0f);
+            SymbolBuilder.BuildSymbol(Symbol, rowPattern, 0.0f);
+
+            // Set the human readable text.
+            barcodeText = new string(barcodeData);
+        }
+        private void Mod10Checksum()
+        {
+            int[,] values = new int[2, 10] {
+                { 0, 2, 4, 6, 8, 1, 3, 5, 7, 9 },   // Doubled and digits summed.
+                { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } }; // Single.
+
+            char checkDigit;
+            int weight = 0;
+            int inputLength = barcodeData.Length;
+            int tableIndex = 0;
+
+            for (int i = inputLength - 1; i >= 0; i--)
+            {
+                weight += values[tableIndex, barcodeData[i] - '0'];
+                tableIndex = tableIndex == 0 ? 1 : 0;
+            }
+
+            char cc = GetCheckDigit.Mod10CheckDigit(barcodeData);
+
+            checkDigit = (char)(((10 - (weight % 10)) % 10) + '0');
+            barcodeData = ArrayHelper.Insert(barcodeData, inputLength, checkDigit);
+            checkDigitText += checkDigit;
+        }
+
+        private void Mod11Checksum(int factor)
+        {
+            // Factor of 7 = IBM, 9 = NCR.
+            int inputLength = barcodeData.Length;
+            int weight = 0;
+            int weightFactor = 2;
+
+            for (int i = inputLength - 1; i >= 0; i--)
+            {
+                weight += (weightFactor * (barcodeData[i] - '0'));
+                weightFactor++;
+                if (weightFactor > factor)
+                {
+                    weightFactor = 2;
+                }
+            }
+
+            int checkValue = (11 - (weight % 11)) % 11;
+            if (checkValue == 10)
+            {
+                checkValue = 40; // Possibly invalid, make the check digit a 'X'
+            }
+
+            char checkDigit = (char)(checkValue + '0');
+            checkDigitText += checkDigit.ToString();
+            barcodeData = ArrayHelper.Insert(barcodeData, inputLength, checkDigit);
         }
     }
 }

@@ -1,12 +1,12 @@
 ﻿/* HanXinEncoder.cs Handles Han Xin 2D symbol */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
   
     libzint - the open source barcode library
-    Copyright (C) 2009-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2009-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -36,25 +36,31 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
+using System.Globalization;
 using System.Text;
 
 namespace ZintNet.Encoders
 {
+    /// <summary>
+    /// Han Xin symbol encoder.
+    /// </summary>
     internal class HanXinEncoder : SymbolEncoder
     {
         #region Tables
-        // Data from table B1: Data capacity of Han Xin Code.
-        private static int[] TotalCodewords = {
-            25, 37, 50, 54, 69, 84, 100, 117, 136, 155, 161, 181, 203, 225, 249,
-            273, 299, 325, 353, 381, 411, 422, 453, 485, 518, 552, 587, 623, 660,
-            698, 737, 754, 794, 836, 878, 922, 966, 1011, 1058, 1105, 1126, 1175,
-            1224, 1275, 1327, 1380, 1434, 1489, 1513, 1569, 1628, 1686, 1745, 1805,
-            1867, 1929, 1992, 2021, 2086, 2151, 2218, 2286, 2355, 2425, 2496, 2528,
-            2600, 2673, 2749, 2824, 2900, 2977, 3056, 3135, 3171, 3252, 3334, 3416,
-            3500, 3585, 3671, 3758, 3798, 3886 };
 
-        private static int[] DataCodewordsL1 = {
+        // Data from table B1: Data capacity of Han Xin Code.
+        private readonly int[] TotalCodewords = {
+              25,   37,   50,   54,   69,   84,  100,  117,  136,  155,
+             161,  181,  203,  225,  249,  273,  299,  325,  353,  381,
+             411,  422,  453,  485,  518,  552,  587,  623,  660,  698,
+             737,  754,  794,  836,  878,  922,  966, 1011, 1058, 1105,
+            1126, 1175, 1224, 1275, 1327, 1380, 1434, 1489, 1513, 1569,
+            1628, 1686, 1745, 1805, 1867, 1929, 1992, 2021, 2086, 2151,
+            2218, 2286, 2355, 2425, 2496, 2528, 2600, 2673, 2749, 2824,
+            2900, 2977, 3056, 3135, 3171, 3252, 3334, 3416, 3500, 3585,
+            3671, 3758, 3798, 3886 };
+
+        /*private readonly int[] DataCodewordsL1 = {
             21, 31, 42, 46, 57, 70, 84, 99, 114, 131, 135, 153, 171, 189, 209, 229,
             251, 273, 297, 321, 345, 354, 381, 407, 436, 464, 493, 523, 554, 586, 619,
             634, 666, 702, 738, 774, 812, 849, 888, 929, 946, 987, 1028, 1071, 1115,
@@ -63,7 +69,7 @@ namespace ZintNet.Encoders
             2372, 2436, 2501, 2568, 2633, 2663, 2732, 2800, 2870, 2940, 3011,
             3083, 3156, 3190, 3264 };
 
-        private static int[] DataCodewordsL2 = {
+        private readonly int[] DataCodewordsL2 = {
             17, 25, 34, 38, 49, 58, 70, 81, 96, 109, 113, 127, 143, 157, 175, 191, 209,
             227, 247, 267, 287, 296, 317, 339, 362, 386, 411, 437, 462, 488, 515, 528,
             556, 586, 614, 646, 676, 707, 740, 773, 788, 823, 856, 893, 929, 966, 1004,
@@ -72,7 +78,7 @@ namespace ZintNet.Encoders
             2083, 2140, 2195, 2219, 2276, 2334, 2392, 2450, 2509, 2569, 2630, 2658,
             2720 };
 
-        private static int[] DataCodewordsL3 = {
+        private readonly int[] DataCodewordsL3 = {
             13, 19, 26, 30, 37, 46, 54, 63, 74, 83, 87, 97, 109, 121, 135, 147, 161,
             175, 191, 205, 221, 228, 245, 261, 280, 298, 317, 337, 358, 376, 397, 408,
             428, 452, 474, 498, 522, 545, 572, 597, 608, 635, 660, 689, 717, 746, 774,
@@ -80,16 +86,58 @@ namespace ZintNet.Encoders
             1234, 1271, 1309, 1348, 1366, 1404, 1443, 1485, 1524, 1566, 1607, 1650, 1693,
             1713, 1756, 1800, 1844, 1890, 1935, 1983, 2030, 2050, 2098 };
 
-        private static int[] DataCodewordsL4 = {
+        private readonly int[] DataCodewordsL4 = {
             9, 15, 20, 22, 27, 34, 40, 47, 54, 61, 65, 73, 81, 89, 99, 109, 119, 129,
             141, 153, 165, 168, 181, 195, 208, 220, 235, 251, 264, 280, 295, 302, 318,
             334, 352, 368, 386, 405, 424, 441, 450, 469, 490, 509, 531, 552, 574, 595, 605,
             627, 652, 674, 697, 721, 747, 771, 796, 809, 834, 861, 892, 914, 941, 969, 998,
             1012, 1040, 1069, 1099, 1130, 1160, 1191, 1222, 1253, 1269, 1300, 1334,
-            1366, 1400, 1433, 1469, 1504, 1520, 1554 };
+            1366, 1400, 1433, 1469, 1504, 1520, 1554 };*/
+
+
+        private readonly int[][] DataCodewords = {
+            new[] {   21,   31,   42,   46,   57,   70,   84,   99,  114,  131,
+                     135,  153,  171,  189,  209,  229,  251,  273,  297,  321,
+                     345,  354,  381,  407,  436,  464,  493,  523,  554,  586,
+                     619,  634,  666,  702,  738,  774,  812,  849,  888,  929,
+                     946,  987, 1028, 1071, 1115, 1160, 1204, 1251, 1271, 1317,
+                    1368, 1416, 1465, 1517, 1569, 1621, 1674, 1697, 1752, 1807,
+                    1864, 1920, 1979, 2037, 2096, 2124, 2184, 2245, 2309, 2372,
+                    2436, 2501, 2568, 2633, 2663, 2732, 2800, 2870, 2940, 3011,
+                    3083, 3156, 3190, 3264 },
+
+            new[] {   17,   25,   34,   38,   49,   58,   70,   81,   96,  109,
+                     113,  127,  143,  157,  175,  191,  209,  227,  247,  267,
+                     287,  296,  317,  339,  362,  386,  411,  437,  462,  488,
+                     515,  528,  556,  586,  614,  646,  676,  707,  740,  773,
+                     788,  823,  856,  893,  929,  966, 1004, 1043, 1059, 1099,
+                    1140, 1180, 1221, 1263, 1307, 1351, 1394, 1415, 1460, 1505,
+                    1552, 1600, 1649, 1697, 1748, 1770, 1820, 1871, 1925, 1976,
+                    2030, 2083, 2140, 2195, 2219, 2276, 2334, 2392, 2450, 2509,
+                    2569, 2630, 2658, 2720 },
+
+            new [] {  13,   19,   26,   30,   37,   46,   54,   63,   74,   83,
+                      87,   97,  109,  121,  135,  147,  161,  175,  191,  205,
+                     221,  228,  245,  261,  280,  298,  317,  337,  358,  376,
+                     397,  408,  428,  452,  474,  498,  522,  545,  572,  597,
+                     608,  635,  660,  689,  717,  746,  774,  805,  817,  847,
+                     880,  910,  943,  975, 1009, 1041, 1076, 1091, 1126, 1161,
+                    1198, 1234, 1271, 1309, 1348, 1366, 1404, 1443, 1485, 1524,
+                    1566, 1607, 1650, 1693, 1713, 1756, 1800, 1844, 1890, 1935,
+                    1983, 2030, 2050, 2098 },
+
+            new [] {   9,   15,   20,   22,   27,   34,   40,   47,   54,   61,
+                      65,   73,   81,   89,   99,  109,  119,  129,  141,  153,
+                     165,  168,  181,  195,  208,  220,  235,  251,  264,  280,
+                     295,  302,  318,  334,  352,  368,  386,  405,  424,  441,
+                     450,  469,  490,  509,  531,  552,  574,  595,  605,  627,
+                     652,  674,  697,  721,  747,  771,  796,  809,  834,  861,
+                     892,  914,  941,  969,  998, 1012, 1040, 1069, 1099, 1130,
+                    1160, 1191, 1222, 1253, 1269, 1300, 1334, 1366, 1400, 1433,
+                    1469, 1504, 1520, 1554 } };
 
         // Value 'k' from Annex A.
-        private static int[] ModuleK = {
+        private readonly int[] ModuleK = {
             0, 0, 0, 14, 16, 16, 17, 18, 19, 20,
             14, 15, 16, 16, 17, 17, 18, 19, 20, 20,
             21, 16, 17, 17, 18, 18, 19, 19, 20, 20,
@@ -101,7 +149,7 @@ namespace ZintNet.Encoders
             18, 18, 17, 17 };
 
         // Value 'r' from Annex A.
-        private static int[] ModuleR = {
+        private readonly int[] ModuleR = {
             0, 0, 0, 15, 15, 17, 18, 19, 20, 21,
             15, 15, 15, 17, 17, 19, 19, 19, 19, 21,
             21, 17, 16, 18, 17, 19, 18, 20, 19, 21,
@@ -113,7 +161,7 @@ namespace ZintNet.Encoders
             21, 23, 17, 19 };
 
         // Value of 'm' from Annex A.
-        private static int[] ModuleM = {
+        private readonly int[] ModuleM = {
             0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
             2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
             2, 3, 3, 3, 3, 3, 3, 3, 3, 3,
@@ -125,7 +173,7 @@ namespace ZintNet.Encoders
             9, 9, 10, 10 };
 
         // Error correction block sizes from Table D1.
-        private static int[] TableD1 = {
+        private readonly int[] TableD1 = {
             // #blocks, k, 2t, #blocks, k, 2t, #blocks, k, 2t.
             1, 21, 4, 0, 0, 0, 0, 0, 0, // version 1
             1, 17, 8, 0, 0, 0, 0, 0, 0,
@@ -468,45 +516,46 @@ namespace ZintNet.Encoders
 
         #region Constants
         // Bits multiplied by this for costs, so as to be whole integer divisible by 2 and 3.
-        const int HX_MULT = 6;
+        private const int HX_MULT = 6;
 
         // Indexes into mode_types array.
-        const int HX_N = 0; // Numeric.
-        const int HX_T = 1; // Text.
-        const int HX_B = 2; // Binary.
-        const int HX_1 = 3; // Common Chinese Region One.
-        const int HX_2 = 4; // Common Chinese Region Two.
-        const int HX_D = 5; // GB 18030 2-byte Region.
-        const int HX_F = 6; // GB 18030 4-byte Region.
+        private const int HX_N = 0; // Numeric.
+        private const int HX_T = 1; // Text.
+        private const int HX_B = 2; // Binary.
+        private const int HX_1 = 3; // Common Chinese Region One.
+        private const int HX_2 = 4; // Common Chinese Region Two.
+        private const int HX_D = 5; // GB 18030 2-byte Region.
+        private const int HX_F = 6; // GB 18030 4-byte Region.
 
         // Indexes to state array.
-        const int HX_N_END = 0;     // Numeric end index.
-        const int HX_N_COST = 1;    // Numeric cost.
-        const int HX_TXT_SM = 2;    // Text submode index.
-        const int HX_4B_END = 3;    // Four byte end index.
-        const int HX_4B_COST = 4;   // Four byte cost index.
+        private const int HX_N_END = 0;     // Numeric end index.
+        private const int HX_N_COST = 1;    // Numeric cost.
+        private const int HX_TXT_SM = 2;    // Text submode index.
+        private const int HX_4B_END = 3;    // Four byte end index.
+        private const int HX_4B_COST = 4;   // Four byte cost index.
 
         // Note Unicode, GS1 and URI modes not implemented.
-        readonly char[] modeTypes = { 'n', 't', 'b', '1', '2', 'd', 'f' }; // Must be in same order as HX_N etc.
-        //readonly string modeTypes = "ntb12df";  
-        const int HX_NUM_MODES = 7;
+        private readonly char[] modeTypes = { 'n', 't', 'b', '1', '2', 'd', 'f' }; // Must be in same order as HX_N etc.
+        private const int HX_NUM_MODES = 7;
 
-        static int[] InitHeadCosts = {
+        private readonly int[] InitHeadCosts = {
 			    /*  N            T            B                   1            2            D            F */
-			    4 * HX_MULT, 4 * HX_MULT, (4 + 13) * HX_MULT, 4 * HX_MULT, 4 * HX_MULT, 4 * HX_MULT, 0	};
+			    4 * HX_MULT, 4 * HX_MULT, (4 + 13) * HX_MULT, 4 * HX_MULT, 4 * HX_MULT, 4 * HX_MULT, 0  };
 
         #endregion
 
-        private int optionEccLevel;
-        private int optionSymbolSize;
+        private readonly int optionEccLevel;
+        private readonly int optionSymbolSize;
+        private readonly int optionUserMask;
 
-        public HanXinEncoder(Symbology symbology, string barcodeMessage, int optionSymbolSize, int optionEccLevel, int eci)
+        public HanXinEncoder(Symbology symbolId, char[] barcodeMessage, int optionSymbolSize, int optionUserMask, int optionEccLevel, int eci)
         {
-            this.symbolId = symbology;
+            this.symbolId = symbolId;
             this.barcodeMessage = barcodeMessage;
             this.optionEccLevel = optionEccLevel;
             this.optionSymbolSize = optionSymbolSize;
             this.eci = eci;
+            this.optionUserMask = optionUserMask;
         }
 
         public override Collection<SymbolData> EncodeData()
@@ -521,32 +570,27 @@ namespace ZintNet.Encoders
         {
             int estimatedBinaryLength;
             int eccLevel = optionEccLevel;
-            int version = 0;
+            int version;
             int dataCodewords = 0;
             int symbolSize;
             int codewords;
-            int bitmask;
             byte[] datastream;
             byte[] fullstream;
             byte[] picketFence;
             byte[] symbolGrid;
-
-            char[] functionInformation = new char[36];
-            byte[] functionCodeword = new byte[3];
-            byte[] functionEcc = new byte[4];
-            int length = barcodeData.Length;
             char[] gbData;
-
+            int inputLength = barcodeData.Length;
             List<char> gbDataList = new List<char>();
-            char[] mode = new char[length];
+            char[] mode = new char[inputLength];
             char[] gbCharacters;
             BitVector bitStream;
 
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < inputLength; i++)
             {
                 if (barcodeData[i] <= 0x7f)
+                {
                     gbDataList.Add(barcodeData[i]);
-
+                }
                 else
                 {
                     gbCharacters = GetGB18030Character(barcodeData[i]);
@@ -560,86 +604,77 @@ namespace ZintNet.Encoders
             }
 
             gbData = gbDataList.ToArray();
-            length = gbData.Length;
-            DefineModes(mode, gbData, length);
-            estimatedBinaryLength = GetBinaryLength(mode, gbData, length);
+            inputLength = gbData.Length;
+            DefineModes(mode, gbData, inputLength);
+            estimatedBinaryLength = GetBinaryLength(mode, gbData, inputLength);
             bitStream = new BitVector(estimatedBinaryLength);
             if ((eccLevel <= 0) || (eccLevel >= 5))
+            {
                 eccLevel = 1;
+            }
 
-            HXBinary(bitStream, mode, gbData, length);
+            HXBinary(bitStream, mode, gbData, inputLength);
             codewords = bitStream.SizeInBits / 8;
             if (bitStream.SizeInBits % 8 != 0)
+            {
                 codewords++;
+            }
 
             version = 85;
             for (int i = 84; i > 0; i--)
             {
-                switch (eccLevel)
+                if (DataCodewords[eccLevel - 1][i - 1] >= codewords)
                 {
-                    case 1:
-                        if (DataCodewordsL1[i - 1] > codewords)
-                        {
-                            version = i;
-                            dataCodewords = DataCodewordsL1[i - 1];
-                        }
-                        break;
-
-                    case 2:
-                        if (DataCodewordsL2[i - 1] > codewords)
-                        {
-                            version = i;
-                            dataCodewords = DataCodewordsL2[i - 1];
-                        }
-                        break;
-
-                    case 3:
-                        if (DataCodewordsL3[i - 1] > codewords)
-                        {
-                            version = i;
-                            dataCodewords = DataCodewordsL3[i - 1];
-                        }
-                        break;
-
-                    case 4:
-                        if (DataCodewordsL4[i - 1] > codewords)
-                        {
-                            version = i;
-                            dataCodewords = DataCodewordsL4[i - 1];
-                        }
-                        break;
+                    version = i;
+                    dataCodewords = DataCodewords[eccLevel - 1][i - 1];
                 }
             }
 
             if (version == 85)
-                throw new InvalidDataLengthException("Han Xin: Input data too long for selected error correction.");
-
-            if ((optionSymbolSize < 0) || (optionSymbolSize > 84))
-                optionSymbolSize = 0;
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Han Xin: Input too long, requires {0} codewords (Maximum allowed: 3264)", dataCodewords));
+            }
 
             if (optionSymbolSize > version)
+            {
                 version = optionSymbolSize;
+            }
+
+            if ((optionSymbolSize != 0) && (optionSymbolSize < version))
+            {
+                if (eccLevel == 1)
+                {
+                    throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                        "Han Xin: Input too long for Version {0}.\nRequires {1} codewords (Maximum allowed: {2})",
+                        optionSymbolSize, dataCodewords, DataCodewords[eccLevel - 1][optionSymbolSize - 1]));
+                }
+
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Han Xin: Input too long for Version {0}, ECC L{1}.\nRequires {2} codewords (Maximum allowed: {3})",
+                    optionSymbolSize, eccLevel, dataCodewords, DataCodewords[eccLevel - 1][optionSymbolSize - 1]));
+            }
 
             // If there is spare capacity, increase the level of ECC.
             if (optionEccLevel == -1 || optionEccLevel != eccLevel)
             {
                 // Unless explicitly specified (within min/max bounds) by user.
-                if ((eccLevel == 1) && (codewords < DataCodewordsL2[version - 1]))
+                if ((eccLevel == 1) && (codewords < DataCodewords[1][version - 1]))
                 {
                     eccLevel = 2;
-                    dataCodewords = DataCodewordsL2[version - 1];
+                    dataCodewords = DataCodewords[1][version - 1];
                 }
 
-                if ((eccLevel == 2) && (codewords < DataCodewordsL3[version - 1]))
+                if ((eccLevel == 2) && (codewords < DataCodewords[2][version - 1]))
                 {
                     eccLevel = 3;
-                    dataCodewords = DataCodewordsL3[version - 1];
+                    dataCodewords = DataCodewords[2][version - 1];
                 }
 
-                if ((eccLevel == 3) && (codewords < DataCodewordsL4[version - 1]))
+                if ((eccLevel == 3) && (codewords < DataCodewords[3][version - 1]))
                 {
                     eccLevel = 4;
-                    dataCodewords = DataCodewordsL4[version - 1];
+                    dataCodewords = DataCodewords[3][version - 1];
                 }
             }
 
@@ -662,103 +697,16 @@ namespace ZintNet.Encoders
                     if (index < (TotalCodewords[version - 1] * 8))
                     {
                         if ((picketFence[(index / 8)] & (0x80 >> (index % 8))) > 0)
+                        {
                             symbolGrid[i] = 0x01;
+                        }
 
                         index++;
                     }
                 }
             }
 
-            bitmask = ApplyBitmask(symbolGrid, symbolSize);
-            // Form function information string.
-            for (int i = 0; i < 34; i++)
-            {
-                if ((i % 2) > 0)
-                    functionInformation[i] = '1';
-
-                else
-                    functionInformation[i] = '0';
-            }
-
-            functionInformation[34] = '\0';
-
-            for (int i = 0; i < 8; i++)
-            {
-                if (((version + 20) & (0x80 >> i)) > 0)
-                    functionInformation[i] = '1';
-
-                else
-                    functionInformation[i] = '0';
-            }
-
-            for (int i = 0; i < 2; i++)
-            {
-                if (((eccLevel - 1) & (0x02 >> i)) > 0)
-                    functionInformation[i + 8] = '1';
-
-                else
-                    functionInformation[i + 8] = '0';
-            }
-
-            for (int i = 0; i < 2; i++)
-            {
-                if ((bitmask & (0x02 >> i)) > 0)
-                    functionInformation[i + 10] = '1';
-
-                else
-                    functionInformation[i + 10] = '0';
-            }
-
-            for (int i = 0; i < 3; i++)
-            {
-                for (int j = 0; j < 4; j++)
-                {
-                    if (functionInformation[(i * 4) + j] == '1')
-                        functionCodeword[i] += (byte)(0x08 >> j);
-                }
-            }
-
-            ReedSolomon.RSInitialise(0x13, 4, 1);
-            ReedSolomon.RSEncode(3, functionCodeword, functionEcc);
-            for (int i = 0; i < 4; i++)
-            {
-                for (int j = 0; j < 4; j++)
-                {
-                    if ((functionEcc[3 - i] & (0x08 >> j)) > 0)
-                        functionInformation[(i * 4) + j + 12] = '1';
-
-                    else
-                        functionInformation[(i * 4) + j + 12] = '0';
-                }
-            }
-
-            // Add function information to symbol.
-            for (int i = 0; i < 9; i++)
-            {
-                if (functionInformation[i] == '1')
-                {
-                    symbolGrid[(8 * symbolSize) + i] = 0x01;
-                    symbolGrid[((symbolSize - 8 - 1) * symbolSize) + (symbolSize - i - 1)] = 0x01;
-                }
-
-                if (functionInformation[i + 8] == '1')
-                {
-                    symbolGrid[((8 - i) * symbolSize) + 8] = 0x01;
-                    symbolGrid[((symbolSize - 8 - 1 + i) * symbolSize) + (symbolSize - 8 - 1)] = 0x01;
-                }
-
-                if (functionInformation[i + 17] == '1')
-                {
-                    symbolGrid[(i * symbolSize) + (symbolSize - 1 - 8)] = 0x01;
-                    symbolGrid[((symbolSize - 1 - i) * symbolSize) + 8] = 0x01;
-                }
-
-                if (functionInformation[i + 25] == '1')
-                {
-                    symbolGrid[(8 * symbolSize) + (symbolSize - 1 - 8 + i)] = 0x01;
-                    symbolGrid[((symbolSize - 1 - 8) * symbolSize) + (8 - i)] = 0x01;
-                }
-            }
+            ApplyBitmask(symbolGrid, symbolSize, version, eccLevel, optionUserMask);
 
             // Build the symbol.
             byte[] rowData;
@@ -768,7 +716,9 @@ namespace ZintNet.Encoders
                 for (int j = 0; j < symbolSize; j++)
                 {
                     if ((symbolGrid[(i * symbolSize) + j] & 0x01) > 0)
+                    {
                         rowData[j] = 1;
+                    }
                 }
 
                 SymbolData symbolData = new SymbolData(rowData, 1.0f);
@@ -784,13 +734,13 @@ namespace ZintNet.Encoders
         }
 
         // Initial mode costs.
-        private static int[] HeadCost(int[] state)
+        private int[] HeadCost(int[] state)
         {
             return InitHeadCosts;
         }
 
         // Cost of switching modes from k to j.
-        private static int SwitchCost(int[] state, int k, int j)
+        private int SwitchCost(int[] state, int k, int j)
         {
             int[,] switchCosts = {
 			    /*      N                   T                   B                        1                   2                   D                   F */
@@ -806,7 +756,7 @@ namespace ZintNet.Encoders
         }
 
         // Final end-of-data costs.
-        private static int EodCost(int k)
+        private int EodCost(int k)
         {
             int[] eodCosts = {
 			    /*  N             T            B  1             2             D             F */
@@ -816,7 +766,7 @@ namespace ZintNet.Encoders
         }
 
         // Calculate cost of encoding a character.
-        private static void CurrentCost(int[] state, char[] data, int length, int position, char[] characterModes, int[] previousCosts, int[] currentCosts)
+        private void CurrentCost(int[] state, char[] data, int length, int position, char[] characterModes, int[] previousCosts, int[] currentCosts)
         {
             int cmIndex = position * HX_NUM_MODES;
             bool text1, text2;
@@ -839,13 +789,17 @@ namespace ZintNet.Encoders
                 }
 
                 else
+                {
                     currentCosts[HX_T] = previousCosts[HX_T] + 36; /* 6 * HX_MULT */
+                }
 
                 characterModes[cmIndex + HX_T] = 't';
             }
 
             else
+            {
                 state[HX_TXT_SM] = 1;
+            }
 
             // Binary mode can encode anything.
             currentCosts[HX_B] = previousCosts[HX_B] + (data[position] > 0xFF ? 96 : 48); /* (16 : 8) * HX_MULT */
@@ -894,7 +848,9 @@ namespace ZintNet.Encoders
                 // Encoding ECI assignment number, according to Table 5.
                 bitStream.AppendBits(8, 4); // ECI
                 if (eci <= 127)
+                {
                     bitStream.AppendBits(eci, 8);
+                }
 
                 if ((eci >= 128) && (eci <= 16383))
                 {
@@ -916,7 +872,9 @@ namespace ZintNet.Encoders
                 do
                 {
                     if (mode[position] == 'b' && gbData[position + blockLength] > 0xFF)
+                    {
                         doubleByte++;
+                    }
 
                     blockLength++;
                 } while (position + blockLength < length && mode[position + blockLength] == mode[position]);
@@ -975,10 +933,13 @@ namespace ZintNet.Encoders
                             }
 
                             if (submode == 1)
+                            {
                                 encodingValue = LookupText1(gbData[i + position]);
-
+                            }
                             else
+                            {
                                 encodingValue = LookupText2(gbData[i + position]);
+                            }
 
                             bitStream.AppendBits(encodingValue, 6);
                             i++;
@@ -1008,7 +969,9 @@ namespace ZintNet.Encoders
                         // Region 1 encoding.
                         // Mode indicator.
                         if (position == 0 || mode[position - 1] != '2') // Unless previous mode Region 2.
+                        {
                             bitStream.AppendBits(4, 4);    // Mode indicator - 0100.
+                        }
 
                         i = 0;
                         while (i < blockLength)
@@ -1023,12 +986,16 @@ namespace ZintNet.Encoders
                             if ((firstByte >= 0xa1) && (firstByte <= 0xa3))
                             {
                                 if ((secondByte >= 0xa1) && (secondByte <= 0xfe))
+                                {
                                     glyph = (0x5e * firstByte - 0xa1) + (secondByte - 0xa1) + 0xeb0;
+                                }
                             }
 
                             // Subset 3.
                             if ((gbData[i + position] >= 0xa8a1) && (gbData[i + position] <= 0xa8c0))
+                            {
                                 glyph = (secondByte - 0xa1) + 0xfca;
+                            }
 
                             bitStream.AppendBits(glyph, 12);
                             i++;
@@ -1042,7 +1009,9 @@ namespace ZintNet.Encoders
                         // Region 2 encoding.
                         // Mode indicator.
                         if (position == 0 || mode[position - 1] != '1')
+                        {
                             bitStream.AppendBits(5, 4);    // Mode indicator - 0101.
+                        }
 
                         i = 0;
                         while (i < blockLength)
@@ -1070,10 +1039,13 @@ namespace ZintNet.Encoders
                             secondByte = gbData[i + position] & 0xff;
 
                             if (secondByte <= 0x7e)
+                            {
                                 glyph = (0xbe * (firstByte - 0x81)) + (secondByte - 0x40);
-
+                            }
                             else
+                            {
                                 glyph = (0xbe * (firstByte - 0x81)) + (secondByte - 0x41);
+                            }
 
                             bitStream.AppendBits(glyph, 15);
                             i++;
@@ -1113,16 +1085,21 @@ namespace ZintNet.Encoders
         }
 
         // Whether in numeric or not. If in numeric, *p_end is set to position after numeric, and *p_cost is set to per-numeric cost
-        private static bool InNumeric(char[] gbdata, int length, int position, ref int pEnd, ref int pCost)
+        private bool InNumeric(char[] gbdata, int length, int position, ref int pEnd, ref int pCost)
         {
             int idx;
             int digitCount;
 
             if (position < pEnd)
+            {
                 return true;
+            }
 
             // Attempt to calculate the average 'cost' of using numeric mode in number of bits (times HX_MULT)
-            for (idx = position; idx < length && idx < position + 4 && gbdata[idx] >= '0' && gbdata[idx] <= '9'; idx++) ;
+            for (idx = position; idx < length && idx < position + 4 && gbdata[idx] >= '0' && gbdata[idx] <= '9'; idx++)
+            {
+                ;
+            }
 
             digitCount = idx - position;
             if (digitCount == 0)
@@ -1137,10 +1114,12 @@ namespace ZintNet.Encoders
         }
 
         // Whether in four-byte or not. If in four-byte, *p_fourbyte is set to position after four-byte, and *p_fourbyte_cost is set to per-position cost.
-        private static bool InFourByte(char[] data, int length, int position, ref int pEnd, ref int pCost)
+        private bool InFourByte(char[] data, int length, int position, ref int pEnd, ref int pCost)
         {
             if (position < pEnd)
+            {
                 return true;
+            }
 
             if (position == length - 1 || !IsFourByte(data[position], data[position + 1]))
             {
@@ -1153,7 +1132,7 @@ namespace ZintNet.Encoders
             return true;
         }
 
-        private static bool IsRegion1(char glyph)
+        private bool IsRegion1(char glyph)
         {
             int firstByte, secondByte;
             bool isValid = false;
@@ -1164,22 +1143,28 @@ namespace ZintNet.Encoders
             if ((firstByte >= 0xb0) && (firstByte <= 0xd7))
             {
                 if ((secondByte >= 0xa1) && (secondByte <= 0xfe))
+                {
                     isValid = true;
+                }
             }
 
             if ((firstByte >= 0xa1) && (firstByte <= 0xa3))
             {
                 if ((secondByte >= 0xa1) && (secondByte <= 0xfe))
+                {
                     isValid = true;
+                }
             }
 
             if ((glyph >= 0xa8a1) && (glyph <= 0xa8c0))
+            {
                 isValid = true;
+            }
 
             return isValid;
         }
 
-        private static bool IsRegion2(char glyph)
+        private bool IsRegion2(char glyph)
         {
             int firstByte, secondByte;
             bool isValid = false;
@@ -1190,13 +1175,15 @@ namespace ZintNet.Encoders
             if ((firstByte >= 0xd8) && (firstByte <= 0xf7))
             {
                 if ((secondByte >= 0xa1) && (secondByte <= 0xfe))
+                {
                     isValid = true;
+                }
             }
 
             return isValid;
         }
 
-        private static bool IsDoubleByte(char glyph)
+        private bool IsDoubleByte(char glyph)
         {
             int firstByte, secondByte;
             bool isValid = false;
@@ -1207,16 +1194,20 @@ namespace ZintNet.Encoders
             if ((firstByte >= 0x81) && (firstByte <= 0xfe))
             {
                 if ((secondByte >= 0x40) && (secondByte <= 0x7e))
+                {
                     isValid = true;
+                }
 
                 if ((secondByte >= 0x80) && (secondByte <= 0xfe))
+                {
                     isValid = true;
+                }
             }
 
             return isValid;
         }
 
-        private static bool IsFourByte(char glyph1, char glyph2)
+        private bool IsFourByte(char glyph1, char glyph2)
         {
             int firstByte, secondByte;
             int thirdByte, fourthByte;
@@ -1234,7 +1225,9 @@ namespace ZintNet.Encoders
                     if ((thirdByte >= 0x81) && (thirdByte <= 0xfe))
                     {
                         if ((fourthByte >= 0x30) && (fourthByte <= 0x39))
+                        {
                             isValid = true;
+                        }
                     }
                 }
             }
@@ -1243,24 +1236,30 @@ namespace ZintNet.Encoders
         }
 
         // Find which submode to use for a text character.
-        private static int GetSubmode(char input)
+        private int GetSubmode(char input)
         {
             int subMode = 2;
 
-            if (Char.IsDigit(input))
+            if (char.IsDigit(input))
+            {
                 subMode = 1;
+            }
 
-            if (Char.IsUpper(input))
+            if (char.IsUpper(input))
+            {
                 subMode = 1;
+            }
 
-            if (Char.IsLower(input))
+            if (char.IsLower(input))
+            {
                 subMode = 1;
+            }
 
             return subMode;
         }
 
         // Return length of terminator for encoding mode.
-        private static int TerminatorLength(char mode)
+        private int TerminatorLength(char mode)
         {
             int length = 0;
 
@@ -1300,13 +1299,17 @@ namespace ZintNet.Encoders
             {
                 estimatedBinaryLength += 4;
                 if (eci <= 127)
+                {
                     estimatedBinaryLength += 8;
-
+                }
                 else if ((eci >= 128) && (eci <= 16383))
+                {
                     estimatedBinaryLength += 16;
-
+                }
                 else
+                {
                     estimatedBinaryLength += 24;
+                }
             }
 
             idx = 0;
@@ -1315,12 +1318,16 @@ namespace ZintNet.Encoders
                 if (mode[idx] != lastmode)
                 {
                     if (idx > 0)
+                    {
                         estimatedBinaryLength += TerminatorLength(lastmode);
+                    }
 
                     // GB 4-byte has indicator for each character (and no terminator) so not included here.
                     // Region1/Region2 have special terminator to go directly into each other's mode so not included here.
                     if (mode[idx] != 'f' || ((mode[idx] == '1' && lastmode == '2') || (mode[idx] == '2' && lastmode == '1')))
+                    {
                         estimatedBinaryLength += 4;
+                    }
 
                     if (mode[idx] == 'b')
                     {
@@ -1336,7 +1343,9 @@ namespace ZintNet.Encoders
                 {
                     case 'n':
                         if (numericRun % 3 == 0)
+                        {
                             estimatedBinaryLength += 10;
+                        }
 
                         numericRun++;
                         break;
@@ -1377,52 +1386,70 @@ namespace ZintNet.Encoders
         }
 
         // Convert Text 1 sub-mode character to encoding value, as given in table 3.
-        private static int LookupText1(char input)
+        private int LookupText1(char input)
         {
             int encodingValue = -1;
 
-            if (Char.IsDigit(input))
+            if (char.IsDigit(input))
+            {
                 encodingValue = input - '0';
+            }
 
-            if (Char.IsUpper(input))
+            if (char.IsUpper(input))
+            {
                 encodingValue = input - 'A' + 10;
+            }
 
-            if (Char.IsLower(input))
+            if (char.IsLower(input))
+            {
                 encodingValue = input - 'a' + 36;
+            }
 
             return encodingValue;
         }
 
         // Convert Text 2 sub-mode character to encoding value, as given in table 4.
-        private static int LookupText2(char input)
+        private int LookupText2(char input)
         {
             int encodingValue = -1;
 
             if (input <= 27)
+            {
                 encodingValue = input;
+            }
 
             if ((input >= ' ') && (input <= '/'))
+            {
                 encodingValue = input - ' ' + 28;
+            }
 
             if ((input >= ':') && (input <= '@'))
+            {
                 encodingValue = input - ':' + 44;
+            }
 
             if ((input >= '[') && (input <= 96))
+            {
                 encodingValue = input - '[' + 51;
+            }
 
             if ((input >= '{') && (input <= 127))
+            {
                 encodingValue = input - '{' + 57;
+            }
 
             return encodingValue;
         }
 
         // Put static elements in the grid.
-        private static void SetupGrid(byte[] grid, int size, int version)
+        private void SetupGrid(byte[] grid, int size, int version)
         {
             for (int i = 0; i < size; i++)
             {
                 for (int j = 0; j < size; j++)
+                {
                     grid[(i * size) + j] = 0;
+                }
             }
 
             // Add finder patterns.
@@ -1486,21 +1513,28 @@ namespace ZintNet.Encoders
                 do
                 {
                     if (modY < m)
+                    {
                         moduleHeight = k;
-
+                    }
                     else
+                    {
                         moduleHeight = r - 1;
+                    }
 
                     if ((modY % 2) == 0)
                     {
                         if ((m % 2) == 1)
+                        {
                             PlotAssistant(grid, size, 0, y);
+                        }
                     }
 
                     else
                     {
                         if ((m % 2) == 0)
+                        {
                             PlotAssistant(grid, size, 0, y);
+                        }
 
                         PlotAssistant(grid, size, size - 1, y);
                     }
@@ -1515,21 +1549,28 @@ namespace ZintNet.Encoders
                 do
                 {
                     if (modX < m)
+                    {
                         moduleWidth = k;
-
+                    }
                     else
+                    {
                         moduleWidth = r - 1;
+                    }
 
                     if ((modX % 2) == 0)
                     {
                         if ((m % 2) == 1)
+                        {
                             PlotAssistant(grid, size, x, (size - 1));
+                        }
                     }
 
                     else
                     {
                         if ((m % 2) == 0)
+                        {
                             PlotAssistant(grid, size, x, (size - 1));
+                        }
 
                         PlotAssistant(grid, size, x, 0);
                     }
@@ -1545,11 +1586,13 @@ namespace ZintNet.Encoders
                 do
                 {
                     if (modY < m)
+                    {
                         moduleHeight = k;
-
+                    }
                     else
+                    {
                         moduleHeight = r - 1;
-
+                    }
 
                     if (columnSwitch == 1)
                     {
@@ -1568,21 +1611,28 @@ namespace ZintNet.Encoders
                     do
                     {
                         if (modX < m)
+                        {
                             moduleWidth = k;
-
+                        }
                         else
+                        {
                             moduleWidth = r - 1;
+                        }
 
                         if (rowSwitch == 1)
                         {
                             if (!(y == 0 && x == (size - 1)))
+                            {
                                 PlotAlignment(grid, size, x, y, moduleWidth, moduleHeight);
+                            }
 
                             rowSwitch = 0;
                         }
 
                         else
+                        {
                             rowSwitch = 1;
+                        }
 
                         modX++;
                         x -= moduleWidth;
@@ -1595,7 +1645,7 @@ namespace ZintNet.Encoders
         }
 
         // Calculate error correction codes.
-        private static void AddErrorCorrection(byte[] fullstream, byte[] datastream, int dataCodewords, int version, int eccLevel)
+        private void AddErrorCorrection(byte[] fullstream, byte[] datastream, int dataCodewords, int version, int eccLevel)
         {
             byte[] dataBlocks;
             byte[] eccBlocks;
@@ -1633,7 +1683,7 @@ namespace ZintNet.Encoders
         }
 
         // Rearrange data in batches of 13 codewords (section 5.8.2)
-        private static void BuildPicketFence(byte[] fullstream, byte[] picketFence, int streamSize)
+        private void BuildPicketFence(byte[] fullstream, byte[] picketFence, int streamSize)
         {
             int outputPosition = 0;
 
@@ -1650,290 +1700,243 @@ namespace ZintNet.Encoders
             }
         }
 
-        // Apply the four possible bitmasks for evaluation.
-        private static int ApplyBitmask(byte[] grid, int size)
+        private void SetFunctionInfo(byte[] grid, int size, int version, int ecc_level, int bitmask)
         {
             int i, j;
-            int pattern;
-            int[] penalty = new int[4];
-            int bestPattern, bestValue;
-            int bit;
-            byte p;
+            BitVector function_information = new BitVector(); ;
+            byte[] fi_cw = new byte[3]; ;
+            byte[] fi_ecc = new byte[4];
 
-            byte[] mask = new byte[size * size];
-            byte[] eval = new byte[size * size];
+            /* Form function information string */
+            function_information.AppendBits(version + 20, 8);
+            function_information.AppendBits(ecc_level - 1, 2);
+            function_information.AppendBits(bitmask, 2);
 
-            // Perform data masking
-            for (int x = 0; x < size; x++)
+            for (i = 0; i < 3; i++)
             {
-                for (int y = 0; y < size; y++)
+                for (j = 0; j < 4; j++)
                 {
-                    mask[(y * size) + x] = 0x00;
-                    j = x + 1;
-                    i = y + 1;
-
-                    if ((grid[(y * size) + x] & 0xf0) == 0)
+                    if (function_information[(i * 4) + j] == 1)
                     {
-                        if ((i + j) % 2 == 0)
-                            mask[(y * size) + x] += 0x02;
-
-                        if ((((i + j) % 3) + (j % 3)) % 2 == 0)
-                            mask[(y * size) + x] += 0x04;
-
-                        if (((i % j) + (j % i) + (i % 3) + (j % 3)) % 2 == 0)
-                            mask[(y * size) + x] += 0x08;
+                        fi_cw[i] += (byte)(0x08 >> j);
                     }
                 }
             }
 
-            // Apply data masks to grid, result in eval.
-            for (int x = 0; x < size; x++)
+            ReedSolomon.RSInitialise(0x13, 4, 1); 
+            ReedSolomon.RSEncode(3, fi_cw, fi_ecc);
+
+            for (i = 3; i >= 0; i--)
             {
-                for (int y = 0; y < size; y++)
-                {
-                    if ((grid[(y * size) + x] & 0xf0) > 0)
-                        p = 0xf0;
-
-                    else if ((grid[(y * size) + x] & 0x01) > 0)
-                        p = 0x0f;
-
-                    else
-                        p = 0x00;
-
-                    eval[(y * size) + x] = (byte)(mask[(y * size) + x] ^ p);
-                }
+                function_information.AppendBits(fi_ecc[i], 4);
+               // bp = bin_append_posn(fi_ecc[i], 4, function_information, bp);
             }
 
-            // Evaluate result.
-            for (pattern = 0; pattern < 4; pattern++)
-                penalty[pattern] = Evaluate(eval, size, pattern);
-
-            bestPattern = 0;
-            bestValue = penalty[0];
-            for (pattern = 1; pattern < 4; pattern++)
+            /* Previously added alternating filler pattern here (as does BWIPP) but not mentioned in ISO/IEC 20830:2021 and
+               does not appear in Figure 1 nor in the figures in Annex K (although does appear in Figure 2 and Figures 4-9)
+               nor in the AIM ITS/04-023:2022 examples: so just clear */
+            for (i = 28; i < 34; i++)
             {
-                if (penalty[pattern] < bestValue)
-                {
-                    bestPattern = pattern;
-                    bestValue = penalty[pattern];
-                }
+                function_information.AppendBit(0);
             }
 
-            // Apply mask.
-            for (int x = 0; x < size; x++)
+            /* Add function information to symbol */
+            for (i = 0; i < 9; i++)
             {
-                for (int y = 0; y < size; y++)
+                if (function_information[i] == 1)
                 {
-                    bit = 0;
-                    switch (bestPattern)
-                    {
-                        case 0:
-                            if ((mask[(y * size) + x] & 0x01) > 0)
-                                bit = 1;
-                            break;
+                    grid[(8 * size) + i] = 0x01;
+                    grid[((size - 8 - 1) * size) + (size - i - 1)] = 0x01;
+                }
 
-                        case 1:
-                            if ((mask[(y * size) + x] & 0x02) > 0)
-                                bit = 1;
-                            break;
+                if (function_information[i + 8] == 1)
+                {
+                    grid[((8 - i) * size) + 8] = 0x01;
+                    grid[((size - 8 - 1 + i) * size) + (size - 8 - 1)] = 0x01;
+                }
 
-                        case 2:
-                            if ((mask[(y * size) + x] & 0x04) > 0)
-                                bit = 1;
-                            break;
+                if (function_information[i + 17] == 1)
+                {
+                    grid[(i * size) + (size - 1 - 8)] = 0x01;
+                    grid[((size - 1 - i) * size) + 8] = 0x01;
+                }
 
-                        case 3: if ((mask[(y * size) + x] & 0x08) > 0)
-                                bit = 1;
-                            break;
-                    }
-
-                    if (bit == 1)
-                    {
-                        if ((grid[(y * size) + x] & 0x01) > 0)
-                            grid[(y * size) + x] = 0x00;
-
-                        else
-                            grid[(y * size) + x] = 0x01;
-                    }
+                if (function_information[i + 25] == 1)
+                {
+                    grid[(8 * size) + (size - 1 - 8 + i)] = 0x01;
+                    grid[((size - 1 - 8) * size) + (8 - i)] = 0x01;
                 }
             }
-
-            return bestPattern;
         }
 
         // Evaluate a bitmask according to table 9.
-        private static int Evaluate(byte[] evaluation, int size, int pattern)
+        private int Evaluate(byte[] local, int size)
         {
-            int block, weight;
+            byte[] h1010111 = { 1, 0, 1, 0, 1, 1, 1 };
+            byte[] h1110101 = { 1, 1, 1, 0, 1, 0, 1 };
+
+            int x, y, r, block;
             int result = 0;
-            byte state;
-            int p;
-            int afterCount, beforeCount;
-            byte[] local = new byte[size * size];
+            int state;
+            int a, b, afterCount, beforeCount;
 
-            /* All four bitmask variants have been encoded in the 4 bits of the bytes
-             * that make up the grid array. select them for evaluation according to the
-             * desired pattern.*/
-            for (int x = 0; x < size; x++)
+            // Test 1: 1:1:1:1:3 or 3:1:1:1:1 ratio pattern in row/column.
+            //* Vertical.
+            for (x = 0; x < size; x++)
             {
-                for (int y = 0; y < size; y++)
+                for (y = 0; y <= (size - 7); y++)
                 {
-                    if ((evaluation[(y * size) + x] & 0xf0) > 0)
-                        local[(y * size) + x] = 0;
-
-                    else if ((evaluation[(y * size) + x] & (0x01 << pattern)) != 0)
-                        local[(y * size) + x] = (byte)'1';
-
-                    else
-                        local[(y * size) + x] = (byte)'0';
-                }
-            }
-
-            // Test 1: 1:1:1:1:3  or 3:1:1:1:1 ratio pattern in row/column.
-            // Vertical.
-            for (int x = 0; x < size; x++)
-            {
-                for (int y = 0; y < (size - 7); y++)
-                {
-                    if (local[(y * size) + x] == 0)
-                        continue;
-
-                    p = 0;
-                    for (weight = 0; weight < 7; weight++)
-                    {
-                        if (local[((y + weight) * size) + x] == '1')
-                            p += (0x40 >> weight);
-                    }
-
-                    if ((p == 0x57) || (p == 0x75))
+                    if (local[(y * size) + x] > 0 && local[((y + 1) * size) + x] != local[(y + 5) * size + x] &&
+                            local[(y + 2) * size + x] > 0 && local[(y + 3) * size + x] == 0 &&
+                            local[(y + 4) * size + x] > 0 && local[(y + 6) * size + x] > 0)
                     {
                         // Pattern found, check before and after.
                         beforeCount = 0;
-                        for (int before = (y - 3); before < y; before++)
+                        for (b = (y - 1); b >= (y - 3); b--)
                         {
-                            if (before < 0)
-                                beforeCount++;
-
-                            else
+                            if (b < 0)
                             {
-                                if (local[(before * size) + x] == '0')
-                                    beforeCount++;
-
-                                else
-                                    break;
+                                // Count < edge as whitespace.
+                                beforeCount = 3;
+                                break;
                             }
+
+                            if (local[(b * size) + x] > 0)
+                            {
+                                break;
+                            }
+
+                            beforeCount++;
                         }
 
-                        afterCount = 0;
-                        for (int after = (y + 7); after <= (y + 9); after++)
+                        if (beforeCount == 3)
                         {
-                            if (after >= size)
-                                afterCount++;
-
-                            else
-                            {
-                                if (local[(after * size) + x] == '0')
-                                    afterCount++;
-
-                                else
-                                    break;
-                            }
-                        }
-
-                        if ((beforeCount == 3) || (afterCount == 3))    // Pattern is preceeded or followed by light area 3 modules wide.
+                            // Pattern is preceded by light area 3 modules wide.
                             result += 50;
+                        }
+                        else
+                        {
+                            afterCount = 0;
+                            for (a = (y + 7); a <= (y + 9); a++)
+                            {
+                                if (a >= size)
+                                {
+                                    // Count > edge as whitespace.
+                                    afterCount = 3;
+                                    break;
+                                }
+
+                                if (local[(a * size) + x] > 0)
+                                {
+                                    break;
+                                }
+
+                                afterCount++;
+                            }
+
+                            if (afterCount == 3)
+                            {
+                                // Pattern is followed by light area 3 modules wide.
+                                result += 50;
+                            }
+                        }
+
+                        y++; // Skip to next possible match.
                     }
                 }
             }
 
             // Horizontal.
-            for (int y = 0; y < size; y++)
+            for (y = 0; y < size; y++)
             {
-                for (int x = 0; x < (size - 7); x++)
+                r = y * size;
+                for (x = 0; x <= (size - 7); x++)
                 {
-                    if (local[(y * size) + x] == 0)
-                        continue;
-
-                    p = 0;
-                    for (weight = 0; weight < 7; weight++)
-                    {
-                        if (local[(y * size) + x + weight] == '1')
-                            p += (0x40 >> weight);
-                    }
-
-                    if ((p == 0x57) || (p == 0x75))
+                    byte[] temp = new byte[7];
+                    Array.Copy(local, r + x, temp, 0, 7);
+                    if (Equals(temp, h1010111) || Equals(temp, h1110101))
                     {
                         // Pattern found, check before and after.
                         beforeCount = 0;
-                        for (int before = (x - 3); before < x; before++)
+                        for (b = (x - 1); b >= (x - 3); b--)
                         {
-                            if (before < 0)
-                                beforeCount++;
-
-                            else
+                            if (b < 0)
                             {
-                                if (local[(y * size) + before] == '0')
-                                    beforeCount++;
-
-                                else
-                                    break;
+                                // Count < edge as whitespace.
+                                beforeCount = 3;
+                                break;
                             }
+                            if (local[r + b] > 0)
+                            {
+                                break;
+                            }
+
+                            beforeCount++;
                         }
 
-                        afterCount = 0;
-                        for (int after = (x + 7); after <= (x + 9); after++)
+                        if (beforeCount == 3)
                         {
-                            if (after >= size)
-                                afterCount++;
-
-                            else
-                            {
-                                if (local[(y * size) + after] == '0')
-                                    afterCount++;
-
-                                else
-                                    break;
-                            }
-                        }
-
-                        if ((beforeCount == 3) || (afterCount == 3))    // Pattern is preceeded or followed by light area 3 modules wide.
+                            // Pattern is preceded by light area 3 modules wide.
                             result += 50;
+                        }
+
+                        else
+                        {
+                            afterCount = 0;
+                            for (a = (x + 7); a <= (x + 9); a++)
+                            {
+                                if (a >= size)
+                                {
+                                    // Count > edge as whitespace.
+                                    afterCount = 3;
+                                    break;
+                                }
+                                if (local[r + a] > 0)
+                                {
+                                    break;
+                                }
+
+                                afterCount++;
+                            }
+
+                            if (afterCount == 3)
+                            {
+                                // Pattern is followed by light area 3 modules wide.
+                                result += 50;
+                            }
+                        }
+
+                        x++; // Skip to next possible match */.
                     }
                 }
             }
 
-            // Test 2: Adjacent modules in row/column in same colour.
+            /* Test 2: Adjacent modules in row/column in same colour */
             /* In AIMD-15 section 5.8.3.2 it is stated... “In Table 9 below, i refers to the row
              * position of the module.” - however i being the length of the run of the
              * same colour (i.e. "block" below) in the same fashion as ISO/IEC 18004
              * makes more sense. -- Confirmed by Wang Yi */
 
+            // Fixed in ISO/IEC 20830 section 5.8.4.3 "In Table, i refers to the modules with same color."
+
             // Vertical.
-            for (int x = 0; x < size; x++)
+            for (x = 0; x < size; x++)
             {
                 block = 0;
                 state = 0;
-                for (int y = 0; y < size; y++)
+                for (y = 0; y < size; y++)
                 {
-                    if (local[(y * size) + x] == 0)
-                    {
-                        if (block >= 3)
-                            result += (3 + block) * 4;
-
-                        block = 0;
-                        state = 0;
-                    }
-
-                    else if (local[(y * size) + x] == state || state == 0)
+                    if (local[(y * size) + x] == state)
                     {
                         block++;
-                        state = local[(y * size) + x];
                     }
 
                     else
                     {
                         if (block >= 3)
-                            result += (3 + block) * 4;
+                        {
+                            result += block * 4;
+                        }
 
                         block = 1;
                         state = local[(y * size) + x];
@@ -1941,50 +1944,164 @@ namespace ZintNet.Encoders
                 }
 
                 if (block >= 3)
-                    result += (3 + block) * 4;
+                {
+                    result += block * 4;
+                }
             }
 
             // Horizontal.
-            for (int y = 0; y < size; y++)
+            for (y = 0; y < size; y++)
             {
-                state = local[y * size];
+                r = y * size;
                 block = 0;
-                for (int x = 0; x < size; x++)
+                state = 0;
+                for (x = 0; x < size; x++)
                 {
-                    if (local[(y * size) + x] == 0)
-                    {
-                        if (block >= 3)
-                            result += (3 + block) * 4;
-
-                        block = 0;
-                        state = 0;
-                    }
-
-                    else if (local[(y * size) + x] == state || state == 0)
+                    if (local[r + x] == state)
                     {
                         block++;
-                        state = local[(y * size) + x];
                     }
 
                     else
                     {
                         if (block >= 3)
-                            result += (3 + block) * 4;
+                        {
+                            result += block * 4;
+                        }
 
                         block = 1;
-                        state = local[(y * size) + x];
+                        state = local[r + x];
                     }
                 }
-
                 if (block >= 3)
-                    result += (3 + block) * 4;
+                {
+                    result += block * 4;
+                }
             }
 
             return result;
         }
 
+        private void ApplyBitmask(byte[] grid, int size, int version, int eccLevel, int userMask)
+        {
+            int x, y;
+            int i, j, r, k;
+            int pattern;
+            int[] penalty = new int[4];
+            int best_pattern;
+            int bit;
+            int size_squared = size * size;
+            byte[] mask = new byte[size_squared];
+            byte[] local = new byte[size_squared];
+
+            // Perform data masking.
+            for (y = 0; y < size; y++)
+            {
+                r = y * size;
+                for (x = 0; x < size; x++)
+                {
+                    k = r + x;
+                    if ((grid[k] & 0xf0) == 0)
+                    {
+                        j = x + 1;
+                        i = y + 1;
+                        if (((i + j) & 1) == 0)
+                        {
+                            mask[k] |= 0x02;
+                        }
+
+                        if (((((i + j) % 3) + (j % 3)) & 1) == 0)
+                        {
+                            mask[k] |= 0x04;
+                        }
+
+                        if ((((i % j) + (j % i) + (i % 3) + (j % 3)) & 1) == 0)
+                        {
+                            mask[k] |= 0x08;
+                        }
+                    }
+                }
+            }
+
+            if (userMask > 0)
+            {
+                best_pattern = userMask - 1;
+            }
+
+            else
+            {
+                // Apply data masks to grid, result in local.
+                // Do null pattern 00 separately first.
+                pattern = 0;
+                for (k = 0; k < size_squared; k++)
+                {
+                    local[k] = (byte)(grid[k] & 0x0f);
+                }
+
+                // Set the Structural Info.
+                SetFunctionInfo(local, size, version, eccLevel, pattern);
+
+                // Evaluate result.
+                penalty[pattern] = Evaluate(local, size);
+
+                best_pattern = 0;
+                for (pattern = 1; pattern < 4; pattern++)
+                {
+                    bit = 1 << pattern;
+                    for (k = 0; k < size_squared; k++)
+                    {
+                        if ((mask[k] & bit) > 0)
+                        {
+                            local[k] = (byte)(grid[k] ^ 0x01);
+                        }
+
+                        else
+                        {
+                            local[k] = (byte)(grid[k] & 0x0f);
+                        }
+                    }
+
+                    // Set the Structural Info */.
+                    SetFunctionInfo(local, size, version, eccLevel, pattern);
+
+                    // Evaluate result.
+                    penalty[pattern] = Evaluate(local, size);
+                    if (penalty[pattern] < penalty[best_pattern])
+                    {
+                        best_pattern = pattern;
+                    }
+                }
+            }
+
+            // Apply mask.
+            if (best_pattern > 0)
+            {
+                // If not null mask.
+                if (userMask == 0 && best_pattern == 3)
+                {
+                    // Reuse last.
+                    Array.Copy(local, grid, size_squared);
+                }
+
+                else
+                {
+                    bit = 1 << best_pattern;
+                    for (k = 0; k < size_squared; k++)
+                    {
+                        if ((mask[k] & bit) > 0)
+                        {
+                            grid[k] ^= 0x01;
+                        }
+                    }
+                }
+            }
+
+            // Set the Structural Info.
+            SetFunctionInfo(grid, size, version, eccLevel, best_pattern);
+        }
+
         // Finder pattern for top left of symbol
-        private static void PlaceFinderTopLeft(byte[] grid, int size)
+        private void PlaceFinderTopLeft(byte[] grid, int size)
         {
             int x = 0, y = 0;
             byte[] finder = { 0x7F, 0x40, 0x5F, 0x50, 0x57, 0x57, 0x57 };
@@ -1994,16 +2111,19 @@ namespace ZintNet.Encoders
                 for (int yp = 0; yp < 7; yp++)
                 {
                     if ((finder[yp] & 0x40 >> xp) > 0)
+                    {
                         grid[((yp + y) * size) + (xp + x)] = 0x11;
-
+                    }
                     else
+                    {
                         grid[((yp + y) * size) + (xp + x)] = 0x10;
+                    }
                 }
             }
         }
 
         // Finder pattern for top right and bottom left of symbol.
-        private static void PlaceFinder(byte[] grid, int size, int x, int y)
+        private void PlaceFinder(byte[] grid, int size, int x, int y)
         {
             byte[] finder = { 0x7F, 0x01, 0x7D, 0x05, 0x75, 0x75, 0x75 };
 
@@ -2012,16 +2132,19 @@ namespace ZintNet.Encoders
                 for (int yp = 0; yp < 7; yp++)
                 {
                     if ((finder[yp] & 0x40 >> xp) > 0)
+                    {
                         grid[((yp + y) * size) + (xp + x)] = 0x11;
-
+                    }
                     else
+                    {
                         grid[((yp + y) * size) + (xp + x)] = 0x10;
+                    }
                 }
             }
         }
 
         // Finder pattern for bottom right of symbol.
-        private static void PlaceFinderBottomRight(byte[] grid, int size)
+        private void PlaceFinderBottomRight(byte[] grid, int size)
         {
             int x = size - 7, y = size - 7;
             byte[] finder = { 0x75, 0x75, 0x75, 0x05, 0x7D, 0x01, 0x7F };
@@ -2031,16 +2154,19 @@ namespace ZintNet.Encoders
                 for (int yp = 0; yp < 7; yp++)
                 {
                     if ((finder[yp] & 0x40 >> xp) > 0)
+                    {
                         grid[((yp + y) * size) + (xp + x)] = 0x11;
-
+                    }
                     else
+                    {
                         grid[((yp + y) * size) + (xp + x)] = 0x10;
+                    }
                 }
             }
         }
 
         // Plot assistant alignment patterns.
-        private static void PlotAssistant(byte[] grid, int size, int x, int y)
+        private void PlotAssistant(byte[] grid, int size, int x, int y)
         {
             SafePlot(grid, size, x - 1, y - 1, 0x10);
             SafePlot(grid, size, x, y - 1, 0x10);
@@ -2054,7 +2180,7 @@ namespace ZintNet.Encoders
         }
 
         // Plot an alignment pattern around top and right of a module.
-        private static void PlotAlignment(byte[] grid, int size, int x, int y, int w, int h)
+        private void PlotAlignment(byte[] grid, int size, int x, int y, int w, int h)
         {
             SafePlot(grid, size, x, y, 0x11);
             SafePlot(grid, size, x - 1, y + 1, 0x10);
@@ -2075,19 +2201,21 @@ namespace ZintNet.Encoders
         }
 
         // Avoid plotting outside symbol or over finder patterns.
-        private static void SafePlot(byte[] grid, int size, int x, int y, byte value)
+        private void SafePlot(byte[] grid, int size, int x, int y, byte value)
         {
             if ((x >= 0) && (x < size))
             {
                 if ((y >= 0) && (y < size))
                 {
                     if (grid[(y * size) + x] == 0)
+                    {
                         grid[(y * size) + x] = value;
+                    }
                 }
             }
         }
 
-        private static char[] GetGB18030Character(char data)
+        private char[] GetGB18030Character(char data)
         {
             byte[] gb18030Bytes;
             char[] gb18030 = new char[1];
@@ -2108,32 +2236,11 @@ namespace ZintNet.Encoders
 
             gb18030Characters[0] = (char)(gb18030Bytes[0] << 8 | gb18030Bytes[1] & 0xff);
             if (gb18030Bytes.Length == 4)
+            {
                 gb18030Characters[1] = (char)(gb18030Bytes[2] << 8 | gb18030Bytes[3] & 0xff);
+            }
 
             return gb18030Characters;
-        }
-
-        private static char GetGB2312Character(char data)
-        {
-            byte[] gb2312Bytes;
-            char[] gb2312 = new char[1];
-            char gb2312Character;
-
-            try
-            {
-                gb2312[0] = data;
-                gb2312Bytes = Encoding.GetEncoding("GB2312",
-                    new EncoderExceptionFallback(),
-                    new DecoderExceptionFallback()).GetBytes(gb2312);
-            }
-
-            catch (EncoderFallbackException e)
-            {
-                throw new InvalidDataException("GB2312 Mode: Invalid byte sequence.", e);
-            }
-
-            gb2312Character = (char)(gb2312Bytes[0] << 8 | gb2312Bytes[1] & 0xff);
-            return gb2312Character;
         }
     }
 }

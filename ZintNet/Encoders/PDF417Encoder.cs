@@ -56,8 +56,7 @@ namespace ZintNet.Encoders
         private int optionErrorCorrection;
         private int optionElementHeight;
 
-        public PDF417Encoder(Symbology symbology, string barcodeMessage, int optionDataColumns,
-            int optionErrorCorrection, int optionElementHeight, EncodingMode encodingMode)
+        public PDF417Encoder(Symbology symbology, char[] barcodeMessage, int optionDataColumns, int optionErrorCorrection, int optionElementHeight, EncodingFormat encodingMode)
         {
             this.symbolId = symbology;
             this.barcodeMessage = barcodeMessage;
@@ -70,21 +69,23 @@ namespace ZintNet.Encoders
         public override Collection<SymbolData> EncodeData()
         {
             Symbol = new Collection<SymbolData>();
-            if (encodingMode == EncodingMode.GS1)   // PDF417 does not support GS1.
-                encodingMode = EncodingMode.Standard;
+            if (encodingMode == EncodingFormat.GS1)   // PDF417 does not support GS1.
+            {
+                encodingMode = EncodingFormat.Standard;
+            }
 
             switch (encodingMode)
             {
-                case EncodingMode.GS1:
-                    encodingMode = EncodingMode.Standard;   // PDF417 does not support GS1.
+                case EncodingFormat.GS1:
+                    encodingMode = EncodingFormat.Standard;   // PDF417 does not support GS1.
                     barcodeData = MessagePreProcessor.TildeParser(barcodeMessage);
                     break;
 
-                case EncodingMode.Standard:
+                case EncodingFormat.Standard:
                     barcodeData = MessagePreProcessor.TildeParser(barcodeMessage);
                     break;
 
-                case EncodingMode.HIBC:
+                case EncodingFormat.HIBC:
                     barcodeData = MessagePreProcessor.HIBCParser(barcodeMessage);
                     break;
             }
@@ -126,7 +127,9 @@ namespace ZintNet.Encoders
                     sourceIndex++;
                     modeList[0, modeListCount]++;
                     if (sourceIndex < inputLength)
+                    {
                         mode = GetMode(barcodeData[sourceIndex]);
+                    }
                 }
 
                 modeListCount++;
@@ -161,7 +164,9 @@ namespace ZintNet.Encoders
             }
 
             if (eci > 811799)
+            {
                 throw new InvalidDataException("PDF417: Invalid ECI.");
+            }
 
             for (int i = 0; i < modeListCount; i++)
             {
@@ -189,45 +194,66 @@ namespace ZintNet.Encoders
             {
                 optionErrorCorrection = 6;
                 if (dataStreamLength < 864)
+                {
                     optionErrorCorrection = 5;
+                }
 
                 if (dataStreamLength < 321)
+                {
                     optionErrorCorrection = 4;
+                }
 
                 if (dataStreamLength < 161)
+                {
                     optionErrorCorrection = 3;
+                }
 
                 if (dataStreamLength < 41)
+                {
                     optionErrorCorrection = 2;
+                }
             }
 
             eccLevel = 1;
             for (int i = 1; i <= (optionErrorCorrection + 1); i++)
+            {
                 eccLevel *= 2;
+            }
 
             if (optionDataColumns < 1)
+            {
                 optionDataColumns = (int)(0.5 + Math.Sqrt((dataStreamLength + eccLevel) / 3.0));
+            }
 
             if (((dataStreamLength + eccLevel) / optionDataColumns) > 90)
+            {
                 // Stop the symbol from becoming too high by increasing the columns.
                 optionDataColumns = optionDataColumns + 1;
+            }
 
             if ((dataStreamLength + eccLevel) > 928)
+            {
                 throw new InvalidDataLengthException("PDF417: Input data too long.");
+            }
 
             if (((dataStreamLength + eccLevel) / optionDataColumns) > 90)
+            {
                 throw new InvalidDataLengthException("PDF417: Input data too long for specified number of columns.");
+            }
 
             // Padding calculation.
             int totalLength = dataStreamLength + eccLevel + 1;
             int padding = 0;
             if ((totalLength / optionDataColumns) < 3)    // A bar code must have at least three rows.
+            {
                 padding = (optionDataColumns * 3) - totalLength;
-
+            }
             else
             {
                 if ((totalLength % optionDataColumns) > 0)
+                {
                     padding = optionDataColumns - (totalLength % optionDataColumns);
+                }
             }
 
             // Add the padding.
@@ -242,10 +268,13 @@ namespace ZintNet.Encoders
 
             // We now take care of the Reed Solomon codes.
             if (optionErrorCorrection == 0)
+            {
                 offset = 0;
-
+            }
             else
+            {
                 offset = eccLevel - 2;
+            }
 
             dataStreamLength = dataStream.Count;
             eccStream = new int[eccLevel];
@@ -253,19 +282,25 @@ namespace ZintNet.Encoders
             {
                 int total = (dataStream[i] + eccStream[eccLevel - 1]) % 929;
                 for (int j = eccLevel - 1; j > 0; j--)
+                {
                     eccStream[j] = ((eccStream[j - 1] + 929) - (total * PDF417Tables.Coefficients[offset + j]) % 929) % 929;
+                }
 
                 eccStream[0] = (929 - (total * PDF417Tables.Coefficients[offset]) % 929) % 929;
             }
 
             // Add the code words to the data stream.
             for (int i = eccLevel - 1; i >= 0; i--)
+            {
                 dataStream.Add((eccStream[i] != 0) ? 929 - eccStream[i] : 0);
+            }
 
             dataStreamLength = dataStream.Count;
             int rowCount = dataStreamLength / optionDataColumns;
             if (dataStreamLength % optionDataColumns != 0)
+            {
                 rowCount++;
+            }
 
             int c1 = (rowCount - 1) / 3;
             int c2 = (optionErrorCorrection * 3) + ((rowCount - 1) % 3);
@@ -279,10 +314,14 @@ namespace ZintNet.Encoders
             for (int row = 0; row < rowCount; row++)
             {
                 for (int i = 0; i < buffer.Length; i++)
+                {
                     buffer[i] = 0;
+                }
 
                 for (int i = 0; i < optionDataColumns; i++)
+                {
                     buffer[i + 1] = dataStream[row * optionDataColumns + i];
+                }
 
                 int errorCorrection = (row / 3) * 30;
                 switch (row % 3)
@@ -365,22 +404,29 @@ namespace ZintNet.Encoders
                 {
                     int position = PDF417Tables.PDFSet.IndexOf(codeString[i]);
                     if (position >= 0 && position < 32)
+                    {
                         bitPattern.AppendBits(position, 5);
-
+                    }
                     else if (position == 32)
+                    {
                         bitPattern.AppendBits(1, 2);
-
+                    }
                     else if (position == 33)
+                    {
                         bitPattern.AppendBits(0xff54, 16);
-
+                    }
                     else
+                    {
                         bitPattern.AppendBits(0x1fa29, 17);
+                    }
                 }
 
                 int size = bitPattern.SizeInBits;
                 byte[] rowData = new byte[size];
                 for (int i = 0; i < size; i++)
+                {
                     rowData[i] = bitPattern[i];
+                }
 
                 SymbolData symbolData = new SymbolData(rowData, optionElementHeight);
                 Symbol.Add(symbolData);
@@ -401,10 +447,13 @@ namespace ZintNet.Encoders
             int mode = BYTE;
 
             if (Char.IsDigit(asciiValue))
+            {
                 mode = NUMBER;
-
+            }
             else if ((asciiValue == '\t') || (asciiValue == '\n') || (asciiValue == '\r') || ((asciiValue >= ' ') && (asciiValue <= '~')))
+            {
                 mode = TEXT;
+            }
 
             return mode;
         }
@@ -451,16 +500,22 @@ namespace ZintNet.Encoders
                 current = modeList[1, i];
                 length = modeList[0, i];
                 if (i != 0)
+                {
                     last = modeList[1, i - 1];
-
+                }
                 else
+                {
                     last = 0;
+                }
 
                 if (i != modeListCount - 1)
+                {
                     next = modeList[1, i + 1];
-
+                }
                 else
+                {
                     next = 0;
+                }
 
                 if (current == NUMBER)
                 {
@@ -471,10 +526,14 @@ namespace ZintNet.Encoders
                         {
                             // And there are others.
                             if ((next == TEXT) && (length < 8))
+                            {
                                 modeList[1, i] = TEXT;
+                            }
 
                             if ((next == BYTE) && (length == 1))
+                            {
                                 modeList[1, i] = BYTE;
+                            }
                         }
                     }
 
@@ -484,26 +543,38 @@ namespace ZintNet.Encoders
                         {
                             // Last block.
                             if ((last == TEXT) && (length < 7))
+                            {
                                 modeList[1, i] = TEXT;
+                            }
 
                             if ((last == BYTE) && (length == 1))
+                            {
                                 modeList[1, i] = BYTE;
+                            }
                         }
 
                         else
                         {
                             // Not first or last block.
                             if (((last == BYTE) && (next == BYTE)) && (length < 4))
+                            {
                                 modeList[1, i] = BYTE;
+                            }
 
                             if (((last == BYTE) && (next == TEXT)) && (length < 4))
+                            {
                                 modeList[1, i] = TEXT;
+                            }
 
                             if (((last == TEXT) && (next == BYTE)) && (length < 5))
+                            {
                                 modeList[1, i] = TEXT;
+                            }
 
                             if (((last == TEXT) && (next == TEXT)) && (length < 8))
+                            {
                                 modeList[1, i] = TEXT;
+                            }
                         }
                     }
                 }
@@ -516,16 +587,22 @@ namespace ZintNet.Encoders
                 current = modeList[1, i];
                 length = modeList[0, i];
                 if (i != 0)
+                {
                     last = modeList[1, i - 1];
-
+                }
                 else
+                {
                     last = 0;
+                }
 
                 if (i != modeListCount - 1)
+                {
                     next = modeList[1, i + 1];
-
+                }
                 else
+                {
                     next = 0;
+                }
 
                 if ((current == TEXT) && (i > 0))
                 {
@@ -534,17 +611,23 @@ namespace ZintNet.Encoders
                     {
                         // The last one.
                         if ((last == BYTE) && (length == 1))
+                        {
                             modeList[1, i] = BYTE;
+                        }
                     }
 
                     else
                     {
                         // Not the last one.
                         if (((last == BYTE) && (next == BYTE)) && (length < 5))
+                        {
                             modeList[1, i] = BYTE;
+                        }
 
                         if ((((last == BYTE) && (next != BYTE)) || ((last != BYTE) && (next == BYTE))) && (length < 3))
+                        {
                             modeList[1, i] = BYTE;
+                        }
                     }
                 }
             }
@@ -603,12 +686,15 @@ namespace ZintNet.Encoders
                     // Obliged to change table.
                     bool flag = false; // True if we change table for only one character.
                     if (j == (length - 1))
+                    {
                         flag = true;
-
+                    }
                     else
                     {
                         if (!((listTable[0, j] & listTable[0, j + 1]) != 0))
+                        {
                             flag = true;
+                        }
                     }
 
                     if (flag)
@@ -642,15 +728,19 @@ namespace ZintNet.Encoders
                         int newTable;
 
                         if (j == (length - 1))
+                        {
                             newTable = listTable[0, j];
-
+                        }
                         else
                         {
                             if (!(((listTable[0, j] & listTable[0, j + 1])) != 0))
+                            {
                                 newTable = listTable[0, j];
-
+                            }
                             else
+                            {
                                 newTable = listTable[0, j] & listTable[0, j + 1];
+                            }
                         }
 
                         // Maintain the first if several tables are possible.
@@ -810,10 +900,13 @@ namespace ZintNet.Encoders
             {
                 // Select the switch for multiple of 6 bytes.
                 if (modeCount % 6 == 0)
+                {
                     dataStream.Add(924);
-
+                }
                 else
+                {
                     dataStream.Add(BYTE);
+                }
 
                 while (length < modeCount)
                 {
@@ -846,7 +939,9 @@ namespace ZintNet.Encoders
                     {
                         length += chunkLength;
                         while (chunkLength-- != 0)
+                        {
                             dataStream.Add(barcodeData[start++]);
+                        }
                     }
                 }
             }
@@ -866,11 +961,15 @@ namespace ZintNet.Encoders
                 moduloStream = new StringBuilder();
                 maxLength = modeCount - j;
                 if (maxLength > 44)
+                {
                     maxLength = 44;
+                }
 
                 moduloStream.Append("1");
                 for (int i = 1; i <= maxLength; i++)
+                {
                     moduloStream.Append(barcodeData[start + i + j - 1]);
+                }
 
                 do
                 {
@@ -887,11 +986,15 @@ namespace ZintNet.Encoders
                         if (number < divisor)
                         {
                             if (multiplyStream.Length != 0)
+                            {
                                 multiplyStream.Append("0");
+                            }
                         }
 
                         else
+                        {
                             multiplyStream.Append((char)((number / divisor) + '0'));
+                        }
 
                         number %= divisor;
                     }
@@ -904,7 +1007,9 @@ namespace ZintNet.Encoders
                 while (multiplyStream.Length != 0);
 
                 for (int i = 0; i < buffer.Count; i++)
+                {
                     dataStream.Add(buffer[i]);
+                }
 
                 j += maxLength;
             }
@@ -936,8 +1041,9 @@ namespace ZintNet.Encoders
                 {
                     // Next character same mode.
                     if (mode == modeList[1, modeListCount])
+                    {
                         modeList[0, modeListCount]++;
-
+                    }
                     else
                     {
                         // Next character a different mode.
@@ -979,10 +1085,14 @@ namespace ZintNet.Encoders
             //
             dataStreamLength = dataStream.Count;
             if (dataStreamLength > 126)
+            {
                 throw new InvalidDataLengthException();
+            }
 
             if (optionDataColumns > 4)
+            {
                 optionDataColumns = 0;
+            }
 
             // Now figure out which variant of the symbol to use and load values accordingly.
             int variant = 0;
@@ -1008,41 +1118,63 @@ namespace ZintNet.Encoders
             {
                 variant = 6;
                 if (dataStreamLength <= 16)
+                {
                     variant = 5;
+                }
 
                 if (dataStreamLength <= 12)
+                {
                     variant = 4;
+                }
 
                 if (dataStreamLength <= 10)
+                {
                     variant = 3;
+                }
 
                 if (dataStreamLength <= 7)
+                {
                     variant = 2;
+                }
 
                 if (dataStreamLength <= 4)
+                {
                     variant = 1;
+                }
             }
 
             if (optionDataColumns == 2)
             {
                 variant = 13;
                 if (dataStreamLength <= 33)
+                {
                     variant = 12;
+                }
 
                 if (dataStreamLength <= 29)
+                {
                     variant = 11;
+                }
 
                 if (dataStreamLength <= 24)
+                {
                     variant = 10;
+                }
 
                 if (dataStreamLength <= 19)
+                {
                     variant = 9;
+                }
 
                 if (dataStreamLength <= 13)
+                {
                     variant = 8;
+                }
 
                 if (dataStreamLength <= 8)
+                {
                     variant = 7;
+                }
             }
 
             if (optionDataColumns == 3)
@@ -1050,31 +1182,49 @@ namespace ZintNet.Encoders
                 // The user specified 3 columns and the data does fit 
                 variant = 23;
                 if (dataStreamLength <= 70)
+                {
                     variant = 22;
+                }
 
                 if (dataStreamLength <= 58)
+                {
                     variant = 21;
+                }
 
                 if (dataStreamLength <= 46)
+                {
                     variant = 20;
+                }
 
                 if (dataStreamLength <= 34)
+                {
                     variant = 19;
+                }
 
                 if (dataStreamLength <= 24)
+                {
                     variant = 18;
+                }
 
                 if (dataStreamLength <= 18)
+                {
                     variant = 17;
+                }
 
                 if (dataStreamLength <= 14)
+                {
                     variant = 16;
+                }
 
                 if (dataStreamLength <= 10)
+                {
                     variant = 15;
+                }
 
                 if (dataStreamLength <= 6)
+                {
                     variant = 14;
+                }
             }
 
             if (optionDataColumns == 4)
@@ -1082,34 +1232,54 @@ namespace ZintNet.Encoders
                 // The user specified 4 columns and the data does fit. 
                 variant = 34;
                 if (dataStreamLength <= 108)
+                {
                     variant = 33;
+                }
 
                 if (dataStreamLength <= 90)
+                {
                     variant = 32;
+                }
 
                 if (dataStreamLength <= 72)
+                {
                     variant = 31;
+                }
 
                 if (dataStreamLength <= 54)
+                {
                     variant = 30;
+                }
 
                 if (dataStreamLength <= 39)
+                {
                     variant = 29;
+                }
 
                 if (dataStreamLength <= 30)
+                {
                     variant = 28;
+                }
 
                 if (dataStreamLength <= 24)
+                {
                     variant = 27;
+                }
 
                 if (dataStreamLength <= 18)
+                {
                     variant = 26;
+                }
 
                 if (dataStreamLength <= 12)
+                {
                     variant = 25;
+                }
 
                 if (dataStreamLength <= 8)
+                {
                     variant = 24;
+                }
             }
 
             if (variant == 0)
@@ -1118,7 +1288,9 @@ namespace ZintNet.Encoders
                 for (int i = 27; i >= 0; i--)
                 {
                     if (PDF417Tables.MicroAutoSize[i] >= dataStreamLength)
+                    {
                         variant = PDF417Tables.MicroAutoSize[i + 28];
+                    }
                 }
             }
 
@@ -1145,7 +1317,9 @@ namespace ZintNet.Encoders
             {
                 int total = (dataStream[i] + eccStream[eccCodewords - 1]) % 929;
                 for (int j = eccCodewords - 1; j > 0; j--)
+                {
                     eccStream[j] = ((eccStream[j - 1] + 929) - (total * PDF417Tables.MicroCoefficients[offset + j]) % 929) % 929;
+                }
 
                 eccStream[0] = (929 - (total * PDF417Tables.MicroCoefficients[offset]) % 929) % 929;
             }
@@ -1153,12 +1327,16 @@ namespace ZintNet.Encoders
             for (int j = 0; j < eccCodewords; j++)
             {
                 if (eccStream[j] != 0)
+                {
                     eccStream[j] = 929 - eccStream[j];
+                }
             }
 
             // Add the reed-solomon codewords to the data stream. 
             for (int i = eccCodewords - 1; i >= 0; i--)
+            {
                 dataStream.Add(eccStream[i]);
+            }
 
             // RAP (Row Address Pattern) start values 
             int leftRAPStart = PDF417Tables.RowAddressTable[variant];
@@ -1178,10 +1356,14 @@ namespace ZintNet.Encoders
             for (int row = 0; row < rowCount; row++)
             {
                 for (int i = 0; i < buffer.Length; i++)
+                {
                     buffer[i] = 0;
+                }
 
                 for (int i = 0; i < optionDataColumns; i++)
+                {
                     buffer[i + 1] = dataStream[row * optionDataColumns + i];
+                }
 
                 // Copy the data into code string.
                 offset = 929 * cluster;
@@ -1191,7 +1373,9 @@ namespace ZintNet.Encoders
                 codeString.Append("1");
 
                 if (optionDataColumns == 3)
+                {
                     codeString.Append(PDF417Tables.CentreRowAddressPattern[centreRAP]);
+                }
 
                 if (optionDataColumns >= 2)
                 {
@@ -1201,7 +1385,9 @@ namespace ZintNet.Encoders
                 }
 
                 if (optionDataColumns == 4)
+                {
                     codeString.Append(PDF417Tables.CentreRowAddressPattern[centreRAP]);
+                }
 
                 if (optionDataColumns >= 3)
                 {
@@ -1236,14 +1422,18 @@ namespace ZintNet.Encoders
                     {
                         int position = PDF417Tables.PDFSet.IndexOf(codeString[i]);
                         if (position >= 0 && position < 32)
+                        {
                             bitPattern.AppendBits(position, 5);
+                        }
                     }
                 }
 
                 int size = bitPattern.SizeInBits;
                 byte[] rowData = new byte[size];
                 for (int i = 0; i < size; i++)
+                {
                     rowData[i] = bitPattern[i];
+                }
 
                 SymbolData symbolData = new SymbolData(rowData, 2);
                 Symbol.Add(symbolData);
@@ -1258,16 +1448,24 @@ namespace ZintNet.Encoders
                 cluster++;
 
                 if (leftRAP == 53)
+                {
                     leftRAP = 1;
+                }
 
                 if (centreRAP == 53)
+                {
                     centreRAP = 1;
+                }
 
                 if (rightRAP == 53)
+                {
                     rightRAP = 1;
+                }
 
                 if (cluster == 3)
+                {
                     cluster = 0;
+                }
             }
         }
     }

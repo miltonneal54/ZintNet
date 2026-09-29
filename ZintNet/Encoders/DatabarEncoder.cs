@@ -1,12 +1,12 @@
 ﻿/* DataBarEncoder.cs - Handles DataBar based 1D + composite 2D symbols */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
  
     libzint - the open source barcode library
-    Copyright (C) 2008-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2008-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -34,36 +34,32 @@
     SUCH DAMAGE.
  */
 
-using System;
 using System.Globalization;
-using System.ComponentModel;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data;
-using System.Text;
 
 namespace ZintNet.Encoders
 {
     internal partial class DatabarEncoder : SymbolEncoder
     {
         # region Tables
+
         private static int[] RSSWidths;
 
         // Databar 14 Tables.
-        static int[] Table154 = {
+        static readonly int[] Table154 = {
 		    10, 7, 5, 2, 4, 336, 
 			8, 5, 7, 4, 20, 700, 
 			6, 3, 9, 6, 48, 480, 
 			4, 1, 11, 8, 81, 81};
 
-        static int[] Table164 = {
+        static readonly int[] Table164 = {
 		    12, 8, 4, 1, 1, 161, 
 			10, 6, 6, 3, 10, 800, 
 			8, 4, 8, 5, 34, 1054, 
 			6, 3, 10, 6, 70, 700, 
 			4, 1, 12, 8, 126, 126};
 
-        static byte[] LeftParityTable = {
+        static readonly byte[] LeftParityTable = {
 		    3, 8, 2, 
 		    3, 5, 5, 
 		    3, 3, 7, 
@@ -74,23 +70,22 @@ namespace ZintNet.Encoders
 		    1, 5, 7, 
 		    1, 3, 9};
 
-        static int[] LeftWeightsTable = { 1, 3, 9, 27, 2, 6, 18, 54, 4, 12, 36, 29, 8, 24, 72, 58 };
-        static int[] RightWeightsTable = { 16, 48, 65, 37, 32, 17, 51, 74, 64, 34, 23, 69, 49, 68, 46, 59 };
+        static readonly int[] LeftWeightsTable = { 1, 3, 9, 27, 2, 6, 18, 54, 4, 12, 36, 29, 8, 24, 72, 58 };
+        static readonly int[] RightWeightsTable = { 16, 48, 65, 37, 32, 17, 51, 74, 64, 34, 23, 69, 49, 68, 46, 59 };
 
         # endregion
 
         private int segments;
 
-        public DatabarEncoder(Symbology symbology, string barcodeMessage, string compositeMessage, CompositeMode compositeMode, int segments)
+        public DatabarEncoder(Symbology symbolId, char[] barcodeMessage, char[] compositeMessage, CompositeMode compositeMode, int segments)
         {
-            this.symbolId = symbology;
+            this.symbolId = symbolId;
             this.barcodeMessage = barcodeMessage;
             this.compositeMessage = compositeMessage;
             this.segments = segments;
             this.compositeMode = compositeMode;
-            if (!string.IsNullOrEmpty(compositeMessage))
-                isCompositeSymbol = true;
-        }
+            isCompositeSymbol = compositeMessage != null;
+         }
 
         public override Collection<SymbolData> EncodeData()
         {
@@ -103,13 +98,15 @@ namespace ZintNet.Encoders
                 case Symbology.DatabarTruncated:
                     barcodeData = MessagePreProcessor.NumericParser(barcodeMessage);
                     Databar();
-                    if(symbolId == Symbology.DatabarOmni || symbolId == Symbology.DatabarTruncated)
+                    if (symbolId == Symbology.DatabarOmni || symbolId == Symbology.DatabarTruncated)
+                    {
                         SetHRText();
+                    }
 
                     break;
 
                 case Symbology.DatabarLimited:
-                    barcodeData = MessagePreProcessor.MessageParser(barcodeMessage);
+                    barcodeData = MessagePreProcessor.NumericParser(barcodeMessage);
                     DatabarLimited();
                     SetHRText();
                     break;
@@ -120,7 +117,7 @@ namespace ZintNet.Encoders
                     DatabarExpanded();
                     if (symbolId == Symbology.DatabarExpanded)
                     {
-                        barcodeText = barcodeMessage;
+                        barcodeText = new string(barcodeMessage);
                         barcodeText = barcodeText.Replace('[', '(');
                         barcodeText = barcodeText.Replace(']', ')');
                     }
@@ -146,14 +143,21 @@ namespace ZintNet.Encoders
             int characterValue, leftCharacterValue, semiValue, oddSemiValue, numberValue;
             int index;
             byte[] bars = new byte[46];
+            int maxLength = 13;
             int inputLength = barcodeData.Length;
 
-            if (inputLength > 13)
-                throw new InvalidDataLengthException("GS1 Databar: Input too long.");
+            if (inputLength > maxLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "GS1 Databar: Input data too long.\nMaximum length is {0} characters.", maxLength));
+            }
 
-            dataValue = double.Parse(barcodeMessage, CultureInfo.CurrentCulture);
+
+            dataValue = double.Parse(new string(barcodeMessage), CultureInfo.CurrentCulture);
             if (isCompositeSymbol)
+            {
                 dataValue += COMPOSITE_FLAG;
+            }
 
             // Calculate left (high order) symbol half value.
             characterValue = leftCharacterValue = (int)(dataValue / LEFT_MULTIPLIER);
@@ -320,21 +324,29 @@ namespace ZintNet.Encoders
 
             // Calculate finders
             if (parity >= 8)
+            {
                 parity++;   // Avoid 0,8 doppelganger.
+            }
 
             if (parity >= 72)
+            {
                 parity++;   // Avoid 8,0 doppelganger.
+            }
 
             int leftParity = parity / 9;
             int rightParity = parity % 9;
 
             // Store left (high order) parity character in the bars.
             for (int i = 0; i < 3; i++)
+            {
                 bars[10 + i] = LeftParityTable[leftParity * 3 + i];
+            }
 
             // Store right (low order) parity character in the spaces.
             for (int i = 0; i < 3; i++)
+            {
                 bars[35 - i] = LeftParityTable[rightParity * 3 + i];
+            }
 
             // Set fixed patterns.
             bars[13] = 1;
@@ -348,7 +360,6 @@ namespace ZintNet.Encoders
             bars[44] = 1;
             bars[45] = 1;
 
-
             // Build the symbol.
             byte[] rowData;
             SymbolData symbolData;
@@ -361,10 +372,14 @@ namespace ZintNet.Encoders
                 float rowHeight = 33.0f;    // Databar Omnidirectional = 33X.
 
                 if (symbolId == Symbology.DatabarTruncated)
+                {
                     rowHeight = 13.0f;      // Truncated = 13X.
+                }
 
                 for (int i = 0; i < 46; i++)
+                {
                     symbolWidth += bars[i];
+                }
 
                 rowData = new byte[symbolWidth];
 
@@ -373,7 +388,9 @@ namespace ZintNet.Encoders
                     for (int j = 0; j < bars[i]; j++)
                     {
                         if (latch)
+                        {
                             rowData[position] = 1;
+                        }
 
                         position++;
                     }
@@ -385,14 +402,18 @@ namespace ZintNet.Encoders
                 Symbol.Add(symbolData);
 
                 if (isCompositeSymbol)
+                {
                     AddComposite(symbolWidth);
+                }
             }
 
             if (symbolId == Symbology.DatabarStacked)
             {
                 // Top row.
                 for (int i = 0; i < 23; i++)
+                {
                     symbolWidth += bars[i];
+                }
 
                 symbolWidth += 2;
                 rowData = new byte[symbolWidth];
@@ -401,7 +422,9 @@ namespace ZintNet.Encoders
                     for (int j = 0; j < bars[i]; j++)
                     {
                         if (latch)
+                        {
                             rowData[position] = 1;
+                        }
 
                         position++;
                     }
@@ -423,7 +446,9 @@ namespace ZintNet.Encoders
                     for (int j = 0; j < bars[i]; j++)
                     {
                         if (latch)
+                        {
                             rowData[position] = 1;
+                        }
 
                         position++;
                     }
@@ -441,13 +466,17 @@ namespace ZintNet.Encoders
                     if (Symbol[0].GetRowData()[i] == Symbol[1].GetRowData()[i])
                     {
                         if (Symbol[0].GetRowData()[i] == 0)
+                        {
                             rowData[i] = 1;
+                        }
                     }
 
                     else
                     {
                         if (rowData[i - 1] == 0)
+                        {
                             rowData[i] = 1;
+                        }
                     }
                 }
 
@@ -455,14 +484,18 @@ namespace ZintNet.Encoders
                 Symbol.Insert(1, symbolData);
 
                 if (isCompositeSymbol)
+                {
                     AddComposite(symbolWidth);
+                }
             }
 
             if (symbolId == Symbology.DatabarOmniStacked)
             {
                 // Top row.
                 for (int i = 0; i < 23; i++)
+                {
                     symbolWidth += bars[i];
+                }
 
                 symbolWidth += 2;
                 rowData = new byte[symbolWidth];
@@ -472,7 +505,9 @@ namespace ZintNet.Encoders
                     for (int j = 0; j < bars[i]; j++)
                     {
                         if (latch)
+                        {
                             rowData[position] = 1;
+                        }
 
                         position++;
                     }
@@ -494,7 +529,9 @@ namespace ZintNet.Encoders
                     for (int j = 0; j < bars[i]; j++)
                     {
                         if (latch)
+                        {
                             rowData[position] = 1;
+                        }
 
                         position++;
                     }
@@ -508,7 +545,9 @@ namespace ZintNet.Encoders
                 // Middle separator.
                 rowData = new byte[symbolWidth];
                 for (int i = 5; i < 46; i += 2)
+                {
                     rowData[i] = 1;
+                }
 
                 symbolData = new SymbolData(rowData, 1.0f);
                 Symbol.Insert(1, symbolData);
@@ -518,7 +557,9 @@ namespace ZintNet.Encoders
                 for (int i = 4; i < 46; i++)
                 {
                     if (Symbol[0].GetRowData()[i] == 0)
+                    {
                         rowData[i] = 1;
+                    }
                 }
 
                 latch = true;
@@ -545,7 +586,9 @@ namespace ZintNet.Encoders
                 for (int i = 4; i < 46; i++)
                 {
                     if (Symbol[3].GetRowData()[i] == 0)
+                    {
                         rowData[i] = 1;
+                    }
                 }
 
                 latch = true;
@@ -568,7 +611,9 @@ namespace ZintNet.Encoders
                 Symbol.Insert(3, symbolData);
 
                 if (isCompositeSymbol)
+                {
                     AddComposite(symbolWidth);
+                }
             }
         }
 
@@ -581,7 +626,9 @@ namespace ZintNet.Encoders
             for (int i = 4; i < symbolWidth - 4; i++)
             {
                 if (Symbol[0].GetRowData()[i] == 0)
+                {
                     rowData[i] = 1;
+                }
             }
 
             if (symbolWidth != 74)
@@ -639,31 +686,39 @@ namespace ZintNet.Encoders
 
             for (bar = 0; bar < elements - 1; bar++)
             {
-                for (elementWidth = 1, narrowMask |= (1 << bar); ; elementWidth++, narrowMask &= ~(1 << bar))
+                for (elementWidth = 1, narrowMask |= 1 << bar; ; elementWidth++, narrowMask &= ~(1 << bar))
                 {
                     // Get all combinations.
                     subVal = Combinations(n - elementWidth - 1, elements - bar - 2);
 
                     // Less combinations with no single-module element.
                     if (!noNarrow && (narrowMask == 0) && (n - elementWidth - (elements - bar - 1) >= elements - bar - 1))
+                    {
                         subVal -= Combinations(n - elementWidth - (elements - bar), elements - bar - 2);
+                    }
 
                     // Less combinations with elements > maxVal.
                     if (elements - bar - 1 > 1)
                     {
                         int lessVal = 0;
                         for (mxwElement = n - elementWidth - (elements - bar - 2); mxwElement > maxWidth; mxwElement--)
+                        {
                             lessVal += Combinations(n - elementWidth - mxwElement - 1, elements - bar - 3);
+                        }
 
                         subVal -= lessVal * (elements - 1 - bar);
                     }
 
                     else if ((n - elementWidth) > maxWidth)
+                    {
                         subVal--;
+                    }
 
                     value -= subVal;
                     if (value < 0)
+                    {
                         break;
+                    }
                 }
 
                 value += subVal;
@@ -704,15 +759,17 @@ namespace ZintNet.Encoders
             }
 
             for (; j <= minDenom; j++)
+            {
                 value /= j;
+            }
 
             return value;
         }
 
         private void SetHRText()
         {
-            char checkDigit = CheckSum.Mod10CheckDigit(barcodeData);
-            barcodeText = "(01)" + barcodeMessage.PadLeft(13, '0') + checkDigit.ToString();
+            char checkDigit = GetCheckDigit.Mod10CheckDigit(barcodeData);
+            barcodeText = "(01)" + new string (barcodeMessage).PadLeft(13, '0') + checkDigit.ToString();
         }
     }
 }

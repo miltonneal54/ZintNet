@@ -1,12 +1,12 @@
 ﻿/* CodabarEncoder.cs Handles Codabar 1D symbol */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
   
     libzint - the open source barcode library
-    Copyright (C) 2009-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2009-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -34,66 +34,135 @@
     SUCH DAMAGE.
  */
 
-using System;
-using System.ComponentModel;
+using System.Globalization;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Text;
 
 namespace ZintNet.Encoders
 {
+    /// <summary>
+    /// Codabar symbol encoder.
+    /// </summary>
     internal class CodabarEncoder : SymbolEncoder
     {
-        #region Tables
+        #region Tables.
 
-        private static string[] CodabarTable = {
+        private static readonly string[] CodabarTable = {
                 "11111221", "11112211", "11121121", "22111111", "11211211", "21111211",
-                "12111121", "12112111", "12211111", "21121111", "11122111", "11221111", "21112121", "21211121",
-                "21212111", "11212121", "11221211", "12121121", "11121221", "11122211"};
+                "12111121", "12112111", "12211111", "21121111", "11122111", "11221111",
+                "21112121", "21211121", "21212111", "11212121", "11221211", "12121121",
+                "11121221", "11122211"};
+
         #endregion
 
-        public CodabarEncoder(string barcodeMessage)
+        private readonly bool optionalCheckDigit;
+        private readonly bool showCheckDigit;
+
+        public CodabarEncoder(Symbology symbolId, char[] barcodeMessage, bool optionalCheckDigit, bool showCheckDigit)
         {
+            this.symbolId = symbolId;
             this.barcodeMessage = barcodeMessage;
+            this.optionalCheckDigit = optionalCheckDigit;
+            this.showCheckDigit = showCheckDigit;
         }
 
         public override Collection<SymbolData> EncodeData()
         {
             Symbol = new Collection<SymbolData>();
-            barcodeData = MessagePreProcessor.MessageParser(barcodeMessage);
+            barcodeData = barcodeMessage;
             Codabar();
             return Symbol;
         }
 
+        /// <summary>
+        /// Codabar.
+        /// </summary>
         private void Codabar()
         {
             StringBuilder rowPattern = new StringBuilder();
+            int maxLength = 103;
+            int minLength = 3;
+            int count = 0;
+            int checkSum = 0;
             int inputLength = barcodeData.Length;
 
-            for (int i = 0; i < inputLength; i++)
+            if (inputLength > maxLength)
             {
-                if (CharacterSets.CodaBarSet.IndexOf(barcodeData[i]) == -1)
-                    throw new InvalidDataException("Codabar: Invalid characters in input data.");
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Codabar: Input data too long.\nMaximum length is {0} characters.", maxLength));
             }
+
+            if (inputLength < minLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Codabar: Input data too short.\nMinimum length is {0} characters.", minLength));
+            }
+
+            barcodeData = ArrayHelper.ToUpper(barcodeData);
 
             // Codabar must begin and end with the characters A, B, C or D
             if ((barcodeData[0] != 'A') && (barcodeData[0] != 'B') && (barcodeData[0] != 'C') && (barcodeData[0] != 'D'))
-                throw new InvalidDataException("Codabar: Invalid start character in input data.");
+            {
+                throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "Codabar: Invalid start character.\nMust start with A, B, C or D."));
+            }
 
-            if ((barcodeData[inputLength - 1] != 'A') && (barcodeData[inputLength - 1] != 'B') &&
-               (barcodeData[inputLength - 1] != 'C') && (barcodeData[inputLength - 1] != 'D'))
-                throw new InvalidDataException("Codabar: Invalid stop character in input data.");
+            int last = inputLength - 1;
+            if ((barcodeData[last] != 'A') && (barcodeData[last] != 'B') && (barcodeData[last] != 'C') && (barcodeData[last] != 'D'))
+            {
+                throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "Codabar: Invalid stop character.\nMust end with A, B, C or D."));
+            }
 
+            for (int i = 1; i < inputLength - 1; i++)
+            {
+                if (CharacterSets.CodaBarSet.IndexOf(barcodeData[i]) == -1 || char.IsLetter(barcodeData[i]))
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "Codabar: Invalid character in input data.\nCharacter '{0}' at position {1}.", barcodeData[i], i));
+                }
+            }
+
+            int idx;
             for (int i = 0; i < inputLength; i++)
             {
-                int iValue = CharacterSets.CodaBarSet.IndexOf(barcodeData[i]);
-                rowPattern.Append(CodabarTable[iValue]);
+                if (optionalCheckDigit)
+                {
+                    // BS EN 798:1995 A.3 suggests using ISO 7064 algorithm but leaves it application defined.
+                    // Following BWIPP and TEC-IT, use this simple mod-16 algorithm (not in ISO 7064)
+
+                    count += CharacterSets.CodaBarSet.IndexOf(barcodeData[i]);
+                    if (i + 1 == inputLength)
+                    {
+                        checkSum = count % 16;
+                        if (checkSum > 0)
+                        {
+                            checkSum = 16 - checkSum;
+                        }
+
+                        char checkDigit = CharacterSets.CodaBarSet[checkSum];
+                        checkDigitText += checkDigit;
+                        barcodeData = ArrayHelper.Insert(barcodeData, inputLength - 1, checkDigit);
+                        idx = CharacterSets.CodaBarSet.IndexOf(checkDigit);
+                        rowPattern.Append(CodabarTable[idx]);
+                        i++;
+                    }
+                }
+
+                idx = CharacterSets.CodaBarSet.IndexOf(barcodeData[i]);
+                rowPattern.Append(CodabarTable[idx]);
             }
-           
-            barcodeText = new String(barcodeData);
 
             // Expand row into the symbol data.
-            SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 0.0f);
+            SymbolBuilder.BuildSymbol(Symbol, rowPattern, 0.0f);
+
+            // Set the human readable text.
+            barcodeText = new string(barcodeData);
+            if (optionalCheckDigit && !showCheckDigit)
+            {
+                // Hide the check digit.
+                barcodeText = barcodeText.Remove(inputLength - 1, 1);
+            }
         }
     }
 }

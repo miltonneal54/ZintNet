@@ -1,12 +1,12 @@
 ﻿/* Code39Encoder.cs - Handles Code 39 Based 1D symbols */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
   
     libzint - the open source barcode library
-    Copyright (C) 2008-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2008-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -36,31 +36,31 @@
 
 using System;
 using System.Globalization;
-using System.ComponentModel;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Text;
-
-using ArrayExt;
 
 namespace ZintNet.Encoders
 {
+    /// <summary>
+    /// Code 39 based symbol encoder.
+    /// </summary>
     internal class Code39Encoder : SymbolEncoder
     {
         #region Tables
-        private static string[] Code39Table = {
-            "1112212111", "2112111121", "1122111121", "2122111111", "1112211121",
-		    "2112211111", "1122211111", "1112112121", "2112112111", "1122112111",
-		    "2111121121", "1121121121", "2121121111", "1111221121", "2111221111",
-		    "1121221111", "1111122121", "2111122111", "1121122111", "1111222111",
-		    "2111111221", "1121111221", "2121111211", "1111211221", "2111211211",
-		    "1121211211", "1111112221", "2111112211", "1121112211", "1111212211",
-		    "2211111121", "1221111121", "2221111111", "1211211121", "2211211111",
-		    "1221211111", "1211112121", "2211112111", "1221112111", "1212121111",
-		    "1212111211", "1211121211", "1112121211", "1211212111"};
 
-        private static string[] ExtendedC39Ctrl = {
+        private readonly string[] Code39Table = {
+            "1112212111", "2112111121", "1122111121", "2122111111", "1112211121",
+            "2112211111", "1122211111", "1112112121", "2112112111", "1122112111",
+            "2111121121", "1121121121", "2121121111", "1111221121", "2111221111",
+            "1121221111", "1111122121", "2111122111", "1121122111", "1111222111",
+            "2111111221", "1121111221", "2121111211", "1111211221", "2111211211",
+            "1121211211", "1111112221", "2111112211", "1121112211", "1111212211",
+            "2211111121", "1221111121", "2221111111", "1211211121", "2211211111",
+            "1221211111", "1211112121", "2211112111", "1221112111", "1212121111",
+            "1212111211", "1211121211", "1112121211", "1211212111"};
+
+        private readonly string[] ExtendedC39Ctrl = {
             // Encoding the full ASCII character set in Code 39 (Table A2).
             "%U", "$A", "$B", "$C", "$D", "$E", "$F", "$G", "$H", "$I", "$J", "$K",
             "$L", "$M", "$N", "$O", "$P", "$Q", "$R", "$S", "$T", "$U", "$V", "$W", "$X", "$Y", "$Z",
@@ -70,16 +70,49 @@ namespace ZintNet.Encoders
             "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "%K", "%L", "%M", "%N", "%O",
             "%W", "+A", "+B", "+C", "+D", "+E", "+F", "+G", "+H", "+I", "+J", "+K", "+L", "+M", "+N", "+O",
             "+P", "+Q", "+R", "+S", "+T", "+U", "+V", "+W", "+X", "+Y", "+Z", "%P", "%Q", "%R", "%S", "%T" };
+
         #endregion
 
-        private bool optionalCheckDigit;
+        private readonly bool optionalCheckDigit;
+        private readonly bool showCheckDigit;
+        private readonly bool insertVINPrefix;
+        private readonly int pnzSize;
 
-        public Code39Encoder(Symbology symbolId, string barcodeMessage, bool optionalCheckDigit, EncodingMode mode)
+        private char checkDigit;
+
+        // Code39, Code39 Extended, LOGMARS
+        public Code39Encoder(Symbology symbolId, char[] barcodeMessage, bool optionalCheckDigit, bool showCheckDigit)
+            : this(symbolId, barcodeMessage, optionalCheckDigit, showCheckDigit, false, 0, EncodingFormat.Standard)
+        { }
+
+        // HIBC39
+        public Code39Encoder(Symbology symbolId, char[] barcodeMessage, EncodingFormat encodingMode)
+            : this(symbolId, barcodeMessage, false, false, false, 0, encodingMode)
+        { }
+
+        // PNZ
+        public Code39Encoder(Symbology symbolId, char[] barcodeMessage, PNZLength pnzSize)
+            : this(symbolId, barcodeMessage, false, false, false, pnzSize, EncodingFormat.Standard)
+        { }
+
+        // Code32
+        public Code39Encoder(Symbology symbolId, char[] barcodeMessage)
+            : this(symbolId, barcodeMessage, false, false, false, 0, EncodingFormat.Standard)
+        { }
+
+        // Vehicle Identification Number. (VIN)
+        public Code39Encoder(Symbology symbolId, char[] barcodeMessage, bool insertVINPrefix)
+            : this(symbolId, barcodeMessage, false, false, insertVINPrefix, 0, EncodingFormat.Standard)
+        { }
+        private Code39Encoder(Symbology symbolId, char[] barcodeMessage, bool optionalCheckDigit, bool showCheckDigit, bool insertVINPrefix, PNZLength pnzSize, EncodingFormat encodingMode)
         {
             this.symbolId = symbolId;
             this.barcodeMessage = barcodeMessage;
             this.optionalCheckDigit = optionalCheckDigit;
-            this.encodingMode = mode;
+            this.showCheckDigit = showCheckDigit;
+            this.insertVINPrefix = insertVINPrefix;
+            this.pnzSize = (int)pnzSize;
+            this.encodingMode = encodingMode;
         }
 
         public override Collection<SymbolData> EncodeData()
@@ -89,30 +122,22 @@ namespace ZintNet.Encoders
             {
                 case Symbology.Code32:
                     barcodeData = MessagePreProcessor.NumericParser(barcodeMessage);
-                    optionalCheckDigit = false;  // Code 32 generates it's own check digit.
                     Code32();
                     break;
 
                 case Symbology.PharmaZentralNummer:
                     barcodeData = MessagePreProcessor.NumericParser(barcodeMessage);
-                    optionalCheckDigit = false; // PharmaZentral generates it's own check digit.
                     PNZ();
                     break;
 
-                case Symbology.Code39:
-                    if (encodingMode == EncodingMode.HIBC)
-                    {
-                        barcodeData = MessagePreProcessor.HIBCParser(barcodeMessage);
-                        optionalCheckDigit = false;  // HIBC check digit added in parser.
-                        Code39();
-                    }
+                case Symbology.LOGMARS:
+                    barcodeData = barcodeMessage;
+                    Logmars();
+                    break;
 
-                    else
-                    {
-                        barcodeData = MessagePreProcessor.MessageParser(barcodeMessage);
-                        Code39();
-                    }
-
+                case Symbology.VINCode:
+                    barcodeData = barcodeMessage;
+                    VINCode();
                     break;
 
                 case Symbology.Code39Extended:
@@ -120,14 +145,20 @@ namespace ZintNet.Encoders
                     Code39Extended();
                     break;
 
-                case Symbology.LOGMARS:
-                    barcodeData = MessagePreProcessor.MessageParser(barcodeMessage);
-                    Logmars();
-                    break;
+                case Symbology.Code39:
+                    if (encodingMode == EncodingFormat.HIBC)
+                    {
+                        // HIBC length check and check digit done in parser.
+                        barcodeData = MessagePreProcessor.HIBCParser(barcodeMessage);
+                        Code39();
+                    }
 
-                case Symbology.VINCode:
-                    barcodeData = MessagePreProcessor.MessageParser(barcodeMessage);
-                    VINCode();
+                    else
+                    {
+                        barcodeData = barcodeMessage;
+                        Code39();
+                    }
+
                     break;
             }
 
@@ -135,183 +166,278 @@ namespace ZintNet.Encoders
         }
 
         /// <summary>
-        /// Encode Code 32 (Italian PhamaCode)
+        /// Code 32 (Italian PhamaCode)
         /// </summary>
         private void Code32()
         {
-            int checkValue = 0;
-            int checkPart = 0;
-            char checkDigit;
+            char[] sourceData;
             char[] resultData = new char[6];
             int[] codeWord = new int[6];
+            int maxLength = 8;
             int inputLength = barcodeData.Length;
 
-            if (inputLength != 8)
+            if (inputLength > maxLength)
             {
-                throw new InvalidDataLengthException("Code 32: Requires 8 numeric characters.");
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Code 32: Input data too long.\nMaximum length is {0} characters.", maxLength));
             }
 
+            if (inputLength < 8)
+            {
+                string zeros = new string('0', 8 - inputLength);
+                barcodeData = ArrayHelper.Insert(barcodeData, 0, zeros);
+                inputLength = barcodeData.Length;
+            }
+
+            sourceData = new char[inputLength];
+            Array.Copy(barcodeData, sourceData, inputLength);
+
             // Calculate the check digit.
+            int checkSum = 0;
             for (int i = 0; i < 4; i++)
             {
-                checkPart = (int)barcodeData[i * 2] - '0';
-                checkValue += checkPart;
+                int checkPart = (int)barcodeData[i * 2] - '0';
+                checkSum += checkPart;
                 checkPart = 2 * ((int)(barcodeData[(i * 2) + 1] - '0'));
                 if (checkPart >= 10)
                 {
-                    checkValue += (checkPart - 10) + 1;
+                    checkSum += (checkPart - 10) + 1;
                 }
 
                 else
                 {
-                    checkValue += checkPart;
+                    checkSum += checkPart;
                 }
             }
 
-            checkDigit = (char)((checkValue % 10) + '0');
-            barcodeData = ArrayEx.Insert(barcodeData, inputLength, checkDigit);
+            checkDigit = (char)((checkSum % 10) + '0');
+            barcodeData = ArrayHelper.Insert(barcodeData, inputLength, checkDigit);
 
             // Convert from decimal to base-32.
-            int pharmacode = int.Parse(new string(barcodeData), CultureInfo.CurrentCulture);
-            int devisor = 33554432;
-            int remainder;
+            uint pharmacode = uint.Parse(new string(barcodeData), CultureInfo.CurrentCulture);
+            uint devisor = 33554432;
+            uint remainder;
             for (int i = 5; i >= 0; i--)
             {
-                codeWord[i] = pharmacode / devisor;
+                codeWord[i] = (int)(pharmacode / devisor);
                 remainder = pharmacode % devisor;
                 pharmacode = remainder;
                 devisor /= 32;
             }
 
             for (int i = 5; i >= 0; i--)
+            {
                 resultData[5 - i] = CharacterSets.Code32Set[codeWord[i]];
+            }
 
             // Generate the barcode with Code 39 using the resultant data.
             Array.Copy(resultData, barcodeData, resultData.Length);
             Array.Resize(ref barcodeData, resultData.Length);
             Code39();
-            barcodeText = "A" + barcodeMessage + checkDigit;
+
+            // Set the human readable text.
+            barcodeText = "A" + new string(sourceData) + checkDigit;
         }
 
-        // Pharmazentral Nummer (PZN).
+        /// <summary>
+        /// Pharmazentral Nummer (PZN).
+        /// </summary>
         private void PNZ()
         {
-            int count = 0;
-            int checkValue;
             int inputLength = barcodeData.Length;
+            char inputCheckDigit = '\0';
+            int pnz7 = pnzSize == 8 ? 0 : 1;
 
-            if (inputLength > 7)
-                throw new InvalidDataLengthException("PNZ: input data too long.");
+            if (inputLength > pnzSize)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "PNZ: Input data too long.\nMaximum length is {0} characters.", pnzSize));
+            }
 
-            barcodeData = ArrayEx.Insert(barcodeData, 0, '-');
+            if (inputLength == 8 - pnz7)
+            {
+                // Extract the supplied check character.
+                inputCheckDigit = barcodeData[7 - pnz7];
+                barcodeData = ArrayHelper.Remove(barcodeData, inputLength - 1);
+            }
+
+            barcodeData = ArrayHelper.Insert(barcodeData, 0, '-');
             inputLength = barcodeData.Length;
 
-            if (inputLength < 8)
+            if (inputLength < pnzSize)
             {
-                string zeros = new String('0', 8 - inputLength);
-                barcodeData = ArrayEx.Insert(barcodeData, 1, zeros);
+                string zeros = new string('0', pnzSize - inputLength);
+                barcodeData = ArrayHelper.Insert(barcodeData, 1, zeros);
                 inputLength = barcodeData.Length;
             }
 
-            for (int i = 1; i < 8; i++)
-                count += i * (int)(barcodeData[i] - '0');
+            int count = 0;
+            for (int i = 1; i < pnzSize; i++)
+            {
+                count += (i + pnz7) * (int)(barcodeData[i] - '0');
+            }
 
-            checkValue = count % 11;
-            if (checkValue == 11)
-                checkValue = 0;
-
-            char checkDigit = (char)(checkValue + '0');
+            int checkValue = count % 11;
+            checkDigit = (char)(checkValue + '0');
             if (checkDigit == 'A')
-                throw new InvalidDataException("PNZ: Invalid characters in input data.");
+            {
+                throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                    "PNZ: Invalid PNZ, check digit = {0}", checkValue));
+            }
 
-            barcodeData = ArrayEx.Insert(barcodeData, inputLength, checkDigit);
+            if (inputCheckDigit != '\0' && checkDigit != inputCheckDigit)
+            {
+                throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                    "PNZ: Invalid check digit '{0}' in input data, expected '{1}'.", inputCheckDigit, checkDigit));
+            }
+
+            // Add the check character.
+            barcodeData = ArrayHelper.Insert(barcodeData, inputLength, checkDigit);
             inputLength = barcodeData.Length;
             Code39();
-            barcodeText = "PNZ - " + new String(barcodeData, 1, inputLength - 1);
+
+            // Set the human readable text.
+            barcodeText = "PNZ - " + new string(barcodeData, 1, inputLength - 1);
         }
 
+        /// <summary>
+        /// LOGMARS
+        /// </summary>
         private void Logmars()
         {
+            int maxLength = 30;
             int inputLength = barcodeData.Length;
-            if (inputLength > 59)
-                throw new InvalidDataLengthException("LOGMARS: Input data too long.");
+
+            if (inputLength > maxLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "LOGMARS: Input data too long.\nMaximum length is {0} characters.", maxLength));
+            }
 
             Code39();
+
+            // Set the human readable text.
+            barcodeText = new string(barcodeData);
+            if (optionalCheckDigit && showCheckDigit)
+            {
+                checkDigitText = checkDigit.ToString();
+                barcodeText += checkDigitText;
+            }
         }
 
-        // Vehicle Identification Number (VIN).
+        /// <summary>
+        /// Vehicle Identification Number (VIN).
+        /// </summary>
         private void VINCode()
         {
-            // This code verifies the check digit present in North American VIN codes.
+            int fixedLength = 17;
             char inputCheckDigit;
             char outputCheckDigit;
-            int[] value = new int[17];
             int[] weight = new int[] { 8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2 };
             int inputLength = barcodeData.Length;
-            int sum;
+            int prefixOffset = 0;
 
-            // Check length
-            if (inputLength > 17)
-                throw new InvalidDataLengthException("VIN Code: Input data too long.");
-
-            // Pad with zeros
-            if (inputLength < 17)
+            // Check length.
+            if (inputLength != fixedLength)
             {
-                string zeros = new String('0', 17 - inputLength);
-                barcodeData = ArrayEx.Insert(barcodeData, 0, zeros);
-                inputLength = barcodeData.Length;
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "VIN Code: Input data wrong length.\n{0} characters required.", fixedLength));
             }
 
-            // Check input characters, I, O and Q are not allowed
+            // Check input characters, I, O and Q are not allowed.
+            barcodeData = ArrayHelper.ToUpper(barcodeData);
             for (int i = 0; i < inputLength; i++)
             {
-                barcodeData[i] = Char.ToUpper(barcodeData[i], CultureInfo.CurrentCulture);  // Make sure all characters are uppercase.
                 if (CharacterSets.VINSet.IndexOf(barcodeData[i]) == -1)
-                    throw new InvalidDataException("VIN Code: Invalid data in input.");
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "VIN Code: Invalid character in input data.\nCharacter '{0}' at position {1}.", barcodeData[i], i + 1));
+                }
             }
 
-            inputCheckDigit = barcodeData[8];
-
-            for (int i = 0; i < 17; i++)
+            // This code verifies the check digit present in North American VIN codes.
+            if (barcodeData[0] >= '1' && barcodeData[0] <= '5')
             {
-                if (char.IsDigit(barcodeData[i]))
-                    value[i] = barcodeData[i] - '0';
+                inputCheckDigit = barcodeData[8];
+                int sum = 0;
+                int value;
+                for (int i = 0; i < 17; i++)
+                {
+                    if (char.IsDigit(barcodeData[i]))
+                    {
+                        value = barcodeData[i] - '0';
+                    }
 
-                if ((barcodeData[i] >= 'A') && (barcodeData[i] <= 'I'))
-                    value[i] = (barcodeData[i] - 'A') + 1;
+                    else if (barcodeData[i] <= 'H')
+                    {
+                        value = (barcodeData[i] - 'A') + 1;
+                    }
 
-                if ((barcodeData[i] >= 'J') && (barcodeData[i] <= 'R'))
-                    value[i] = (barcodeData[i] - 'J') + 1;
+                    else if (barcodeData[i] <= 'R')
+                    {
+                        value = (barcodeData[i] - 'J') + 1;
+                    }
 
-                if ((barcodeData[i] >= 'S') && (barcodeData[i] <= 'Z'))
-                    value[i] = (barcodeData[i] - 'S') + 2;
+                    else
+                    {
+                        value = (barcodeData[i] - 'S') + 2;
+                    }
+
+                    sum += value * weight[i];
+                }
+
+                outputCheckDigit = (char)('0' + (sum % 11));
+
+                if (outputCheckDigit == ':')    // Check digit was 10
+                {
+                    outputCheckDigit = 'X';
+                }
+
+                if (inputCheckDigit != outputCheckDigit)
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "VIN Code: Invalid check digit in input data.\nExpected '{0}' at position 8.", outputCheckDigit));
+                }
             }
 
-            sum = 0;
-            for (int i = 0; i < 17; i++)
-                sum += value[i] * weight[i];
-
-            outputCheckDigit = (char)('0' + (sum % 11));
-
-            if (outputCheckDigit == ':')    // Check digit was 10
-                outputCheckDigit = 'X';
-
-            if (inputCheckDigit != outputCheckDigit)
-                throw new InvalidDataException("VIN Code: Invalid check digit in input data.");
+            if (insertVINPrefix)
+            {
+                // Import character 'I' prefix?
+                barcodeData = ArrayHelper.Insert(barcodeData, 0, 'I');
+                prefixOffset = 1;
+            }
 
             Code39();
-            barcodeText = new string(barcodeData);
 
+            // Set the human readable text.
+            barcodeText = new string(barcodeData, prefixOffset, 17);
         }
 
+        /// <summary>
+        /// Extended Code 39.
+        /// </summary>
         private void Code39Extended()
         {
+            int maxLength = 86;
             int inputLength = barcodeData.Length;
+            char[] sourceData = new char[inputLength];
+
+            // Keep a copy of the original data.
+            Array.Copy(barcodeData, sourceData, inputLength);
+
+            if (inputLength > maxLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Code 39 Extended: Input data too long.\nMaximum length is {0} characters.", maxLength));
+            }
 
             for (int i = 0; i < inputLength; i++)
             {
                 if (barcodeData[i] > 127)
-                    throw new InvalidDataException("Code 39 Extended: Invalid characters in input data.");
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "Code 39 Extended: Invalid character in input data.\nCharacter '{0}' at Position {1}.", barcodeData[i], i));
+                }
             }
 
             List<char> extendedData = new List<char>();
@@ -319,30 +445,55 @@ namespace ZintNet.Encoders
             {
                 string extendedString = ExtendedC39Ctrl[barcodeData[i]];
                 for (int l = 0; l < extendedString.Length; l++)
+                {
                     extendedData.Add(extendedString[l]);
+                }
             }
 
             barcodeData = extendedData.ToArray();
             Code39();
+
+            // Set the human readable text.
+            for (int i = 0; i < inputLength; i++)
+            {
+                // Subsitute unprintable characters with a space.
+                barcodeText += sourceData[i] >= ' ' && sourceData[i] != 0x7f ? sourceData[i] : ' ';
+            }
+
+            if (optionalCheckDigit && showCheckDigit)
+            {
+                checkDigitText = checkDigit.ToString();
+                barcodeText += checkDigitText;
+            }
         }
 
+        /// <summary>
+        /// Code 39.
+        /// </summary>
         private void Code39()
         {
-            int index;
-            char checkDigit;
+            int maxLength = 86;
             int inputLength = barcodeData.Length;
             StringBuilder rowPattern = new StringBuilder();
 
-            if (encodingMode != EncodingMode.HIBC && inputLength > 74)  // HIBC length checked in HIBC parser.
-                throw new InvalidDataLengthException("Code 39: Input data too long.");
+            if (inputLength > maxLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Code 39: Input data too long.\nMaximum length is {0} characters.", maxLength));
+            }
 
             for (int i = 0; i < inputLength; i++)
             {
                 if (CharacterSets.Code39Set.IndexOf(barcodeData[i]) == -1)
-                    throw new InvalidDataException("Code 39: Invalid characters in input data.");
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "Code 39: Invalid character in input data.\nCharacter '{0}' at position {1}.", barcodeData[i], i));
+                }
             }
 
             rowPattern.Append(Code39Table[43]);
+
+            int index;
             for (int i = 0; i < inputLength; i++)
             {
                 index = CharacterSets.Code39Set.IndexOf(barcodeData[i]);
@@ -351,20 +502,38 @@ namespace ZintNet.Encoders
 
             if (optionalCheckDigit)
             {
-                checkDigit = CheckSum.Mod43CheckDigit(barcodeData);
+                checkDigit = GetCheckDigit.Mod43CheckDigit(barcodeData);
                 index = CharacterSets.Code39Set.IndexOf(checkDigit);
                 rowPattern.Append(Code39Table[index]);
-                checkDigitText = checkDigit.ToString();
             }
 
-            rowPattern.Append(Code39Table[43]);
-            if (symbolId == Symbology.LOGMARS || encodingMode == EncodingMode.HIBC)
+            rowPattern.Append(Code39Table[43], 0, 9);
+            if (symbolId == Symbology.LOGMARS || encodingMode == EncodingFormat.HIBC)
+            {
                 rowPattern.Replace('2', '3');
-
-            barcodeText = new string(barcodeData);
+            }
 
             // Expand the row pattern into the symbol data.
-            SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 0.0f);
+            SymbolBuilder.BuildSymbol(Symbol, rowPattern, 0.0f);
+
+            // Set the human readable text.
+            if (symbolId == Symbology.Code39)
+            {
+                barcodeText = "*" + new string(barcodeData);
+                if (optionalCheckDigit && showCheckDigit)
+                {
+                    // Display the check digit as an underscore for visability.
+                    if (checkDigit == ' ')
+                    {
+                        checkDigit = '_';
+                    }
+
+                    checkDigitText = checkDigit.ToString();
+                    barcodeText += checkDigitText;
+                }
+
+                barcodeText += "*";
+            }
         }
     }
 }

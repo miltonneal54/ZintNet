@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ArrayEx</name>
+    </assembly>
+    <members>
+        <member name="T:ArrayExt.ArrayEx">
+            <summary>
+            Extended methods for arrays.
+            </summary>
+        </member>
+        <member name="M:ArrayExt.ArrayEx.ToUpper(System.Char[])">
+            <summary>
+            Converts the specified character array to upper case.
+            </summary>
+            <param name="data">input array</param>
+            <returns>converted array</returns>
+        </member>
+        <member name="M:ArrayExt.ArrayEx.ToLower(System.Char[])">
+            <summary>
+            Converts the specified character array to lower case.
+            </summary>
+            <param name="data">input array</param>
+            <returns>converted array</returns>
+        </member>
+        <member name="M:ArrayExt.ArrayEx.Insert(System.Int32[],System.Int32,System.Int32)">
+            <summary>
+            Inserts an integer into the array at a specified index.
+            </summary>
+            <param name="data">array to insert the data byte</param>
+            <param name="index">index to insert the integer</param>
+            <param name="value">byte value to insert</param>
+            <returns>the new array</returns>
+        </member>
+        <member name="M:ArrayExt.ArrayEx.Insert(System.Byte[],System.Int32,System.Byte)">
+            <summary>
+            Inserts a byte into the existing array at a specified index.
+            </summary>
+            <param name="data">array to insert</param>
+            <param name="index">index to insert</param>
+            <param name="value">byte to insert</param>
+            <returns>the new array</returns>
+        </member>
+        <member name="M:ArrayExt.ArrayEx.Insert(System.Byte[],System.Int32,System.Byte[])">
+            <summary>
+            Inserts a byte array into the existing array at a specified index.
+            </summary>
+            <param name="data">array to insert</param>
+            <param name="index">index to insert</param>
+            <param name="value">byte array to insert</param>
+            <returns>the new array</returns>
+        </member>
+        <member name="M:ArrayExt.ArrayEx.Insert(System.Char[],System.Int32,System.Char)">
+            <summary>
+            Inserts a character into the existing array at a specified index.
+            </summary>
+            <param name="data">array to insert the data</param>
+            <param name="index">index to insert</param>
+            <param name="value">character to insert</param>
+            <returns>the new array</returns>
+        </member>
+        <member name="M:ArrayExt.ArrayEx.Insert(System.Char[],System.Int32,System.Char[])">
+            <summary>
+            Inserts a character array into the exiting array at a specified index.
+            </summary>
+            <param name="data">array to insert the data</param>
+            <param name="index">index to insert</param>
+            <param name="value">array to insert</param>
+            <returns>the new array</returns>
+        </member>
+        <member name="M:ArrayExt.ArrayEx.Insert(System.Char[],System.Int32,System.String)">
+            <summary>
+            Inserts a string into the existing character array at a specified index.
+            </summary>
+            <param name="data">array to insert the data</param>
+            <param name="index">index to insert the byte</param>
+            <param name="value">string to insert</param>
+            <returns>the new array</returns>
+        </member>
+    </members>
+</doc>

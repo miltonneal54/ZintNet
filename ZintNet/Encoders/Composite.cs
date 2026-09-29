@@ -1,12 +1,45 @@
-﻿using System;
+﻿/* Composite.cs Handles the creation of a Composite symbol. */
+
+/*
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
+
+    ZintNetLib - a C# implementation of libzint library.
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+
+    1. Redistributions of source code must retain the above copyright 
+       notice, this list of conditions and the following disclaimer.  
+    2. Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the distribution.  
+    3. Neither the name of the project nor the names of its contributors
+       may be used to endorse or promote products derived from this software
+       without specific prior written permission. 
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+    OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+    LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+    SUCH DAMAGE.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Text;
-using System.Text.Extensions;
 
 namespace ZintNet.Encoders
 {
+    /// <summary>
+    /// Creates a composiye symbol.
+    /// </summary>
     internal static class CompositeEncoder
     {
         private static int[,] pwr928 = new int[69, 7];
@@ -15,7 +48,7 @@ namespace ZintNet.Encoders
         private static Collection<SymbolData> encodedData;
         private static int linearWidth;
 
-        public static void AddComposite(Symbology symbology, string message, Collection<SymbolData> encodedLinearData,
+        public static void AddComposite(Symbology symbology, char[] message, Collection<SymbolData> encodedLinearData,
             CompositeMode compositeMode, int linearSymbolWidth)
         {
             int dataColumns = 0;
@@ -27,15 +60,19 @@ namespace ZintNet.Encoders
             hostSymbol = symbology;
             encodedData = encodedLinearData;
             linearWidth = linearSymbolWidth;
-            
+
             compositeData = MessagePreProcessor.GS1Parser(message);
             int inputLength = compositeData.Length;
 
             if (inputLength > 2990)
+            {
                 throw new InvalidDataLengthException("2D Component: Input data too long.");
+            }
 
             if ((compositeMode == CompositeMode.CCC) && (symbology != Symbology.Code128))
+            {
                 throw new DataEncodingException("2D Component: Invalid mode, CC-C only valid with a GS1-128 linear component.");
+            }
 
             switch (symbology)
             {
@@ -44,7 +81,9 @@ namespace ZintNet.Encoders
                     dataColumns = 3;
                     linearShiftCount = 3;
                     if (compositeMode == CompositeMode.CCB)
+                    {
                         linearShiftCount = 13;
+                    }
 
                     break;
 
@@ -66,7 +105,9 @@ namespace ZintNet.Encoders
                 case Symbology.Code128:
                     dataColumns = 4;
                     if (compositeMode == CompositeMode.CCC)
+                    {
                         linearShiftCount = 7;
+                    }
 
                     break;
 
@@ -78,14 +119,21 @@ namespace ZintNet.Encoders
 
                 case Symbology.DatabarLimited:
                     dataColumns = 3;
-                    compositeShiftCount = 0;
+                    compositeShiftCount = 1;
+                    if (compositeMode == CompositeMode.CCB)
+                    {
+                        linearShiftCount = 9;
+                    }
+
                     break;
 
                 case Symbology.DatabarExpanded:
                     dataColumns = 4;
                     compositeShiftCount = 1;
                     while ((encodedData[1].GetRowData()[compositeShiftCount - 1] == 0) && (encodedData[1].GetRowData()[compositeShiftCount] == 1))
+                    {
                         compositeShiftCount++;
+                    }
 
                     break;
 
@@ -99,17 +147,23 @@ namespace ZintNet.Encoders
                     dataColumns = 4;
                     compositeShiftCount = 1;
                     while ((encodedData[1].GetRowData()[compositeShiftCount - 1] == 0) && (encodedData[1].GetRowData()[compositeShiftCount] == 1))
+                    {
                         compositeShiftCount++;
+                    }
 
                     break;
             }
 
             if (linearShiftCount > 0)
+            {
                 ShiftLinearHost(linearShiftCount);
+            }
 
             bitStream = BitStreamEncoder.CompositeBitStream(symbology, compositeData, ref compositeMode, ref dataColumns, ref eccLevel, linearWidth);
             if (bitStream == null)
+            {
                 throw new InvalidDataLengthException();
+            }
 
             switch (compositeMode)
             {
@@ -137,7 +191,9 @@ namespace ZintNet.Encoders
             cw[6] = 1;
 
             for (int i = 0; i < 7; i++)
+            {
                 pwr928[0, i] = cw[i];
+            }
 
             for (int j = 1; j < 69; j++)
             {
@@ -170,14 +226,18 @@ namespace ZintNet.Encoders
                 codewordCount = bitCount / 10 + 1;
                 dataCodewords += codewordCount;
                 for (int i = 0; i < codewordCount; i++)
+                {
                     dataStream[index + i] = 0;
+                }
 
                 for (int i = 0; i < bitCount; i++)
                 {
-                    if(binaryData[b + bitCount - i - 1] == 1)
+                    if (binaryData[b + bitCount - i - 1] == 1)
                     {
                         for (int j = 0; j < codewordCount; j++)
+                        {
                             dataStream[index + j] += pwr928[i, j + 7 - codewordCount];
+                        }
                     }
                 }
 
@@ -251,7 +311,9 @@ namespace ZintNet.Encoders
             {
                 int total = (dataStream[i] + eccStream[eccCodewords - 1]) % 929;
                 for (int j = eccCodewords - 1; j > 0; j--)
-                    eccStream[j] = (eccStream[j - 1] + 929 - (total * PDF417Tables.CCACoefficients[offset + j]) % 929) % 929;
+                {
+                    eccStream[j] = (eccStream[j - 1] + 929 - total * PDF417Tables.CCACoefficients[offset + j] % 929) % 929;
+                }
 
                 eccStream[0] = (929 - (total * PDF417Tables.CCACoefficients[offset]) % 929) % 929;
             }
@@ -259,11 +321,15 @@ namespace ZintNet.Encoders
             for (int j = 0; j < eccCodewords; j++)
             {
                 if (eccStream[j] != 0)
+                {
                     eccStream[j] = 929 - eccStream[j];
+                }
             }
 
             for (int i = eccCodewords - 1; i >= 0; i--)
+            {
                 dataStream[dataCodewords++] = eccStream[i];
+            }
 
             // Place data into table.
             int leftRAPStart = PDF417Tables.CCARAPTable[variant];
@@ -284,21 +350,29 @@ namespace ZintNet.Encoders
             {
                 offset = 929 * cluster;
                 for (int j = 0; j < buffer.Length; j++)
+                {
                     buffer[j] = 0;
+                }
 
                 for (int j = 0; j < dataColumns; j++)
+                {
                     buffer[j + 1] = dataStream[row * dataColumns + j];
+                }
 
                 // Copy the data into code string.
-                if(dataColumns != 3)
+                if (dataColumns != 3)
+                {
                     binaryString.Append(PDF417Tables.RowAddressPattern[leftRAP]);
+                }
 
                 binaryString.Append("1");
                 binaryString.Append(PDF417Tables.EncodingPatterns[offset + buffer[1]]);
                 binaryString.Append("1");
 
                 if (dataColumns == 3)
+                {
                     binaryString.Append(PDF417Tables.CentreRowAddressPattern[centreRAP]);
+                }
 
                 if (dataColumns >= 2)
                 {
@@ -308,7 +382,9 @@ namespace ZintNet.Encoders
                 }
 
                 if (dataColumns == 4)
+                {
                     binaryString.Append(PDF417Tables.CentreRowAddressPattern[centreRAP]);
+                }
 
                 if (dataColumns >= 3)
                 {
@@ -342,23 +418,31 @@ namespace ZintNet.Encoders
                     {
                         int position = PDF417Tables.PDFSet.IndexOf(binaryString[i]);
                         if (position >= 0 && position < 32)
+                        {
                             bitPattern.AppendBits(position, 5);
+                        }
                     }
                 }
 
                 int bitPatternLength = bitPattern.SizeInBits;
                 if (hostSymbol == Symbology.Code128)
                 {
-                    if(linearWidth > bitPatternLength)
+                    if (linearWidth > bitPatternLength)
+                    {
                         compositeShiftCount = (linearWidth - bitPatternLength) / 2;
+                    }
 
                     else
+                    {
                         compositeShiftCount = 0;
+                    }
                 }
 
                 byte[] rowData = new byte[bitPatternLength + compositeShiftCount];
                 for (int i = 0; i < bitPatternLength; i++)
+                {
                     rowData[i + compositeShiftCount] = bitPattern[i];
+                }
 
                 SymbolData symbolData = new SymbolData(rowData, 2);
                 encodedData.Insert(row, symbolData);
@@ -373,16 +457,24 @@ namespace ZintNet.Encoders
                 cluster++;
 
                 if (leftRAP == 53)
+                {
                     leftRAP = 1;
+                }
 
                 if (centreRAP == 53)
+                {
                     centreRAP = 1;
+                }
 
                 if (rightRAP == 53)
+                {
                     rightRAP = 1;
+                }
 
                 if (cluster == 3)
+                {
                     cluster = 0;
+                }
             }
         }
 
@@ -458,13 +550,13 @@ namespace ZintNet.Encoders
             // Reed-Solomon error correction.
             dataStreamLength = dataStream.Count;
             int[] eccStream = new int[eccCodewords];
-            int total = 0;
-
             for (int i = 0; i < dataStreamLength; i++)
             {
-                total = (dataStream[i] + eccStream[eccCodewords - 1]) % 929;
+                int total = (dataStream[i] + eccStream[eccCodewords - 1]) % 929;
                 for (int j = eccCodewords - 1; j > 0; j--)
+                {
                     eccStream[j] = (eccStream[j - 1] + 929 - (total * PDF417Tables.MicroCoefficients[offset + j]) % 929) % 929;
+                }
 
                 eccStream[0] = (929 - (total * PDF417Tables.MicroCoefficients[offset]) % 929) % 929;
             }
@@ -472,12 +564,16 @@ namespace ZintNet.Encoders
             for (int j = 0; j < eccCodewords; j++)
             {
                 if (eccStream[j] != 0)
+                {
                     eccStream[j] = 929 - eccStream[j];
+                }
             }
 
             // Add the codewords to the data stream.
             for (int i = eccCodewords - 1; i >= 0; i--)
+            {
                 dataStream.Add(eccStream[i]);
+            }
 
             dataStreamLength = dataStream.Count;
 
@@ -498,10 +594,14 @@ namespace ZintNet.Encoders
             {
                 offset = 929 * cluster;
                 for (int i = 0; i < buffer.Length; i++)
+                {
                     buffer[i] = 0;
+                }
 
                 for (int i = 0; i < dataColumns; i++)
+                {
                     buffer[i + 1] = dataStream[row * dataColumns + i];
+                }
 
                 // Copy the data into code string
                 codeString.Append(PDF417Tables.RowAddressPattern[leftRAP]);
@@ -510,7 +610,9 @@ namespace ZintNet.Encoders
                 codeString.Append("1");
 
                 if (dataColumns == 3)
+                {
                     codeString.Append(PDF417Tables.CentreRowAddressPattern[centreRAP]);
+                }
 
                 if (dataColumns >= 2)
                 {
@@ -520,7 +622,9 @@ namespace ZintNet.Encoders
                 }
 
                 if (dataColumns == 4)
+                {
                     codeString.Append(PDF417Tables.CentreRowAddressPattern[centreRAP]);
+                }
 
                 if (dataColumns >= 3)
                 {
@@ -545,7 +649,7 @@ namespace ZintNet.Encoders
                 {
                     if ((codeString[i] >= '0') && (codeString[i] <= '9'))
                     {
-                        int value = (int)(codeString[i] - '0');
+                        int value = codeString[i] - '0';
                         bitPattern.AppendBits((latch) ? 0xffff : 0, value);
                         latch = !latch;
                     }
@@ -554,23 +658,23 @@ namespace ZintNet.Encoders
                     {
                         int position = PDF417Tables.PDFSet.IndexOf(codeString[i]);
                         if (position >= 0 && position < 32)
+                        {
                             bitPattern.AppendBits(position, 5);
+                        }
                     }
                 }
 
                 int bitPatternLength = bitPattern.SizeInBits;
                 if (hostSymbol == Symbology.Code128)
                 {
-                    if (linearWidth > bitPatternLength)
-                        compositeShiftCount = (linearWidth - bitPatternLength) / 2;
-
-                    else
-                        compositeShiftCount = 0;
+                    compositeShiftCount = linearWidth > bitPatternLength ? (linearWidth - bitPatternLength) / 2 : 0;
                 }
 
                 byte[] rowData = new byte[bitPatternLength + compositeShiftCount];
                 for (int i = 0; i < bitPatternLength; i++)
+                {
                     rowData[i + compositeShiftCount] = bitPattern[i];
+                }
 
                 SymbolData symbolData = new SymbolData(rowData, 2);
                 encodedData.Insert(row, symbolData);
@@ -585,16 +689,24 @@ namespace ZintNet.Encoders
                 cluster++;
 
                 if (leftRAP == 53)
+                {
                     leftRAP = 1;
+                }
 
                 if (centreRAP == 53)
+                {
                     centreRAP = 1;
+                }
 
                 if (rightRAP == 53)
+                {
                     rightRAP = 1;
+                }
 
                 if (cluster == 3)
+                {
                     cluster = 0;
+                }
             }
         }
 
@@ -614,34 +726,36 @@ namespace ZintNet.Encoders
 
             eccCodewords = 1;
             for (int i = 0; i <= eccLevel; i++)
+            {
                 eccCodewords *= 2;
+            }
 
             // Now take care of the Reed Solomon codes.
-            if (eccCodewords == 2)
-                offset = 0;
-
-            else
-                offset = eccCodewords - 2;
-
-            int total = 0;
+            offset = eccCodewords == 2 ? 0 : eccCodewords - 2;
             int dataStreamLength = dataStream.Count;
             int[] eccStream = new int[eccCodewords];
             for (int i = 0; i < dataStreamLength; i++)
             {
-                total = (dataStream[i] + eccStream[eccCodewords - 1]) % 929;
+                int total = (dataStream[i] + eccStream[eccCodewords - 1]) % 929;
                 for (int j = eccCodewords - 1; j > 0; j--)
+                {
                     eccStream[j] = (eccStream[j - 1] + 929 - (total * PDF417Tables.Coefficients[offset + j]) % 929) % 929;
+                }
 
                 eccStream[0] = (929 - (total * PDF417Tables.Coefficients[offset]) % 929) % 929;
             }
 
             // Add the code words to the data stream.
             for (int i = eccCodewords - 1; i >= 0; i--)
+            {
                 dataStream.Add((eccStream[i] != 0) ? 929 - eccStream[i] : 0);
+            }
 
             int rowCount = dataStream.Count / dataColumns;
             if (dataStream.Count % dataColumns != 0)
+            {
                 rowCount++;
+            }
 
             int c1 = (rowCount - 1) / 3;
             int c2 = (eccLevel * 3) + ((rowCount - 1) % 3);
@@ -653,7 +767,9 @@ namespace ZintNet.Encoders
             for (int row = 0; row < rowCount; row++)
             {
                 for (int j = 0; j < dataColumns; j++)
+                {
                     buffer[j + 1] = dataStream[row * dataColumns + j];
+                }
 
                 eccCodewords = (row / 3) * 30;
                 switch (row % 3)
@@ -694,7 +810,8 @@ namespace ZintNet.Encoders
                             offset = 1858;
                             break;
 
-                        default: offset = 0;
+                        default:
+                            offset = 0;
                             break;
                     }
 
@@ -708,22 +825,32 @@ namespace ZintNet.Encoders
                 {
                     int position = PDF417Tables.PDFSet.IndexOf(codeString[i]);
                     if (position >= 0 && position < 32)
+                    {
                         bitPattern.AppendBits(position, 5);
+                    }
 
                     else if (position == 32)
+                    {
                         bitPattern.AppendBits(1, 2);
+                    }
 
                     else if (position == 33)
+                    {
                         bitPattern.AppendBits(0xff54, 16);
+                    }
 
                     else
+                    {
                         bitPattern.AppendBits(0x1fa29, 17);
+                    }
                 }
 
                 int size = bitPattern.SizeInBits;
                 byte[] rowData = new byte[size];
                 for (int i = 0; i < size; i++)
+                {
                     rowData[i] = bitPattern[i];
+                }
 
                 SymbolData symbolData = new SymbolData(rowData, 3);
                 encodedData.Insert(row, symbolData);
@@ -753,37 +880,38 @@ namespace ZintNet.Encoders
             int length = bitStream.SizeInBytes;
             int position = 0;
             int start = 0;
-            int chunkLength = 0;
-            ulong mantisa = 0;
-            ulong total = 0;
 
             if (length == 1)
             {
                 dataStream.Add(913);
-                dataStream.Add((int)(byteData[start]));
+                dataStream.Add(byteData[start]);
             }
 
             else
             {
                 // Select the switch for multiple of 6 bytes.
                 if (length % 6 == 0)
+                {
                     dataStream.Add(924);
+                }
 
                 else
+                {
                     dataStream.Add(901);
+                }
 
                 while (position < length)
                 {
-                    chunkLength = length - position;
+                    int chunkLength = length - position;
                     if (chunkLength >= 6)  // Take groups of 6.
                     {
+                        ulong total = 0;
                         chunkLength = 6;
                         position += chunkLength;
-                        total = 0;
 
                         while (chunkLength-- != 0)
                         {
-                            mantisa = (ulong)byteData[start++];
+                            ulong mantisa = (ulong)byteData[start++];
                             total |= mantisa << (chunkLength * 8);
                         }
 
@@ -803,10 +931,12 @@ namespace ZintNet.Encoders
                     {
                         position += chunkLength;
                         while (chunkLength-- != 0)
+                        {
                             dataStream.Add(byteData[start++]);
+                        }
                     }
                 }
             }
         }
     }
-} 
+}

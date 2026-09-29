@@ -34,39 +34,33 @@
     SUCH DAMAGE.
  */
 
-using System;
-using System.ComponentModel;
-using System.Collections.Generic;
+using System.Globalization;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Text;
-
-using ArrayExt;
 
 namespace ZintNet.Encoders
 {
     internal class ChannelCodeEncoder : SymbolEncoder
     {
         private int channels = 0;
-        
+
         // Global variables for Channel Code.
         private StringBuilder rowPattern;
-        int[] S;
-        int[] B;
-        long index;
-        long targetValue;
+        private int[] S;
+        private int[] B;
+        private long index;
+        private long targetValue;
 
-        public ChannelCodeEncoder(Symbology symbology, string barcodeMessage, int channels)
+        public ChannelCodeEncoder(Symbology symbolId, char[] barcodeMessage, int channels)
         {
-            this.symbolId = symbology;
+            this.symbolId = symbolId;
             this.barcodeMessage = barcodeMessage;
             this.channels = channels;
-
         }
 
         public override Collection<SymbolData> EncodeData()
         {
-            this.Symbol = new Collection<SymbolData>();
+            Symbol = new Collection<SymbolData>();
             barcodeData = MessagePreProcessor.NumericParser(barcodeMessage);
             ChannelCode();
             return Symbol;
@@ -74,79 +68,73 @@ namespace ZintNet.Encoders
 
         private void ChannelCode()
         {
-            bool automaticMode = false;
-            bool outOfRange = false;
+            int[] maxRanges = { -1, -1, -1, 26, 292, 3493, 44072, 576688, 7742862 };
+            int maxLength = 7;
+            index = 0;
             targetValue = 0;
-            rowPattern = new StringBuilder();
             S = new int[11];
             B = new int[11];
+            rowPattern = new StringBuilder();
             int inputLength = barcodeData.Length;
 
-            if (inputLength > 7)
-                throw new InvalidDataLengthException("Channel Code: Input data too long.");
+            if (inputLength > maxLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Channel Code: Input data too long.\nMaximum length is {0} characters.", maxLength));
+            }
 
-            if ((channels < 3) || (channels > 8))
-                automaticMode = true;
+            targetValue = int.Parse(new string(barcodeMessage));
 
-            if (automaticMode)
+            if (channels == 0)
+            {
                 channels = inputLength + 1;
+                if (targetValue > 576688 && channels < 8)
+                {
+                    channels = 8;
+                }
 
-            if (channels == 2)
-                channels = 3;
+                else if (targetValue > 44072 && channels < 7)
+                {
+                    channels = 7;
+                }
 
-            for (int i = 0; i < inputLength; i++)
-            {
-                targetValue *= 10;
-                targetValue += barcodeData[i] - '0';
+                else if (targetValue > 3493 && channels < 6)
+                {
+                    channels = 6;
+                }
+
+                else if (targetValue > 292 && channels < 5)
+                {
+                    channels = 5;
+                }
+
+                else if (targetValue > 26 && channels < 4)
+                {
+                    channels = 4;
+                }
             }
 
-            switch (channels)
+            if (targetValue > maxRanges[channels])
             {
-                case 3:
-                    if (targetValue > 26)
-                        outOfRange = true;
-                    break;
-
-                case 4:
-                    if (targetValue > 292)
-                        outOfRange = true;
-                    break;
-
-                case 5:
-                    if (targetValue > 3493)
-                        outOfRange = true;
-                    break;
-
-                case 6:
-                    if (targetValue > 44072)
-                        outOfRange = true;
-                    break;
-
-                case 7:
-                    if (targetValue > 576688)
-                        outOfRange = true;
-                    break;
-
-                case 8:
-                    if (targetValue > 7742862)
-                        outOfRange = true;
-                    break;
+                throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                     "Channel Code: Target value {0} is out of range for {1} channels.", targetValue, channels));
             }
 
-            if (outOfRange)
-                throw new InvalidDataException("Channel Code: Input data out of range.");
 
             B[0] = S[1] = B[1] = S[2] = B[2] = 1;
-            index = 0;
-            NextS(channels, 3, channels, channels);
-            string zeros = new String('0', channels - 1 - inputLength);
-            barcodeData = ArrayEx.Insert(barcodeData, 0, zeros);
-            inputLength = barcodeData.Length;
 
-            barcodeText = new string(barcodeData);
+            NextS(channels, 3, channels, channels);
+            if (channels - 1 - inputLength > 0)
+            {
+                string zeros = new string('0', channels - 1 - inputLength);
+                barcodeData = ArrayHelper.Insert(barcodeData, 0, zeros);
+            }
 
             // Expand row into the symbol data.
-            SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 0.0f);
+            SymbolBuilder.BuildSymbol(Symbol, rowPattern, 0.0f);
+
+            // Set the human readable text.
+            barcodeText = new string(barcodeData);
         }
 
         /* NextS() and NextB() are from ANSI/AIM BC12-1998 and are Copyright (c) AIM 1997.
@@ -161,20 +149,17 @@ namespace ZintNet.Encoders
 
         private void NextS(int channel, int i, int maxS, int maxB)
         {
-            int s;
-
-            for (s = (i < channel + 2) ? 1 : maxS; s <= maxS; s++)
+            for (int s = (i < channel + 2) ? 1 : maxS; s <= maxS; s++)
             {
                 S[i] = s;
                 NextB(channel, i, maxB, maxS + 1 - s);
-            }
+             }
         }
 
         private void NextB(int channel, int i, int maxB, int maxS)
         {
-            int b;
+            int b = (S[i] + B[i - 1] + S[i - 1] + B[i - 2] > 4) ? 1 : 2;
 
-            b = (S[i] + B[i - 1] + S[i - 1] + B[i - 2] > 4) ? 1 : 2;
             if (i < channel + 2)
             {
                 for (; b <= maxB; b++)
@@ -187,22 +172,18 @@ namespace ZintNet.Encoders
             else if (b <= maxB)
             {
                 B[i] = maxB;
-                CheckCharacter();
-                index++;
-            }
-        }
-
-        private void CheckCharacter()
-        {
-            if (index == targetValue)
-            {
-                // Target reached - save the generated pattern.
-                rowPattern.Append("11110");
-                for (int i = 0; i < 11; i++)
+                if (index == targetValue)
                 {
-                    rowPattern.Append((char)(S[i] + '0'));
-                    rowPattern.Append((char)(B[i] + '0'));
+                    // Target reached - save the generated pattern.
+                    rowPattern.Append("11110");
+                    for (int p = 0; p < 11; p++)
+                    {
+                        rowPattern.Append((char)(S[p] + '0'));
+                        rowPattern.Append((char)(B[p] + '0'));
+                    }
                 }
+
+                index++;
             }
         }
     }

@@ -1,12 +1,12 @@
 ﻿/* Code2of5Encoder.cs - Handles Code 2 of 5 based 1D symbols */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
+
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
- 
-    libzint - the open source barcode library
-    Copyright (C) 2008-2020 Robin Stuart <rstuart114@gmail.com>
+    libzint - the open source barcode library.
+    Copyright (C) 2008-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -34,175 +34,185 @@
     SUCH DAMAGE.
  */
 
-using System;
-using System.ComponentModel;
+using System.Globalization;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Text;
-
-using ArrayExt;
 
 namespace ZintNet.Encoders
 {
-    // Code 2of5 Family symbol encoder.
+    /// <summary>
+    /// Code 2 of 5 based symbol encoder.
+    /// </summary>
     internal class Code2of5Encoder : SymbolEncoder
     {
         # region Tables
-        // Standard (Industrial) 2 of 5 bar pattens.
-        static string[] Standard2of5Table =	{
+
+        // Industrial 2 of 5 bar pattens.
+        static readonly string[] Standard2of5Table =    {
             "1111313111", "3111111131", "1131111131", "3131111111", "1111311131",
             "3111311111", "1131311111", "1111113131", "3111113111", "1131113111" };
 
-        // Interleaved bar pattens.
-        static string[] Interleaved2of5Table = {
-             "11221", "21112", "12112", "22111", "11212",
-             "21211", "12211", "11122", "21121", "12121" };
-
-        // Matrix bar patterns.
-        static string[] Matrix2of5Table = {
+        // Standard (Matrix) bar patterns.
+        static readonly string[] Matrix2of5Table = {
             "113311", "311131", "131131", "331111", "113131",
             "313111", "133111", "111331", "311311", "131311" };
+
         # endregion
 
-        I2of5CheckDigitType optCheckDigitType;
-        private bool optCheckDigit;
-        private int deutschePostSize = 0;
+        private readonly bool optionalCheckDigit;
+        private readonly bool showCheckDigit;
+        char checkDigit;
 
-        public Code2of5Encoder(Symbology symbology, string barcodeMessage, bool optCheckDigit, I2of5CheckDigitType optCheckDigitType)
+        public Code2of5Encoder(Symbology symbolId, char[] barcodeMessage, bool optionalCheckDigit, bool showCheckDigit)
         {
-            this.symbolId = symbology;
+            this.symbolId = symbolId;
             this.barcodeMessage = barcodeMessage;
-            this.optCheckDigit = optCheckDigit;
-            this.optCheckDigitType = optCheckDigitType;
-            this.Symbol = new Collection<SymbolData>();
-            this.checkDigitText = string.Empty;
-            this.barcodeText = string.Empty;
+            this.optionalCheckDigit = optionalCheckDigit;
+            this.showCheckDigit = showCheckDigit;
         }
 
         public override Collection<SymbolData> EncodeData()
         {
+            Symbol = new Collection<SymbolData>();
             barcodeData = MessagePreProcessor.NumericParser(barcodeMessage);
+
             switch (symbolId)
             {
                 case Symbology.Standard2of5:
                     Standard2of5();
                     break;
 
-                case Symbology.Matrix2of5:
-                    Matrix2of5();
+                case Symbology.Industrial2of5:
+                    Industrial2of5();
                     break;
 
                 case Symbology.IATA2of5:
                     IATA2of5();
                     break;
 
-                case Symbology.Interleaved2of5:
-                    Interleaved2of5();
-                    break;
-
                 case Symbology.DataLogic2of5:
                     DataLogic2of5();
-                    break;
-
-                case Symbology.ITF14:
-                    optCheckDigit = false;
-                    ITF14();
-                    break;
-
-                case Symbology.DeutschePostIdentCode:
-                    optCheckDigit = false;
-                    deutschePostSize = 11;
-                    DeutschePost();
-                    break;
-
-                case Symbology.DeutshePostLeitCode:
-                    optCheckDigit = false;
-                    deutschePostSize = 13;
-                    DeutschePost();
                     break;
             }
 
             return Symbol;
         }
 
-        private void Standard2of5()
+        /// <summary>
+        /// Code 2 of 5 Industrial.
+        /// </summary>
+        private void Industrial2of5()
         {
-            int index;
+            int maxLength = 79;
             int inputLength = barcodeData.Length;
             StringBuilder rowPattern = new StringBuilder();
 
-            if (inputLength > 45)
-                throw new InvalidDataLengthException("Code 2of5(Standard): Input data too long.");
+            if (inputLength > maxLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Industrial 2 of 5: Input data too long.\nMaximum length is {0} characters.", maxLength));
+            }
 
             // Start character.
             rowPattern.Append("313111");
             for (int i = 0; i < inputLength; i++)
             {
-                index = CharacterSets.NumberOnlySet.IndexOf(barcodeData[i]);
+                int index = CharacterSets.NumberOnlySet.IndexOf(barcodeData[i]);
                 rowPattern.Append(Standard2of5Table[index]);
+            }
+
+            // Get the check character.
+            if (optionalCheckDigit)
+            {
+                rowPattern.Append(Standard2of5Table[GetCheckSum()]);
             }
 
             // Stop character.
             rowPattern.Append("31113");
-            // Set the human readable text.
-            barcodeText = new string(barcodeData);
 
             // Expand row into the symbol data..
-            SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 0.0f);
+            SymbolBuilder.BuildSymbol(Symbol, rowPattern, 0.0f);
+
+            // Set the human readable text.
+            SetBarcodeText();
         }
 
-        private void Matrix2of5()
+        /// <summary>
+        /// Code 2 of 5 Standard (Matrix)
+        /// </summary>
+        private void Standard2of5()
         {
-            int index;
+            int maxLength = 112;
             int inputLength = barcodeData.Length;
             StringBuilder rowPattern = new StringBuilder();
 
-            if (inputLength > 80)
-                throw new InvalidDataLengthException("Code 2of5(Matrix): Input data too long.");
+            if (inputLength > maxLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Standard 2 of 5: Input data too long.\nMaximum length is {0} characters.", maxLength));
+            }
 
             // Add start character.
             rowPattern.Append("411111");
             for (int i = 0; i < inputLength; i++)
             {
-                index = CharacterSets.NumberOnlySet.IndexOf(barcodeData[i]);
+                int index = CharacterSets.NumberOnlySet.IndexOf(barcodeData[i]);
                 rowPattern.Append(Matrix2of5Table[index]);
+            }
+
+            // Get the check character.
+            if (optionalCheckDigit)
+            {
+                rowPattern.Append(Matrix2of5Table[GetCheckSum()]);
             }
 
             // Add stop character.
             rowPattern.Append("41111");
 
-            // Set the human readable text.
-            barcodeText = new string(barcodeData);
-
             // Expand row into the symbol data.
-            SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 0.0f);
+            SymbolBuilder.BuildSymbol(Symbol, rowPattern, 0.0f);
+
+            // Set the human readable text.
+            SetBarcodeText();
         }
 
+        /// <summary>
+        /// Code 2 of 5 IATA.
+        /// </summary>
         private void IATA2of5()
         {
-            int index;
-            int mLength = barcodeData.Length;
+            int maxLength = 80;
+            int inputLength = barcodeData.Length;
             StringBuilder rowPattern = new StringBuilder();
 
-            if (mLength > 45)
-                throw new InvalidDataLengthException("Code 2of5(IATA): Input data too long.");
+            if (inputLength > maxLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "IATA 2 of 5: Input data too long.\nMaximum length is {0} characters.", maxLength));
+            }
 
             // Add start character.
             rowPattern.Append("1111");
-            for (int i = 0; i < mLength; i++)
+            for (int i = 0; i < inputLength; i++)
             {
-                index = CharacterSets.NumberOnlySet.IndexOf(barcodeData[i]);
+                int index = CharacterSets.NumberOnlySet.IndexOf(barcodeData[i]);
                 rowPattern.Append(Standard2of5Table[index]);
+            }
+
+            // Get the check character.
+            if (optionalCheckDigit)
+            {
+                rowPattern.Append(Standard2of5Table[GetCheckSum()]);
             }
 
             // Add stop character.
             rowPattern.Append("311");
 
-            // Set the human readable text.
-            barcodeText = new string(barcodeData);
-
             // Expand row into the symbol data.
-            SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 0.0f);
+            SymbolBuilder.BuildSymbol(Symbol, rowPattern, 0.0f);
+
+            // Set the human readable text.
+            SetBarcodeText();
         }
 
         /// <summary>
@@ -210,178 +220,54 @@ namespace ZintNet.Encoders
         /// </summary>
         private void DataLogic2of5()
         {
-            int index;
+            int maxLength = 113;
             int inputLength = barcodeData.Length;
             StringBuilder rowPattern = new StringBuilder();
 
-            if (inputLength > 80)
-                throw new InvalidDataLengthException("Code 2of5(Data Logic): Input data too long.");
+            if (inputLength > maxLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "DataLogic 2 of 5: Input data too long.\nMaximum length is {0} characters.", maxLength));
+            }
 
             // Start character.
             rowPattern.Append("1111");
             for (int i = 0; i < inputLength; i++)
             {
-                index = CharacterSets.NumberOnlySet.IndexOf(barcodeData[i]);
+                int index = CharacterSets.NumberOnlySet.IndexOf(barcodeData[i]);
                 rowPattern.Append(Matrix2of5Table[index]);
+            }
+
+            // Get the check character.
+            if (optionalCheckDigit)
+            {
+                rowPattern.Append(Standard2of5Table[GetCheckSum()]);
             }
 
             // Stop character.
             rowPattern.Append("311");
 
+            // Expand row into the symbol data.
+            SymbolBuilder.BuildSymbol(Symbol, rowPattern, 0.0f);
+
             // Set the human readable text.
+            SetBarcodeText();
+        }
+
+        private int GetCheckSum()
+        {
+            checkDigit = GetCheckDigit.Mod10CheckDigit(barcodeData);
+            return CharacterSets.NumberOnlySet.IndexOf(checkDigit);
+        }
+
+        private void SetBarcodeText()
+        {
             barcodeText = new string(barcodeData);
-
-            // Expand row into the symbol data.
-            SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 0.0f);
-        }
-
-        /// <summary>
-        /// Encodes ITF14
-        /// </summary>
-        private void ITF14()
-        {
-            char checkDigit;
-            int inputLength = barcodeData.Length;
-
-            if (inputLength < 13)
+            if (optionalCheckDigit && showCheckDigit)
             {
-                string zeros = new String('0', 13 - inputLength);
-                barcodeData = ArrayEx.Insert(barcodeData, 0, zeros);
-                inputLength = barcodeData.Length;
+                checkDigitText = checkDigit.ToString();
+                barcodeText += checkDigitText;
             }
-
-            if (inputLength == 14)  // Check digit supplied. Check if it is valid.
-            {
-                char cd = barcodeData[inputLength - 1];
-                checkDigit = CheckSum.Mod10CheckDigit(barcodeData, inputLength - 1);
-                if (checkDigit != cd)
-                    throw new InvalidDataException("Code ITF-14: Invalid check digit.");
-            }
-
-            else if (inputLength == 13)
-            {
-                checkDigit = CheckSum.Mod10CheckDigit(barcodeData, inputLength);
-                barcodeData = ArrayEx.Insert(barcodeData, inputLength, checkDigit);
-                inputLength = barcodeData.Length;
-            }
-
-            else
-                throw new InvalidDataLengthException("Code ITF-14: Input data too long.");
-
-            Interleaved2of5();
-
-            // Set the human readable text.
-            barcodeText = string.Empty;
-            for (int i = 0; i < inputLength; i++)
-            {
-                barcodeText += barcodeData[i];
-                // Insert spaces at these points.
-                if (i == 0 || i == 2 || i == 7 || i == 12)
-                    barcodeText += "  ";
-            }
-        }
-
-        /// <summary>
-        /// Encodes Interleaved 2 of 5.
-        /// </summary>
-        private void Interleaved2of5()
-        {
-            char checkDigit;
-            int inputLength = barcodeData.Length;
-            StringBuilder rowPattern = new StringBuilder();
-
-            if (inputLength > 89)
-                throw new InvalidDataLengthException("Code 2of5 Interleaved: Input data too long.");
-
-            if (optCheckDigit)
-            {
-                if (optCheckDigitType == I2of5CheckDigitType.USS)
-                    checkDigit = CheckSum.Mod10CheckDigit(barcodeData);
-
-                else
-                    checkDigit = CheckSum.OPCCCheckDigit(barcodeData);
-
-                barcodeData = ArrayEx.Insert(barcodeData, inputLength, checkDigit);
-                inputLength = barcodeData.Length;
-                checkDigitText += checkDigit;
-            }
-
-            // Interleaved 2of5 must have an even number of numeric characters.
-            // Pad out with a leading "0" if not.
-            if (inputLength % 2 != 0)
-            {
-                barcodeData = ArrayEx.Insert(barcodeData, 0, '0');
-                inputLength = barcodeData.Length;
-            }
-
-            rowPattern = new StringBuilder();
-            string data1 = String.Empty;
-            string data2 = String.Empty;
-            int index;
-
-            // Add the start character.
-            rowPattern.Append("1111");
-            for (int i = 0; i < inputLength - 1; i += 2)
-            {
-                // Get each character pair at a time
-                index = CharacterSets.NumberOnlySet.IndexOf(barcodeData[i]);
-                data1 = Interleaved2of5Table[index];
-                index = CharacterSets.NumberOnlySet.IndexOf(barcodeData[i + 1]);
-                data2 = Interleaved2of5Table[index];
-
-                // Interleave the data.
-                for (int x = 0; x < 5; x++)
-                {
-                    rowPattern.Append(data1[x]);
-                    rowPattern.Append(data2[x]);
-                }
-            }
-
-            // Add stop character.
-            rowPattern.Append("311");
-
-            // Set the human readable text.
-            if (optCheckDigit)
-                barcodeText = new string(barcodeData, 0, barcodeData.Length - 1);   // Don't include the check digit.
-
-            else
-                barcodeText = new string(barcodeData);
-
-            if(symbolId == Symbology.ITF14)
-                rowPattern.Replace('2', '3'); // Use 3:1 bar ratio for ITF14
-
-            // Expand row into the symbol data.
-            SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 0.0f);
-        }
-
-        private void DeutschePost()
-        {
-            int count = 0;
-            char checkDigit;
-            int inputLength = barcodeData.Length;
-
-            if (inputLength > deutschePostSize)
-                throw new InvalidDataLengthException("Deutsche Post: Input data too long.");
-
-
-            if (inputLength < deutschePostSize)
-            {
-                string zeros = new String('0', deutschePostSize - inputLength);
-                barcodeData = ArrayEx.Insert(barcodeData, 0, zeros);
-                inputLength = barcodeData.Length;
-            }
-
-            for (int i = inputLength - 1; i >= 0; i--)
-            {
-                count += 4 * (barcodeData[i] - '0');
-
-                if ((i & 1) > 0)
-                    count += 5 * (barcodeData[i] - '0');
-            }
-
-            checkDigit = (char)(((10 - (count % 10)) % 10) + '0');
-            barcodeData = ArrayEx.Insert(barcodeData, inputLength, checkDigit);
-            Interleaved2of5();
         }
     }
 }

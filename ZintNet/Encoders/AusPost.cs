@@ -1,12 +1,12 @@
 ﻿/* AusPost.cs - Handles Australia Post 4-State Barcode */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
   
     libzint - the open source barcode library
-    Copyright (C) 2009-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2009-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
     SUCH DAMAGE.
 */
 
-using System;
+using System.Globalization;
 using System.Collections.ObjectModel;
 using System.Text;
 
@@ -43,16 +43,17 @@ namespace ZintNet.Encoders
     internal class AusPostEncoder : SymbolEncoder
     {
         #region Tables
-        private static string[] AusNTable = { "00", "01", "02", "10", "11", "12", "20", "21", "22", "30" };
 
-        private static string[] AusCTable = {
+        private static readonly string[] AusNTable = { "00", "01", "02", "10", "11", "12", "20", "21", "22", "30" };
+
+        private static readonly string[] AusCTable = {
             "222", "300", "301", "302", "310", "311", "312", "320", "321", "322", "000", "001", "002",
             "010", "011", "012", "020", "021", "022", "100", "101", "102", "110", "111", "112", "120",
             "121", "122", "200", "201", "202", "210", "211", "212", "220", "221", "023", "030", "031",
             "032", "033", "103", "113", "123", "130", "131", "132", "133", "203", "213", "223", "230",
             "231", "232", "233", "303", "313", "323", "330", "331", "332", "333", "003", "013" };
 
-        private static string[] AusBarTable = {
+        private static readonly string[] AusBarTable = {
             "000", "001", "002", "003", "010", "011", "012", "013", "020", "021", "022", "023", "030",
             "031", "032", "033", "100", "101", "102", "103", "110", "111", "112", "113", "120", "121",
             "122", "123", "130", "131", "132", "133", "200", "201", "202", "203", "210", "211", "212",
@@ -63,95 +64,133 @@ namespace ZintNet.Encoders
 
         #endregion
 
-        public AusPostEncoder(Symbology symbolId, string barcodeMessage)
+        public AusPostEncoder(Symbology symbolId, char[] barcodeMessage)
         {
-            this.barcodeMessage = barcodeMessage;
             this.symbolId = symbolId;
+            this.barcodeMessage = barcodeMessage;
         }
 
         public override Collection<SymbolData> EncodeData()
         {
             Symbol = new Collection<SymbolData>();
-            barcodeData = MessagePreProcessor.MessageParser(barcodeMessage);
             AusPost();
             return Symbol;
         }
 
+        /// <summary>
+        /// Australian Post encoding modes.
+        /// </summary>
+        internal enum AusPostEncoding
+        {
+            /// <summary>
+            /// Numeric mode.
+            /// </summary>
+            Numeric = 0,
+
+            /// <summary>
+            /// Alpha numeric mode.
+            /// </summary>
+            AlphaNumeric,
+        }
+
         private void AusPost()
         {
-	        /* Handles Australia Posts's 4 State Codes
+            /* Handles Australia Posts's 4 State Codes
 	           The contents of data pattern conform to the following standard:
 	           0 = Tracker, Ascender and Descender
 	           1 = Tracker and Ascender
 	           2 = Tracker and Descender
 	           3 = Tracker only */
 
-            int inputLength = barcodeData.Length;
+            int inputLength = barcodeMessage.Length;
+            int minLength = 10;
             StringBuilder barPattern = new StringBuilder();
             AusPostEncoding encodingMode = AusPostEncoding.Numeric;
-            string fcc = String.Empty;          // Format Control Code
-            string dpid = String.Empty;         // Delivery Point ID.
             string cif = string.Empty;          // Customer Information Field.
             int cifLength = 0;
-
+            string fcc;
+            string dpid;
             // Do all of the length and integrity checking first.
-            if (inputLength >= 10)
+            if (inputLength >= minLength)
             {
                 // Check valid FCC and DPID.
                 for (int i = 0; i < 10; i++)
                 {
-                    if (CharacterSets.NumberOnlySet.IndexOf(barcodeData[i]) == -1)
-                        throw new InvalidDataException("AusPost: FCC and DPID must be numeric data.");
+                    if (CharacterSets.NumberOnlySet.IndexOf(barcodeMessage[i]) == -1)
+                    {
+                        throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                            "AusPost: FCC and DPID must be numeric data.\nInvalid character '{0}' at position {1}.", barcodeMessage[i], i + 1));
+                    }
                 }
 
-                fcc = new string(barcodeData, 0, 2);
-                dpid = new string(barcodeData, 2, 8);
+                fcc = new string(barcodeMessage, 0, 2);    // 2 digits.
+                dpid = new string(barcodeMessage, 2, 8);   // 8 digits.
 
                 // Check for CIF.
                 if (inputLength > 10)
                 {
-                    cif = new string(barcodeData, 10, inputLength - 10);
+                    cif = new string(barcodeMessage, 10, inputLength - 10);
                     cifLength = cif.Length;
                 }
             }
 
             else
-                throw new InvalidDataLengthException("AusPost: Input data wrong length.");
+            {
+                throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                    "AusPost: Input data wrong length.\nMinimum length is {0} characters.", minLength));
+            }
 
             if (symbolId == Symbology.AusPostStandard)
             {
-                if(fcc != "11" && fcc != "59" && fcc != "62")
-                    throw new InvalidDataFormatException("AusPost Standard: Invalid Format Control Code ("+ fcc +").");
+                if (fcc != "11" && fcc != "59" && fcc != "62")
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "AusPost Standard: Invalid Format Control Code '{0}'.", fcc));
+                }
 
                 if (fcc == "11" && inputLength != 10)
-                        throw new InvalidDataLengthException("AusPost Standard: Input is wrong length for Format Control Code 11.");
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "AusPost Standard: Input data wrong length for Format Control Code 11.\n{0} numeric characters required.", 10));
+                }
 
                 if (fcc == "59")
                 {
-                    if(cifLength > 5 && cifLength < 9)
+                    // CFI length of 5-8 characters require numeric encoding.
+                    if (cifLength > 5 && cifLength < 9)
                     {
                         for (int i = 0; i < cifLength; i++)
                         {
                             if (CharacterSets.NumberOnlySet.IndexOf(cif[i]) == -1)
-                                throw new InvalidDataException("AusPost Standard: Invalid data for Numeric encoding.");
+                            {
+                                throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                                    "AusPost Standard: Using Numeric encoding.\nInvalid character {0} at position{1}.", barcodeMessage[i + 10], i + 10 + 1));
+                            }
                         }
 
                         encodingMode = AusPostEncoding.Numeric;
                     }
 
-                    else if(cifLength < 6)
+                    // CFI length of < 5 characters use alpha numeric encoding.
+                    else if (cifLength > 0 && cifLength < 6)
                     {
                         for (int i = 0; i < cifLength; i++)
                         {
                             if (CharacterSets.AusPostSet.IndexOf(cif[i]) == -1)
-                                throw new InvalidDataException("AusPost Standard: Invalid data for Character encoding.");
+                            {
+                                throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                                    "AusPost Standard: Using Character encoding.\nInvalid character {0} at position{1}.", barcodeMessage[i + 10], i + 10 + 1));
+                            }
                         }
 
-                        encodingMode = AusPostEncoding.Character;
+                        encodingMode = AusPostEncoding.AlphaNumeric;
                     }
 
                     else
-                        throw new InvalidDataLengthException("AusPost Standard: Input is wrong length for Customer Information Field.");
+                    {
+                        throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                            "AusPost Standard: Wrong length for Customer Information Field for FCC {0}.\nExpected between 1 and 8 characters.", fcc));
+                    }
                 }
 
                 if (fcc == "62")
@@ -161,110 +200,143 @@ namespace ZintNet.Encoders
                         for (int i = 0; i < cifLength; i++)
                         {
                             if (CharacterSets.NumberOnlySet.IndexOf(cif[i]) == -1)
-                                throw new InvalidDataException("AusPost Standard: Invalid data for Numeric encoding.");
+                            {
+                                throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                                    "AusPost Standard: Using Numeric encoding.\nInvalid character {0} at position{1}.", barcodeMessage[i + 10], i + 10 + 1));
+                            }
                         }
 
                         encodingMode = AusPostEncoding.Numeric;
                     }
 
-                    else if (cifLength < 11)
+                    else if (cifLength > 0 && cifLength < 11)
                     {
                         for (int i = 0; i < cifLength; i++)
                         {
                             if (CharacterSets.AusPostSet.IndexOf(cif[i]) == -1)
-                                throw new InvalidDataException("AusPost Standard: Invalid data for Character encoding.");
+                            {
+                                throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                                   "AusPost Standard: Using Character encoding.\nInvalid character {0} at position{1}.", barcodeMessage[i + 10], i + 10 + 1));
+                            }
                         }
 
-                        encodingMode = AusPostEncoding.Character;
+                        encodingMode = AusPostEncoding.AlphaNumeric;
                     }
 
                     else
-                        throw new InvalidDataLengthException("AusPost Standard: Input is wrong length for Customer Information Field.");
+                    {
+                        throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                            "AusPost Standard: Wrong length for Customer Information Field for FCC {0}.\nExpected between 1 and 15 characters.", fcc));
+                    }
                 }
             }
 
             else
             {
-		        if(inputLength != 10)
-                    throw new InvalidDataLengthException("AusPost: Input is wrong length for selected AusPost symbol.");
-
-		        switch(symbolId)
+                if (inputLength != 10)
                 {
-			        case Symbology.AusPostReplyPaid:
-                        if(fcc != "45")
+                    throw new InvalidDataLengthException("AusPost: Input is wrong length for selected AusPost symbol.");
+                }
+
+                switch (symbolId)
+                {
+                    case Symbology.AusPostReplyPaid:
+                        if (fcc != "45")
+                        {
                             throw new InvalidDataException("AusPost Reply Paid: Invalid Format Control Code.");
+                        }
+
                         break;
 
-			        case Symbology.AusPostRouting:
-                        if(fcc != "87")
+                    case Symbology.AusPostRouting:
+                        if (fcc != "87")
+                        {
                             throw new InvalidDataException("AusPost Routing: Invalid Format Control Code.");
+                        }
+
                         break;
 
-			        case Symbology.AusPostRedirect:
-                        if(fcc != "92")
+                    case Symbology.AusPostRedirect:
+                        if (fcc != "92")
+                        {
                             throw new InvalidDataException("AusPost Redirect: Invalid Format Control Code.");
-                        break;
-		        }
- 	        }
+                        }
 
-	        // Encode the Format Control Code.
-	        for(int i = 0; i < 2; i++)
-	        {
+                        break;
+                }
+            }
+
+            // Encode the Format Control Code.
+            for (int i = 0; i < 2; i++)
+            {
                 int index = CharacterSets.NumberOnlySet.IndexOf(fcc[i]);
                 barPattern.Append(AusNTable[index]);
-	        }
+            }
 
-	        // Delivery Point Identifier.
-	        for(int i = 0; i < 8; i++)
-	        {
+            // Delivery Point Identifier.
+            for (int i = 0; i < 8; i++)
+            {
                 int index = CharacterSets.NumberOnlySet.IndexOf(dpid[i]);
                 barPattern.Append(AusNTable[index]);
-	        }
+            }
 
-            if (encodingMode == AusPostEncoding.Character)
+            if (cifLength > 0)
             {
-                for (int i = 0; i < cif.Length; i++)
+
+                if (encodingMode == AusPostEncoding.AlphaNumeric)
                 {
-                    int index = CharacterSets.AusPostSet.IndexOf(cif[i]);
-                    barPattern.Append(AusCTable[index]);
+                    for (int i = 0; i < cifLength; i++)
+                    {
+                        int index = CharacterSets.AusPostSet.IndexOf(cif[i]);
+                        barPattern.Append(AusCTable[index]);
+                    }
                 }
+
+                else
+                {
+                    for (int i = 0; i < cifLength; i++)
+                    {
+                        int index = CharacterSets.NumberOnlySet.IndexOf(cif[i]);
+                        barPattern.Append(AusNTable[index]);
+                    }
+                }
+
+            }
+
+            // Filler bars.
+            int patternLength = barPattern.Length;
+            if (fcc == "59" && patternLength < 36)
+            {
+                barPattern.Append(fillCharacter, 36 - patternLength);
+            }
+
+            else if (fcc == "62" && patternLength < 51)
+            {
+                barPattern.Append(fillCharacter, 51 - patternLength);
             }
 
             else
             {
-                for (int i = 0; i < cif.Length; i++)
-                {
-                    int index = CharacterSets.NumberOnlySet.IndexOf(cif[i]);
-                    barPattern.Append(AusNTable[index]);
-                }
+                barPattern.Append(fillCharacter);
             }
 
-	        // Filler bars.
-            int patternLength = barPattern.Length;
-            if (fcc == "59" && patternLength < 36)
-                barPattern.Append(fillCharacter, 36 - patternLength);
-
-            else if (fcc == "62" && patternLength < 51)
-                barPattern.Append(fillCharacter, 51 - patternLength);
-
-            if (fcc == "11")
-                barPattern.Append(fillCharacter);
-
-	        AddErrorCorrection(barPattern);
+            AddErrorCorrection(barPattern);
 
             // Add start & stop characters.
             barPattern.Insert(0, "13");
             barPattern.Append("13");
 
-            SymbolBuilder.BuildFourStateSymbol(Symbol, barPattern);
-            barcodeText = new string(barcodeData);
+            SymbolBuilder.FourStateSymbol(Symbol, barPattern);
+            barcodeText = new string(barcodeMessage);
             if (cifLength > 0)
+            {
                 barcodeText = barcodeText.Insert(10, " ");
+            }
 
             barcodeText = barcodeText.Insert(2, " ");
         }
-        	
-        private static void AddErrorCorrection(StringBuilder barPattern)
+
+        private void AddErrorCorrection(StringBuilder barPattern)
         {
             // Adds Reed-Solomon error correction.
             int dataCodewords = 0;
@@ -284,10 +356,12 @@ namespace ZintNet.Encoders
 
             // Append error correction in reverse order.
             for (int i = 4; i > 0; i--)
-                barPattern.Append(AusBarTable[(int)eccBlocks[i - 1]]);
+            {
+                barPattern.Append(AusBarTable[eccBlocks[i - 1]]);
+            }
         }
 
-        private static byte ConvertPattern(char data, int shift)
+        private byte ConvertPattern(char data, int shift)
         {
             return (byte)((data - '0') << shift);
         }

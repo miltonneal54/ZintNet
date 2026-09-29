@@ -1,12 +1,12 @@
 ﻿/* Code49Encoder.cs - Handles Code 49 2D symbol */
 
 /*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
   
     libzint - the open source barcode library
-    Copyright (C) 2008-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2008-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -33,13 +33,10 @@
     OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
     SUCH DAMAGE.
  */
-using System;
-using System.ComponentModel;
+
+using System.Globalization;
 using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Text.Extensions;
 
 namespace ZintNet.Encoders
 {
@@ -1195,12 +1192,15 @@ namespace ZintNet.Encoders
             "12221611", "11131162", "21122161", "21131251", "11113162" };
         #endregion
 
-        public Code49Encoder(Symbology symbology, string barcodeMessage, EncodingMode encodingMode)
+        private readonly int optionMinimumRows;
+
+        public Code49Encoder(Symbology symbolId, char[] barcodeMessage, int optionMinimumRows, EncodingFormat encodingMode)
         {
-            this.symbolId = symbology;
+            this.symbolId = symbolId;
             this.barcodeMessage = barcodeMessage;
+            this.optionMinimumRows = optionMinimumRows;
             this.encodingMode = encodingMode;
-            this.elementsPerCharacter = 16;
+            elementsPerCharacter = 16;
         }
 
         public override Collection<SymbolData> EncodeData()
@@ -1208,12 +1208,12 @@ namespace ZintNet.Encoders
             Symbol = new Collection<SymbolData>();
             switch (encodingMode)
             {
-                case EncodingMode.Standard:
+                case EncodingFormat.Standard:
                     isGS1 = false;
                     barcodeData = MessagePreProcessor.TildeParser(barcodeMessage);
                     break;
 
-                case EncodingMode.GS1:
+                case EncodingFormat.GS1:
                     isGS1 = true;
                     barcodeData = MessagePreProcessor.GS1Parser(barcodeMessage);
                     break;
@@ -1235,24 +1235,37 @@ namespace ZintNet.Encoders
             int[,] wGrid = new int[8, 4];      // Refets to table 2.
             int[] codewords = new int[170];
             int padCount = 0;
+            int maxLength = 81;
             int inputLength = barcodeData.Length;
 
-            if (inputLength > 81)
-                throw new InvalidDataLengthException("Code 49: Input data too long.");
+            if (inputLength > maxLength)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Code 49: Input data too long.\nMaximum length is {0} characters.", maxLength));
+            }
 
             if (isGS1)
+            {
                 intermediate.Append('*');
+            }
 
             for (int i = 0; i < inputLength; i++)
             {
                 if (barcodeData[i] > 127)
-                    throw new InvalidDataException("Code 49: Invalid data in input.");
+                {
+                    throw new InvalidDataException(string.Format(CultureInfo.CurrentCulture,
+                        "Code 49: Invalid character at position {0} in input, extended ASCII not allowed.",  i + 1));
+                }
 
-                if (isGS1 && (barcodeData[i] == '['))
+                if (isGS1 && (barcodeData[i] == '\x1d'))
+                {
                     intermediate.Append('*');   // FNC1.
+                }
 
                 else
+                {
                     intermediate.Append(C49Table7[barcodeData[i]]);
+                }
             }
 
             codewordCount = 0;
@@ -1260,11 +1273,15 @@ namespace ZintNet.Encoders
             iLength = intermediate.Length;
             do
             {
-                if (Char.IsDigit(intermediate[iIndex]))
+                if (char.IsDigit(intermediate[iIndex]))
                 {
                     // Numeric data.
                     int j;
-                    for (j = 0; ((iIndex + j) < iLength) && (Char.IsDigit(intermediate[iIndex + j])); j++);
+                    for (j = 0; ((iIndex + j) < iLength) && char.IsDigit(intermediate[iIndex + j]); j++)
+                    {
+                        ;
+                    }
+
                     if (j >= 5)
                     {
                         // Use Numeric Encodation Method.
@@ -1282,7 +1299,7 @@ namespace ZintNet.Encoders
                         {
                             if ((c == blockCount - 1) && (blockRemaining == 2))
                             {
-                                /* Rule (d) */
+                                // Rule (d).
                                 blockValue = 100000;
                                 blockValue += (intermediate[iIndex] - '0') * 1000;
                                 blockValue += (intermediate[iIndex + 1] - '0') * 100;
@@ -1363,10 +1380,10 @@ namespace ZintNet.Encoders
                                 blockValue += (intermediate[iIndex + 3] - '0');
 
                                 codewords[codewordCount] = blockValue / (48 * 48);
-                                blockValue = blockValue - (48 * 48) * codewords[codewordCount];
+                                blockValue -= (48 * 48) * codewords[codewordCount];
                                 codewordCount++;
                                 codewords[codewordCount] = blockValue / 48;
-                                blockValue = blockValue - 48 * codewords[codewordCount];
+                                blockValue -= 48 * codewords[codewordCount];
                                 codewordCount++;
                                 codewords[codewordCount] = blockValue;
                                 codewordCount++;
@@ -1422,11 +1439,16 @@ namespace ZintNet.Encoders
             {
                 codewordCount--;
                 for (int i = 0; i < codewordCount; i++)
+                {
                     codewords[i] = codewords[i + 1];
+                }
             }
 
             if (codewordCount > 49)
-                throw new InvalidDataLengthException("Code 49: Input data too long.");
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Code 49: Input too long, requires {0} codewords.\n(Maximum allowed: 49)", codewordCount));
+            }
 
             // Place codewords in code character array (c grid).
             rows = 0;
@@ -1435,7 +1457,9 @@ namespace ZintNet.Encoders
                 for (int i = 0; i < 7; i++)
                 {
                     if (((rows * 7) + i) < codewordCount)
+                    {
                         cGrid[rows, i] = codewords[(rows * 7) + i];
+                    }
 
                     else
                     {
@@ -1451,9 +1475,33 @@ namespace ZintNet.Encoders
             {
                 // Add a row.
                 for (int i = 0; i < 7; i++)
+                {
                     cGrid[rows, i] = 48;   // Pad.
+                }
 
                 rows++;
+            }
+
+            if (optionMinimumRows >= 2 && optionMinimumRows <= 8)
+            {
+                // Minimum no. of rows.
+                if (optionMinimumRows > rows)
+                {
+                    for (int j = optionMinimumRows - rows; j > 0; j--)
+                    {
+                        for (int i = 0; i < 7; i++)
+                        {
+                            cGrid[rows,i] = 48; // Pad.
+                        }
+                        rows++;
+                    }
+                }
+            }
+
+            else if (optionMinimumRows >= 1)
+            {
+                throw new InvalidDataLengthException(string.Format(CultureInfo.CurrentCulture,
+                    "Code 49: Minimum number of rows out of range (2 to 8)."));
             }
 
             // Add row count and mode character.
@@ -1463,9 +1511,10 @@ namespace ZintNet.Encoders
             for (int i = 0; i < rows - 1; i++)
             {
                 int rowSum = 0;
-
                 for (int j = 0; j < 7; j++)
+                {
                     rowSum += cGrid[i, j];
+                }
 
                 cGrid[i, 7] = rowSum % 49;
             }
@@ -1513,7 +1562,9 @@ namespace ZintNet.Encoders
             // Add last row check character.
             int t = 0;
             for (int i = 0; i < 7; i++)
+            {
                 t += cGrid[rows - 1, i];
+            }
 
             cGrid[rows - 1, 7] = t % 49;
 
@@ -1521,7 +1572,9 @@ namespace ZintNet.Encoders
             for (int i = 0; i < rows; i++)
             {
                 for (int j = 0; j < 4; j++)
+                {
                     wGrid[i, j] = (cGrid[i, 2 * j] * 49) + cGrid[i, (2 * j) + 1];
+                }
             }
 
             for (int r = 0; r < rows; r++)
@@ -1533,20 +1586,26 @@ namespace ZintNet.Encoders
                     if (r != (rows - 1))
                     {
                         if (C49Table4[r][j] == 'E')    // Even parity.
+                        {
                             rowPattern.Append(C49EvenParity[wGrid[r, j]]);
+                        }
 
                         else    // Odd parity.
+                        {
                             rowPattern.Append(C49OddParity[wGrid[r, j]]);
+                        }
                     }
 
                     else    // Last row uses all even parity.
+                    {
                         rowPattern.Append(C49EvenParity[wGrid[r, j]]);
+                    }
                 }
 
                 rowPattern.Append('4');    // Stop character.
 
                 // Expand row into the symbol data.
-                SymbolBuilder.ExpandSymbolRow(Symbol, rowPattern, 10.0f);
+                SymbolBuilder.BuildSymbol(Symbol, rowPattern, 10.0f);
             }
         }
     }
