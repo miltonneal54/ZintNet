@@ -10,13 +10,14 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ZintNet</RootNamespace>
     <AssemblyName>ZintNetLib</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>3.5</OldToolsVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -26,6 +27,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>bin\Debug\ZintNetLib.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,6 +38,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\ZintNetLib.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ArrayEx">
@@ -56,6 +60,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArrayHelper.cs" />
+    <Compile Include="BarcodeDataSegments.cs" />
     <Compile Include="BCEnums.cs" />
     <Compile Include="BCExceptions.cs" />
     <Compile Include="BinaryMath.cs" />
@@ -63,44 +69,50 @@
     <Compile Include="BitStreamEncoder.cs" />
     <Compile Include="CharacterSets.cs" />
     <Compile Include="CheckSum.cs" />
+    <Compile Include="Common.cs" />
     <Compile Include="ConvertMetrics.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Encoders\AusPost.cs" />
     <Compile Include="Encoders\AztecEncoder.cs" />
+    <Compile Include="Encoders\BC412Encoder.cs" />
+    <Compile Include="Encoders\CodeOneEncoder.cs" />
+    <Compile Include="Encoders\Code128Encoder.cs" />
     <Compile Include="Encoders\ChannelCode.cs" />
     <Compile Include="Encoders\Codabar.cs" />
     <Compile Include="Encoders\CodablockF.cs" />
     <Compile Include="Encoders\Code16KEncoder.cs" />
-    <Compile Include="Encoders\Code1Encoder.cs" />
     <Compile Include="Encoders\Code11Encoder.cs" />
-    <Compile Include="Encoders\Code128Encoder.cs" />
     <Compile Include="Encoders\Code49Encoder.cs" />
     <Compile Include="Encoders\Code93Encoder.cs" />
     <Compile Include="Encoders\DatabarExpanded.cs" />
     <Compile Include="Encoders\DatabarLimited.cs" />
+    <Compile Include="Encoders\DataMatrixEncoder.cs" />
     <Compile Include="Encoders\DotCodeEncoder.cs" />
+    <Compile Include="Encoders\DXFilmEdgeEncoder.cs" />
     <Compile Include="Encoders\GridMatrixEncoder.cs" />
     <Compile Include="Encoders\HanxinEncoder.cs" />
-    <Compile Include="Encoders\IntelligentMailEncoder.cs" />
-    <Compile Include="Encoders\Mailmark.cs" />
+    <Compile Include="Encoders\USPSIntelliMailEncoder.cs" />
+    <Compile Include="Encoders\Code2of5Interleaved.cs" />
+    <Compile Include="Encoders\MailmarkEncoder.cs" />
     <Compile Include="Encoders\PharmacodeEncoder.cs" />
     <Compile Include="Encoders\PlesseyEncoder.cs" />
     <Compile Include="Encoders\PDF417Tables.cs" />
     <Compile Include="Encoders\PostalEncodes.cs" />
     <Compile Include="Encoders\QRCodeEncoder.cs" />
-    <Compile Include="Encoders\Telepen.cs" />
+    <Compile Include="Encoders\TelepenEncoder.cs" />
     <Compile Include="CharacterModes.cs" />
-    <Compile Include="Encoders\UltraEncoder.cs" />
+    <Compile Include="Encoders\UltraCodeEncoder.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Encoders\Composite.cs" />
     <Compile Include="Encoders\Code2of5Encoder.cs" />
     <Compile Include="Encoders\Code39Encoder.cs" />
     <Compile Include="Encoders\DatabarEncoder.cs" />
-    <Compile Include="Encoders\DataMatrixEncoder.cs" />
     <Compile Include="Encoders\EANUPCEncoder.cs" />
     <Compile Include="Encoders\MaxiCodeEncoder.cs" />
     <Compile Include="Encoders\PDF417Encoder.cs" />
+    <Compile Include="ISO3166.cs" />
+    <Compile Include="ISO4217.cs" />
     <Compile Include="MessageProcessors.cs" />
     <Compile Include="ReedSolomon.cs" />
     <Compile Include="SymbolBuilder.cs" />

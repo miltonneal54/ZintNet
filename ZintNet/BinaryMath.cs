@@ -1,12 +1,12 @@
 ﻿/* BinaryMath.cs - Handles larger math calculations.
 
 /* 
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    ZintNetLib - a C# implementation of libzint library.
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
   
     libzint - the open source barcode library
-    Copyright (C) 2009-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2009-2025 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -128,17 +128,22 @@ namespace ZintNet
             for (int i = 0; i < 112; i++)
             {
                 if (register[i] == 0)
+                {
                     subtractBuffer[i] = 1;
-
+                }
                 else
+                {
                     subtractBuffer[i] = 0;
+                }
             }
 
             BinaryAdd(accumulator, subtractBuffer);
             subtractBuffer[0] = 1;
 
             for (int i = 1; i < 112; i++)
+            {
                 subtractBuffer[i] = 0;
+            }
 
             BinaryAdd(accumulator, subtractBuffer);
         }
@@ -157,7 +162,9 @@ namespace ZintNet
             for(int i = 0; i < 102; i++)
             {
                 if (temporary[i] == 1)
+                {
                     BinaryAdd(accumulator, register);
+                }
 
                 ShiftUp(register);
             }
@@ -175,7 +182,9 @@ namespace ZintNet
             buffer[103] = 0;
 
             for (int i = 0; i < 102; i++)
+            {
                 buffer[i] = buffer[i + 1];
+            }
         }
 
         /// <summary>
@@ -185,7 +194,9 @@ namespace ZintNet
         public static void ShiftUp(short[] buffer)
         {
             for (int i = 102; i > 0; i--)
+            {
                 buffer[i] = buffer[i - 1];
+            }
 
             buffer[0] = 0;
         }
@@ -211,7 +222,9 @@ namespace ZintNet
                 }
 
                 if ((accumulator[index] == 0) && (register[index] == 1))
+                {
                     latch = true;
+                }
 
                 index--;
             } while ((latch == false) && (index >= 0));
@@ -232,7 +245,9 @@ namespace ZintNet
             for(int i = 0; i < length; i++)
             {
                 if(!Char.IsDigit(data[i]))
+                {
                     throw new ArgumentException("Data is not a numeric string value.");
+                }
             }
 
             Array.Clear(register, 0, 112);
@@ -241,14 +256,18 @@ namespace ZintNet
                 Array.Copy(register, tempBuffer, 112);
 
                 for (int i = 0; i < 9; i++)
+                {
                     BinaryAdd(register, tempBuffer);
+                }
 
                 Array.Clear(tempBuffer, 0, 112);
 
                 for (int i = 0; i < 4; i++)
                 {
                     if ((data[index] - '0' & (0x01 << i)) > 0)
+                    {
                         tempBuffer[i] = 1;
+                    }
                 }
 
                 BinaryAdd(register, tempBuffer);

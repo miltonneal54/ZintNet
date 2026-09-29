@@ -1,7 +1,7 @@
 ﻿/* BCExceptions.cs - Exception handlers for ZintNet */
 
 /*
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -38,9 +38,9 @@ namespace ZintNet
     /// ZintNet.ZintNetDLLException class.
     /// </summary>
     [Serializable]
-    public class ZintNetDLLException : System.Exception
+    public class ZintNetDLLException : Exception
     {
-        private static string baseMessage = "ZintNet DLL error.";
+        private static readonly string baseMessage = "ZintNet DLL error.";
         /// <summary>
         /// Initialses a new instance of ZintNet.ZintNetDLLException class.
         /// </summary>
@@ -79,9 +79,9 @@ namespace ZintNet
     /// ZintNet.InvalidDataException class.
     /// </summary>
 	[Serializable]
-	public class InvalidDataException : System.Exception
+	public class InvalidDataException : Exception
 	{
-	private	static string baseMessage  = "Invalid data found in the barcode message.";
+        private static readonly string baseMessage = "Invalid data found in the barcode message.";
         /// <summary>
         /// Initialses a new instance of ZintNet.InvalidDataException class.
         /// </summary>
@@ -120,9 +120,9 @@ namespace ZintNet
     /// ZintNet.InvalidSymbolSizeException class.
     /// </summary>
     [Serializable]
-    public class InvalidSymbolSizeException : System.Exception
+    public class InvalidSymbolSizeException : Exception
     {
-        private static string baseMessage = "Invalid symbol size.";
+        private static readonly string baseMessage = "Invalid symbol size.";
 
         /// <summary>
         /// Initialses a new instance of ZintNet.InvalidSymbolSizeException class.
@@ -164,13 +164,14 @@ namespace ZintNet
     /// ZintNet.InvalidDataLengthException class.
     /// </summary>
 	[Serializable]
-	public class InvalidDataLengthException : System.Exception
+	public class InvalidDataLengthException : Exception
 	{
+        private static readonly string baseMessage = "Invalid data length in the barcode message.";
         /// <summary>
         /// Initialses a new instance of ZintNet.InvalidDataLengthException class.
         /// </summary>
 	    public InvalidDataLengthException()
-			: base()
+			: base(baseMessage)
 		{}
 
         /// <summary>
@@ -180,7 +181,7 @@ namespace ZintNet
         /// <param name="message">exception message</param>
         /// </summary>
 	    public InvalidDataLengthException( string message ) 
-			: base( message )
+			: base( baseMessage + '\n' + message )
 		{}
 
         /// <summary>
@@ -189,7 +190,7 @@ namespace ZintNet
         /// <param name="message">error message</param>
         /// <param name="innerException">inner exception</param>
 		public InvalidDataLengthException( string message, Exception innerException ) 
-			: base( message, innerException )
+			: base(baseMessage + '\n' + message, innerException)
 		{}
 
         /// <summary>
@@ -206,9 +207,9 @@ namespace ZintNet
     /// ZintNet.InvalidDataFormatException class.
     /// </summary>
 	[Serializable]
-	public class InvalidDataFormatException : System.Exception
+	public class InvalidDataFormatException : Exception
 	{
-	    private	static string baseMessage = "Data format error in the barcode message.";
+        private static readonly string baseMessage = "Data format error in the barcode message.";
 
         /// <summary>
         /// Initialses a new instance of ZintNet.InvalidDataFormatException class.
@@ -250,15 +251,15 @@ namespace ZintNet
     /// ZintNet.ErrorCorrectionLevelException class.
     /// </summary>
     [Serializable]
-    public class ErrorCorrectionLevelException : System.Exception
+    public class ErrorCorrectionLevelException : Exception
     {
-        private static string mbaseMessage = "Error correction level not supported.";
+        private static readonly string baseMessage = "Error correction level not supported.";
 
         /// <summary>
         /// Initialses a new instance of ZintNet.ErrorCorrectionLevelException class.
         /// </summary>
         public ErrorCorrectionLevelException()
-            : base(mbaseMessage)
+            : base(baseMessage)
         { }
 
         /// <summary>
@@ -268,7 +269,7 @@ namespace ZintNet
         /// <param name="message">exception message</param>
         /// </summary>
         public ErrorCorrectionLevelException(string message)
-            : base(mbaseMessage + Environment.NewLine + message)
+            : base(baseMessage + Environment.NewLine + message)
         { }
 
         /// <summary>
@@ -277,7 +278,7 @@ namespace ZintNet
         /// <param name="message">error message</param>
         /// <param name="innerException">inner exception</param>
         public ErrorCorrectionLevelException(string message, Exception innerException)
-            : base(mbaseMessage + Environment.NewLine + message, innerException)
+            : base(baseMessage + Environment.NewLine + message, innerException)
         { }
 
         /// <summary>
@@ -294,9 +295,9 @@ namespace ZintNet
     /// ZintNet.DataEncodingException class.
     /// </summary>
     [Serializable]
-    public class DataEncodingException : System.Exception
+    public class DataEncodingException : Exception
     {
-        private static string baseMessage = "Error encoding barcode data.";
+        private static readonly string baseMessage = "Error encoding barcode data.";
 
         /// <summary>
         /// Initialses a new instance of ZintNet.DataEncodingException class.
@@ -338,9 +339,9 @@ namespace ZintNet
     /// ZintNet.UnknownSymbolException class.
     /// </summary>
     [Serializable]
-    public class UnknownSymbolException : System.Exception
+    public class UnknownSymbolException : Exception
     {
-        private static string baseMessage = "Unsupported or unknown symbol: ";
+        private static readonly string baseMessage = "Unsupported or unknown symbol: ";
 
         /// <summary>
         /// Initialses a new instance of ZintNet.UnknownSymbolException class.

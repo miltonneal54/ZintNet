@@ -1,11 +1,7 @@
 ﻿/*
-    ZintNetLib - a C# port of libzint.
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
-    Acknowledgments to Robin Stuart and other Zint Authors and Contributors.
- 
-    libzint - the open source barcode library
-    Copyright (C) 2008-2020 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
 
+    ZintNetLib - a C# implementation of libzint library.
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
     are met:
@@ -50,88 +46,128 @@ namespace ZintNet
     /// </summary>
     public class ZintNetLib : IDisposable
     {
+
+        #region Public Static Classes.
+
+        /// <summary>
+        /// Gets the symbol ID from the symbol name.
+        /// </summary>
+        /// <param name="symbolName">symbol name</param>
+        /// <returns>ID number</returns>
+        public static Symbology GetSymbolId(string symbolName)
+        {
+            Symbology id = SymbolDictionary.GetSymbolId(symbolName);
+            if (id == Symbology.Invalid)
+            {
+                throw new UnknownSymbolException(symbolName);
+            }
+
+            return id;
+        }
+
+        /// <summary>
+        /// Gets the names of supported symbologies.
+        /// </summary>
+        /// <returns>array containing symbology names.</returns>
+        public static string[] GetSymbolNames()
+        {
+            string[] symbolNames = SymbolDictionary.GetSymbolNames();
+            return symbolNames;
+        }
+
+        #endregion
+
         #region Property Fields
 
-        System.Drawing.Font mFont;	    // Base font to render text.
-        float mBarcodeHeight;			// Barcode height in scale units (not including the text).
-        EncodingMode mEncodingMode;     // Special message formating Standard, GS1 or HIBC.
-        string mSupplementMessage;		// EAN/UPC suppliment data;
-        bool mTextVisible;				// Barcode text visible if true.
-        TextPosition mTextPosition;	    // Placement of the barcode text, above or below barcode;
-        Color mTextColor;				// Color to render the barcode text.
-        Color mBarcodeColor;			// Color to render the barcode.
-        bool mOptionalCheckDigit;		// Determines if the option check digit is generated.
-        bool mShowCheckDigit;			// Determines if the check digit(s) are show in the barcode text.
-        int mNumberOfCheckDigits;   	            // The number of check digits used for the symbology;
-        AusPostEncoding mAusPostEncoding;	        // Customer Information Field encoding for Australia Post barcode.
-        MSICheckDigitType mMSICheckDigitType;	    // Type for the MSI Plessey check digit.
-        I2of5CheckDigitType mI2of5CheckDigitType;   // Type for I20f5 check digit.
-        float mMultiplier;				            // Barcode module width multiplier.
-        float mXDimension;				            // Barcode's element X dimension value in mm.
-        int mRotation;                              // Roation angle.
-        float mTextMargin;				            // Space between the barcode and human readable text in mm;
-        ITF14BearerStyle mITF14BearerStyle;	        // Determines bearer bar style (I2of5 only).
-        TextAlignment mTextAlignment;	            // Determines how the barcode's text is displayed.
-        int mChannelCodeLevel;
-        int mCodablockFRows;
-        int mCodablockFColumns;
-        int mDotCodeColumns;
-        QRCodeEccLevel mQRCodeEccLevel;
-        int mECIMode;
-        int mQRCodeVersion;
-        DataMatrixSize mDataMatrixSize;             // Datamatrix size option.
-        bool mDataMatrixSquare;                     // Datamatrix forces a square symbol.
-        bool mDataMatrixRectExtn;                   // Datamatrix enable extended rectangle mode.
-        int mGridMatrixVersion;
-        int mGridMatrixEccLevel;
-        int mAztecSize;
-        int mAztecEccLevel;
-        int mHanXinVersion;
-        int mHanXinEccLevel;
-        int mUltracodeCompression;      // UltraCode compression;
-        int mUltracodeEccLevel;         // UltraCode error correction level.
-        int mCodeOneSize;
-        int mPDF417Columns;             // PDF417 number of columns, 0 = Auto.
-        int mPDF417ErrorLevel;          // PDF417 error correction, -1 = Auto.
-        int mPDF417RowHeight;           // PDF417 element height ratio, default = x2 elements;
-        int mDatabarExpandedSegments;   // Segments in the Databar Expanded Stacked symbol.
-        string mCompositeMessage;       // Composite symbol message.
-        CompositeMode mCompositeMode;   // Composite symbol mode(CCA, CCB or CCC).
-        MaxicodeMode mMaxicodeMode;     // Maxicode encoding mode.
+        private Font mFont;                                 // Base font to render text.
+        private float mBarcodeHeight;                       // Barcode height in scale units (not including the text).
+        private EncodingFormat mEncodingMode;               // Special message format Standard, GS1 or HIBC.
+        private bool mTextVisible;                          // Barcode text visible if true.
+        private TextPosition mTextPosition;                 // Placement of the barcode text, above or below barcode;
+        private Color mTextColor;                           // Color to render the barcode text.
+        private Color mBarcodeColor;                        // Color to render the barcode.
+        private bool mOptionalCheckDigit;                   // Determines if the option check digit is generated.
+        private bool mShowCheckDigit;                       // Determines if the check digit(s) are show in the barcode text.
+        private bool mSuppressCodeSetC;                     // Use only code sets A or B for Code 128.
+        private Code11CheckDigits mCode11CheckDigits;       // The number of check digits used for the symbology;
+        private MSICheckDigitType mMSICheckDigitType;       // Type for the MSI Plessey check digit.
+        private I2of5CheckDigitType mI2of5CheckDigitType;   // Type for I20f5 check digit.
+        private bool mVINImportPrefix;                      // Determines if the VIN code imports the 'I' prefix.
+        private PNZLength mPNZLength;                       // Length of PNZ code message (7 or 8 characters).
+        private float mMultiplier;                          // Barcode module width multiplier.
+        private float mXDimension;                          // Barcode's element X dimension value in mm.
+        private int mRotation;                              // Roation angle.
+        private float mTextMargin;                          // Space between the barcode and human readable text in mm;
+        private int mRowSeparatorHeight;                    // Multiplier for the row separator height for CodaBlock F, 16K and Code49
+        private ITF14BearerStyle mITF14BearerStyle;         // Determines bearer bar style (I2of5 only).
+        private TextAlignment mTextAlignment;               // Determines how the barcode's text is displayed.
+        private int mChannelCodeLevel;
+        private int mCodablockFRows;
+        private int mCodablockFColumns;
+        private int mDotCodeColumns;
+        private QRCodeEccLevel mQRCodeEccLevel;
+        private int mECIMode;
+        private int mQRCodeVersion;
+        private DataMatrixSize mDataMatrixSize;             // Datamatrix size option.
+        private bool mDataMatrixSquare;                     // Datamatrix forces a square symbol.
+        private bool mDataMatrixRectExtn;                   // Datamatrix enable extended rectangle mode.
+        private GS1MODE mGS1Mode;
+        private SymbolEncodeMode mEncodeMode;
+        private int mGridMatrixVersion;
+        private int mGridMatrixEccLevel;
+        private int mAztecSize;
+        private int mAztecEccLevel;
+        private int mHanXinVersion;
+        private int mHanXinEccLevel;
+        private int mUltracodeCompression;      // UltraCode compression;
+        private int mUltracodeEccLevel;         // UltraCode error correction level.
+        private int mCodeOneSize;
+        private int mPDF417Columns;             // PDF417 number of columns, 0 = Auto.
+        private int mPDF417ErrorLevel;          // PDF417 error correction, -1 = Auto.
+        private int mPDF417RowHeight;           // PDF417 element height ratio, default = x2 elements;
+        private int mDatabarExpandedSegments;   // Segments in the Databar Expanded Stacked symbol.
+        private char[] mBarcodeMessage;         // Barcode message.
+        private char[] mCompositeMessage;       // Composite symbol message.
+        private char[] mSupplementMessage;      // EAN/UPC suppliment data;
+        private CompositeMode mCompositeMode;   // Composite symbol(None, CCA, CCB or CCC).
+        private MaxicodeMode mMaxicodeMode;     // Maxicode encoding mode.
+        private int mCode49MinimumRows;
+        private int mCode16KMinimumRows;
+        private int mUserMask;
 
         #endregion
 
         #region General Fields
         // Barcode Formating Fields
-        Collection<SymbolData> encodedData; // Holds the encoded data for each character in the barcode data.
-        Symbology symbolId;			    // The current barcode symbology.
-        string barcodeMessage;			// Barcode message.
-        bool isValidFlag;			    // Flag to indicate if encoding was successful and a valid barcode is generated.
-        float bearerWidth;				// Width of the ITF-14 bearer(mm).
-        bool isEanUpc;                  // True if the symbol is an EAN/UPC or ISBN sysmbol.
-        int linearShiftCount;           // The number of element the Ean/Upc with composite is shift left.
-        float leftCharacterWidth;       // The width of the ean/upc left hand character if has one.
-        float supplimentWidth;			// Width of the add on barcode.
-        float symbolHeight;				// Total barcode height including text (if visible) in scale units.
-        float symbolWidth;				// Total barcode width including any Supplementry in scale units.
-        Font textFont;                  // Font used to render the human readable text.
-        SizeF currentTextSize;          // Size of the current barcode text(human readable text).
-        bool isCompositeSymbol;         // True if the symbol is a composite symbol.
-        float firstBarXOffset;          // X Offset to the render the first bar/element of the symbol.
-        int barsPerCharacter;           // The number of bars for one character for the current symbol;
-        bool isDot;
+        private Collection<SymbolData> encodedData; // Holds the encoded data for each character in the barcode data.
+        private Symbology symbolId;              // The current barcode symbology.
+
+        private bool isValidFlag;                // Flag to indicate if encoding was successful and a valid barcode is generated.
+        private float bearerWidth;               // Width of the ITF-14 bearer(mm).
+        private bool isEanUpc;                  // True if the symbol is an EAN/UPC or ISBN sysmbol.
+        private int linearShiftCount;           // The number of element the Ean/Upc with composite is shift left.
+        private float leftCharacterWidth;       // The width of the ean/upc left hand character if has one.
+        private float supplimentWidth;           // Width of the add on barcode.
+        private float symbolHeight;              // Total barcode height including text (if visible) in scale units.
+        private float symbolWidth;               // Total barcode width including any Supplementry in scale units.
+        private Font textFont;                  // Font used to render the human readable text.
+        private SizeF currentTextSize;          // Size of the current barcode text(human readable text).
+        private bool isCompositeSymbol;         // True if the symbol is a composite symbol.
+        private float firstBarXOffset;          // X Offset to the render the first bar/element of the symbol.
+        private int barsPerCharacter;           // The number of bars for one character for the current symbol;
+        private bool isDot;
 
         // Barcode text elements.
-        string barcodeText;			    // The barcode's text.
-        string checkDigitText;			// The check digit(s).
-        string humanReadableText;       // The text to display.
+        private string barcodeText;              // The barcode's text.
+        private string checkDigitText;           // The check digit(s).
+        private string humanReadableText;       // The text to display.
 
         // EAN/UPC text elements.
-        string leftHandCharacter;
-        string leftHandText;
-        string rightHandText;
-        string rightHandCharacter;
-        string supplementText;
+        private string leftHandCharacter;
+        private string leftHandText;
+        private string rightHandText;
+        private string rightHandCharacter;
+        private string supplementText;
 
         /* private static string[] SymbolNames = {
                  "Code One", "Code 39", "Code 39 Extended", "LOGMARS", "Code 32 (Italian Pharmacode)", "Pharmazentral Nummer", "Pharmacode", "Pharmacode 2-Track",
@@ -147,33 +183,17 @@ namespace ZintNet
 
         #endregion
 
-        #region Barcode Properties
+        #region Public Properties
 
-        /// <summary>
-        /// Gets or sets the font of the human readable text to be displayed with the sysmbol.
-        /// </summary>
-        public System.Drawing.Font Font
-        {
-            get { return mFont; }
-            set { mFont = value; }
-        }
+
 
         /// <summary>
         /// Gets or Sets the barcode text to be encoded.
         /// </summary>
         public string BarcodeMessage
         {
-            get { return barcodeMessage; }
-            set { barcodeMessage = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the EAN or UPC supplement text.
-        /// </summary>
-        public string SupplementMessage
-        {
-            get { return mSupplementMessage; }
-            set { mSupplementMessage = value; }
+            get { return new string(mBarcodeMessage); }
+            set { mBarcodeMessage = value.ToCharArray(); }
         }
 
         /// <summary>
@@ -181,16 +201,17 @@ namespace ZintNet
         /// </summary>
         public string CompositeMessage
         {
-            get { return mCompositeMessage; }
-            set
-            {
-                mCompositeMessage = value;
-                if (String.IsNullOrEmpty(mCompositeMessage))
-                    isCompositeSymbol = false;
+            get { return new string(mCompositeMessage); }
+            set { mCompositeMessage = string.IsNullOrEmpty(value) ? null : value.ToCharArray(); }
+        }
 
-                else
-                    isCompositeSymbol = true;
-            }
+        /// <summary>
+        /// Gets or sets the EAN or UPC supplement text.
+        /// </summary>
+        public string SupplementMessage
+        {
+            get { return new string(mSupplementMessage); }
+            set { mSupplementMessage = string.IsNullOrEmpty(value) ? null : value.ToCharArray(); }
         }
 
         /// <summary>
@@ -202,14 +223,6 @@ namespace ZintNet
             set { mCompositeMode = value; }
         }
 
-        /// <summary>
-        /// Gets or sets the encoding mode as Standard, GS1 or HIBC.
-        /// </summary>
-        public EncodingMode EncodingMode
-        {
-            get { return mEncodingMode; }
-            set { mEncodingMode = value; }
-        }
 
         /// <summary>
         /// Gets or sets to barcodes element width in millimeters.(X dimension)
@@ -230,10 +243,13 @@ namespace ZintNet
             {
                 value = (float)Math.Round(value, 2);
                 if (value < 0.8f)
+                {
                     value = 0.8f;
-
+                }
                 else if (value > 15.0f)
+                {
                     value = 15;
+                }
 
                 mMultiplier = value;
             }
@@ -249,6 +265,15 @@ namespace ZintNet
         }
 
         /// <summary>
+        /// Gets or sets the font of the human readable text to be displayed with the sysmbol.
+        /// </summary>
+        public Font Font
+        {
+            get { return mFont; }
+            set { mFont = value; }
+        }
+
+        /// <summary>
         /// Gets or sets the margin between the barcode and the text.
         /// </summary>
         public float TextMargin
@@ -257,10 +282,14 @@ namespace ZintNet
             set
             {
                 if (value < 0)
+                {
                     value = 0;
+                }
 
                 if (value > 5.0f)
+                {
                     value = 5.0f;
+                }
 
                 mTextMargin = (float)Math.Round(value, 2);
             }
@@ -294,15 +323,6 @@ namespace ZintNet
         }
 
         /// <summary>
-        /// Determines if the check digit is included in the human readable text.
-        /// </summary>
-        public bool ShowCheckDigit
-        {
-            get { return mShowCheckDigit; }
-            set { mShowCheckDigit = value; }
-        }
-
-        /// <summary>
         /// Gets or sets the rotation of the barcode in degrees.
         /// </summary>
         public int Rotation
@@ -312,17 +332,24 @@ namespace ZintNet
             {
                 // Only accept rotation in multiples of 90 degrees.
                 if (value < 90 || value > 359)
+                {
                     mRotation = 0;
+                }
 
                 if (value >= 90 && value < 180)
+                {
                     mRotation = 90;
+                }
 
                 if (value >= 180 && value < 270)
+                {
                     mRotation = 180;
+                }
 
                 if (value >= 270 && value < 360)
+                {
                     mRotation = 270;
-
+                }
             }
         }
 
@@ -345,7 +372,7 @@ namespace ZintNet
         }
 
         /// <summary>
-        /// Gets or sets the optional check digit status.
+        /// Determines if the symbol should generate the optional check digit.
         /// </summary>
         public bool OptionalCheckDigit
         {
@@ -354,48 +381,21 @@ namespace ZintNet
         }
 
         /// <summary>
-        /// Gets or sets the check digit type for Interleaved 2of5.
+        /// Determines if the check digit is included in the human readable text.
         /// </summary>
-        public I2of5CheckDigitType I2of5CheckDigitType
+        public bool ShowCheckDigit
         {
-            get { return mI2of5CheckDigitType; }
-            set { mI2of5CheckDigitType = value; }
+            get { return mShowCheckDigit; }
+            set { mShowCheckDigit = value; }
         }
 
         /// <summary>
-        /// Gets or sets the check digit type for MSI symbol.
+        /// Gets or sets the encoding mode as Standard, GS1 or HIBC.
         /// </summary>
-        public MSICheckDigitType MSICheckDigitType
+        public EncodingFormat EncodingMode
         {
-            get { return mMSICheckDigitType; }
-            set { mMSICheckDigitType = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the number of Code11 check digits.
-        /// </summary>
-        public int Code11CheckDigits
-        {
-            get { return mNumberOfCheckDigits; }
-            set
-            {
-                if (value < 1)
-                    value = 1;
-
-                else if (value > 2)
-                    value = 2;
-
-                mNumberOfCheckDigits = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the style of the ITF14 bearer bars.
-        /// </summary>
-        public ITF14BearerStyle ITF14BearerStyle
-        {
-            get { return mITF14BearerStyle; }
-            set { mITF14BearerStyle = value; }
+            get { return mEncodingMode; }
+            set { mEncodingMode = value; }
         }
 
         /// <summary>
@@ -408,12 +408,337 @@ namespace ZintNet
         }
 
         /// <summary>
-        /// Gets or sets Australia Post encoding mode.
+        /// Gets or sets a user defined mask.
         /// </summary>
-        public AusPostEncoding AusPostEncoding
+        public int UserMask
         {
-            get { return mAusPostEncoding; }
-            set { mAusPostEncoding = value; }
+            get { return mUserMask; }
+            set
+            {
+                int maxMaskValue = 4;
+                if(symbolId == Symbology.QRCode || symbolId == Symbology.UPNQR)
+                {
+                    maxMaskValue = 8;
+                }
+
+                if (value < 0)
+                {
+                    value = 0;
+                }
+
+                if (value > maxMaskValue)
+                {
+                    value = maxMaskValue;
+                }
+
+                mUserMask = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the height of Codablock, 16K and Code49 separator.
+        /// </summary>
+        public int RowSeparatorHeight
+        {
+            get { return mRowSeparatorHeight; }
+            set
+            {
+                // 0 = automatic.
+                if (value < 1)
+                {
+                    value = 1;
+                }
+
+                // 0 = automatic.
+                if (value > 4)
+                {
+                    value = 4;
+                }
+
+                mRowSeparatorHeight = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the Aztec Code size.
+        /// </summary>
+        /// <remarks> 0 = Automatic Mode</remarks>
+        public int AztecSize
+        {
+            get { return mAztecSize; }
+            set
+            {
+                if (value < 0)
+                {
+                    value = 0;
+                }
+
+                if (value > 36)
+                {
+                    value = 36;
+                }
+
+                mAztecSize = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets Aztec code error correction level.
+        /// </summary>
+        public int AztecErrorLevel
+        {
+            get { return mAztecEccLevel; }
+            set
+            {
+                // -1 = automatic.
+                if (value < -1 || value > 4)
+                {
+                    value = -1;
+                }
+
+                mAztecEccLevel = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or set the number of Channel Code channels.
+        /// </summary>
+        public int ChannelCodeLevel
+        {
+            get { return mChannelCodeLevel; }
+            set
+            {
+                // 0 = automatic.
+                if (value < 3 || value > 8)
+                {
+                    value = 0;
+                }
+
+                mChannelCodeLevel = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the number of codablock columns.
+        /// Valid range 9-67 (0 = Automatic).
+        /// </summary>
+        public int CodablockFColumns
+        {
+            get { return mCodablockFColumns; }
+            set
+            {
+                if (value < 9)
+                {
+                    value = 0;
+                }
+
+                if (value > 67)
+                {
+                    value = 67;
+                }
+
+                mCodablockFColumns = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the number of Codablock rows.
+        /// Valid range 2-44 (0 = Automatic).
+        /// </summary>
+        public int CodablockFRows
+        {
+            get { return mCodablockFRows; }
+            set
+            {
+                if (value < 2)
+                {
+                    value = 0;
+                }
+
+                if (value > 44)
+                {
+                    value = 44;
+                }
+
+                mCodablockFRows = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the number of Code 11 check digits.
+        /// </summary>
+        public Code11CheckDigits Code11CheckDigits
+        {
+            get { return mCode11CheckDigits; }
+            set { mCode11CheckDigits = value; }
+        }
+
+        /// <summary>
+        /// Determines if Code C is suppressed when encoding Code 128 symbols.
+        /// </summary>
+        public bool Code128SuppressCodeC
+        {
+            get { return mSuppressCodeSetC; }
+            set { mSuppressCodeSetC = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the Code 16K minimum number of rows.
+        /// </summary>
+        public int Code16KMinimumRows
+        {
+            get { return mCode49MinimumRows; }
+            set
+            {
+                if (value < 3)
+                {
+                    value = 0;
+                }
+
+                if (value > 16)
+                {
+                    value = 16;
+                }
+
+                mCode16KMinimumRows = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the check digit type for Interleaved 2of5.
+        /// </summary>
+        public I2of5CheckDigitType I2of5CheckDigitType
+        {
+            get { return mI2of5CheckDigitType; }
+            set { mI2of5CheckDigitType = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the Code 49 minimum number of rows.
+        /// </summary>
+        public int Code49MinimumRows
+        {
+            get { return mCode49MinimumRows; }
+            set
+            {
+                if (value < 3)
+                {
+                    value = 0;
+                }
+
+                if (value > 8)
+                {
+                    value = 8;
+                }
+
+                mCode49MinimumRows = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the Code One symbol size.
+        /// </summary>
+        public int CodeOneSize
+        {
+            get { return mCodeOneSize; }
+            set
+            {
+                if (value < 0)
+                {
+                    value = 0;
+                }
+
+                if (value > 10)
+                {
+                    value = 10;
+                }
+
+                mCodeOneSize = value;
+            }
+        }
+
+        /// <summary>
+        /// Get or sets the Datamatrix symbol size.
+        /// </summary>
+        /// <remarks>0 = Automatic mode</remarks>
+        public DataMatrixSize DataMatrixSize
+        {
+            get { return mDataMatrixSize; }
+            set { mDataMatrixSize = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets permission to use square only Datamatrix symbols in automatic size mode.
+        /// </summary>
+        public bool DataMatrixSquare
+        {
+            get { return mDataMatrixSquare; }
+            set { mDataMatrixSquare = value; }
+        }
+
+        /// <summary>
+        /// Get or sets permission to use Datamatrix rectangular extensions in automatic size selection.
+        /// </summary>
+        public bool DataMatrixRectExtn
+        {
+            get { return mDataMatrixRectExtn; }
+            set { mDataMatrixRectExtn = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the method used to encode Datamatrix symbol data.
+        /// </summary>
+        public SymbolEncodeMode EncodeMode
+        {
+            get { return mEncodeMode; }
+            set { mEncodeMode = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the GS1 separation character when encoding Datamatrix symbols.
+        /// </summary>
+        public GS1MODE GS1Mode
+        {
+            get { return mGS1Mode; }
+            set { mGS1Mode = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the check digit type for MSI symbol.
+        /// </summary>
+        public MSICheckDigitType MSICheckDigitType
+        {
+            get { return mMSICheckDigitType; }
+            set { mMSICheckDigitType = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the style of the ITF14 bearer bars.
+        /// </summary>
+        public ITF14BearerStyle ITF14BearerStyle
+        {
+            get { return mITF14BearerStyle; }
+            set { mITF14BearerStyle = value; }
+        }
+
+
+
+        /// <summary>
+        /// Determine if the VIN prefix is used or not.
+        /// </summary>
+        public bool VINImportPrefix
+        {
+            get { return mVINImportPrefix; }
+            set { mVINImportPrefix = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the lentgh of the PNZ barcode meesage.
+        /// </summary>
+        public PNZLength PNZMessageLength
+        {
+            get { return mPNZLength; }
+            set { mPNZLength = value; }
         }
 
         /// <summary>
@@ -438,28 +763,40 @@ namespace ZintNet
                 if (symbolId == Symbology.MicroQRCode)  // Valid = 1 to 4
                 {
                     if (value < 0)
+                    {
                         value = 0;
+                    }
 
                     if (value > 4)
+                    {
                         value = 4;
+                    }
                 }
 
-                else if (symbolId == ZintNet.Symbology.RectangularMicroQRCode)   // Valid = 1 to 38
+                else if (symbolId == Symbology.RectangularMicroQRCode)   // Valid = 1 to 38
                 {
                     if (value < 0)
+                    {
                         value = 0;
+                    }
 
                     if (value > 38)
+                    {
                         value = 38;
+                    }
                 }
 
                 else   // Valid = 1 to 40;
                 {
                     if (value < 0)
+                    {
                         value = 0;
+                    }
 
                     if (value > 40)
+                    {
                         value = 40;
+                    }
                 }
 
                 mQRCodeVersion = value;
@@ -476,68 +813,6 @@ namespace ZintNet
         }
 
         /// <summary>
-        /// Get or sets the Datamatrix symbol size.
-        /// </summary>
-        /// <remarks>0 = Automatic mode</remarks>
-        public DataMatrixSize DataMatrixSize
-        {
-            get { return mDataMatrixSize; }
-            set { mDataMatrixSize = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets permission to use square only Datamatrix symbols.
-        /// </summary>
-        public bool DataMatrixSquare
-        {
-            get { return mDataMatrixSquare; }
-            set { mDataMatrixSquare = value; }
-        }
-
-        /// <summary>
-        /// Get or sets permission to use Datamatrix rectangular extensions.
-        /// </summary>
-        public bool DataMatrixRectExtn
-        {
-            get { return mDataMatrixRectExtn; }
-            set { mDataMatrixRectExtn = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the Aztec Code size.
-        /// </summary>
-        /// <remarks> 0 = Automatic Mode</remarks>
-        public int AztecSize
-        {
-            get { return mAztecSize; }
-            set
-            {
-                if (value < 0)
-                    value = 0;
-
-                if (value > 36)
-                    value = 36;
-
-                mAztecSize = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets Aztec code error correction level.
-        /// </summary>
-        public int AztecErrorLevel
-        {
-            get { return mAztecEccLevel; }
-            set
-            {
-                if (value < -1 || value > 4)
-                    value = -1;
-
-                mAztecEccLevel = value;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the Han Xin Code version.
         /// </summary>
         /// <remarks> 0 = Automatic Mode</remarks>
@@ -547,7 +822,9 @@ namespace ZintNet
             set
             {
                 if (value < 0 || value > 84)
+                {
                     value = 0;
+                }
 
                 mHanXinVersion = value;
             }
@@ -561,8 +838,10 @@ namespace ZintNet
             get { return mHanXinEccLevel; }
             set
             {
-                if (value < -1 || value > 4)
-                    value = -1;
+                if (value < 0 || value > 4)
+                {
+                    value = 0;
+                }
 
                 mHanXinEccLevel = value;
             }
@@ -578,7 +857,9 @@ namespace ZintNet
             set
             {
                 if (value != 0 || value != 128)
+                {
                     value = 0;
+                }
 
                 mUltracodeCompression = value;
             }
@@ -593,7 +874,9 @@ namespace ZintNet
             set
             {
                 if (value < -1 || value > 6)
+                {
                     value = -1;
+                }
 
                 mUltracodeEccLevel = value;
             }
@@ -608,10 +891,14 @@ namespace ZintNet
             set
             {
                 if (value < 0)
+                {
                     value = 0;
+                }
 
                 if (value > 20)
+                {
                     value = 20;
+                }
 
                 mPDF417Columns = value;
             }
@@ -626,10 +913,14 @@ namespace ZintNet
             set
             {
                 if (value < -1)
+                {
                     value = -1;
+                }
 
                 if (value > 8)
+                {
                     value = 8;
+                }
 
                 mPDF417ErrorLevel = value;
             }
@@ -645,10 +936,14 @@ namespace ZintNet
             set
             {
                 if (value < 1)
+                {
                     value = 1;
+                }
 
                 if (value > 5)
+                {
                     value = 5;
+                }
 
                 mPDF417RowHeight = value;
             }
@@ -663,61 +958,11 @@ namespace ZintNet
             set
             {
                 if (value < 2 || value > 22 || value % 2 != 0)
+                {
                     value = 0;
+                }
 
                 mDatabarExpandedSegments = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or set the number of Channel Code channels.
-        /// </summary>
-        public int ChannelCodeLevel
-        {
-            get { return mChannelCodeLevel; }
-            set
-            {
-                // 0 = automatic.
-                if ((value > 0 && value < 3) || value > 8)
-                    value = 0;
-
-                mChannelCodeLevel = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the number of Codablock rows.
-        /// </summary>
-        public int CodablockFRows
-        {
-            get { return mCodablockFRows; }
-            set
-            {
-                if (value < 0)
-                    value = 0;
-
-                if (value > 44)
-                    value = 44;
-
-                mCodablockFRows = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the number of codablock columns.
-        /// </summary>
-        public int CodablockFColumns
-        {
-            get { return mCodablockFColumns; }
-            set
-            {
-                if (value < 6)
-                    value = 0;
-
-                if (value > 66)
-                    value = 66;
-
-                mCodablockFColumns = value;
             }
         }
 
@@ -730,32 +975,19 @@ namespace ZintNet
             set
             {
                 if (value < 0)
+                {
                     value = 0;
+                }
 
                 if (value > 50)
+                {
                     value = 50;
+                }
 
                 mDotCodeColumns = value;
             }
         }
 
-        /// <summary>
-        /// Gets or sets the Code One size.
-        /// </summary>
-        public int CodeOneSize
-        {
-            get { return mCodeOneSize; }
-            set
-            {
-                if (value < 0)
-                    value = 0;
-
-                if (value > 10)
-                    value = 10;
-
-                mCodeOneSize = value;
-            }
-        }
 
         /// <summary>
         /// Gets or sets the Grid Matrix version.
@@ -766,10 +998,14 @@ namespace ZintNet
             set
             {
                 if (value < 0)
+                {
                     value = 0;
+                }
 
                 if (value > 13)
+                {
                     value = 13;
+                }
 
                 mGridMatrixVersion = value;
             }
@@ -783,12 +1019,16 @@ namespace ZintNet
             get { return mGridMatrixEccLevel; }
             set
             {
-                if (value < -1 || value < 5)
-                    value = -1;
+                if (value < 0 || value > 5)
+                {
+                    value = 0;
+                }
 
                 mGridMatrixEccLevel = value;
             }
         }
+
+
 
         #endregion
 
@@ -830,7 +1070,7 @@ namespace ZintNet
         }
 
         // Flag: Has Dispose already been called? 
-        bool disposed = false;
+        private bool disposed = false;
 
         /// <summary>
         /// Public implementation of Dispose method for the ZintNetLib object.
@@ -848,16 +1088,22 @@ namespace ZintNet
         protected virtual void Dispose(bool disposing)
         {
             if (disposed)
+            {
                 return;
+            }
 
             if (disposing)
             {
                 // Free any other managed objects here. 
                 if (mFont != null)
+                {
                     mFont.Dispose();
+                }
 
                 if (textFont != null)
+                {
                     textFont.Dispose();
+                }
             }
 
             // Free any unmanaged objects here. 
@@ -868,7 +1114,7 @@ namespace ZintNet
         /// Gets encoded data as a string.
         /// </summary>
         /// <returns></returns>
-        public override System.String ToString()
+        public override string ToString()
         {
             StringBuilder binaryString = new StringBuilder();
             IEnumerator<SymbolData> enumerator = encodedData.GetEnumerator();
@@ -879,10 +1125,14 @@ namespace ZintNet
                 foreach (byte byteValue in rowData)
                 {
                     if (symbolId == Symbology.Ultracode)
+                    {
                         binaryString.Append((char)byteValue);
+                    }
 
                     else if (byteValue == 0 || byteValue == 1)
+                    {
                         binaryString.Append(byteValue);
+                    }
                 }
 
                 binaryString.Append(Environment.NewLine);
@@ -910,12 +1160,14 @@ namespace ZintNet
         {
             try
             {
-                if (String.IsNullOrEmpty(barcodeMessage))
-                    throw new System.ArgumentException("Parameter: barcodeMessage can not be null or empty.");
+                if (string.IsNullOrEmpty(barcodeMessage))
+                {
+                    throw new ArgumentException("Parameter: 'barcodeMessage' Can not be a null or empty.");
+                }
 
                 this.symbolId = symbolId;
-                this.barcodeMessage = barcodeMessage;
-                isDot = (symbolId == Symbology.DotCode) ? true : false;
+                mBarcodeMessage = barcodeMessage.ToCharArray();
+                isDot = (symbolId == Symbology.DotCode);
                 isEanUpc = IsEanUpc();
                 EncodeData();
             }
@@ -928,30 +1180,6 @@ namespace ZintNet
         }
 
         /// <summary>
-        /// Gets the symbol ID from the symbol name.
-        /// </summary>
-        /// <param name="symbolName">symbol name</param>
-        /// <returns>ID number</returns>
-        public static Symbology GetSymbolId(string symbolName)
-        {
-            Symbology id = SymbolDictionary.GetSymbolId(symbolName);
-            if (id == Symbology.Invalid)
-                throw new UnknownSymbolException(symbolName);
-
-            return id;
-        }
-
-        /// <summary>
-        /// Gets the names of supported symbologies.
-        /// </summary>
-        /// <returns>array containing symbology names.</returns>
-        public static string[] GetSymbolNames()
-        {
-            string[] symbolNames = SymbolDictionary.GetSymbolNames();
-            return symbolNames;
-        }
-
-        /// <summary>
         /// Renders the barcode to a user supplied graphics surface.
         /// </summary>
         /// <param name="graphics">graphics to render the barcode</param>
@@ -961,12 +1189,11 @@ namespace ZintNet
             float totalSymbolHeight = 0.0f;
             float elementWidth = mXDimension * mMultiplier;  // Width of a single bar/element.
             float elementHeight = 0;    // Height of bar/element in a data row.
-            float barHeight = 0;        // Height of element currently being rendered.
             int numberOfRows = 0;       // Number of rows in the sysmbol data.
             int rowWidth;               // Number of bars/elements for in each row of symbol data.
-            float barStartY = 0;        // Start Y point for the first row of data elements.
             float rowStart;             // Start Y point for each row of data elements.
             float nextBar;              // Start X point for each element in a data row.
+            float bearerStartY = 0.0f;  // Start Y of the bearer bars.
             SymbolData symbolData;
             byte[] rowData;
 
@@ -986,67 +1213,23 @@ namespace ZintNet
 
                 // Apply smoothing.
                 if (symbolId == Symbology.MaxiCode || symbolId == Symbology.DotCode)
+                {
                     graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                }
 
                 // Draw maxicode.
                 if (symbolId == Symbology.MaxiCode)
                 {
-                    using (Pen pen = new Pen(mBarcodeColor, 0.67f * mMultiplier))
-                    using (SolidBrush brush = new SolidBrush(mBarcodeColor))
-                    {
-                        // Central bullseye patterns.
-                        float centerX = 13.64f * mMultiplier;
-                        float centerY = 13.43f * mMultiplier;
-                        float innerRadius = 0.85f * mMultiplier;
-                        float centerRadius = 2.20f * mMultiplier;
-                        float outerRadius = 3.54f * mMultiplier;
-                        graphics.DrawEllipse(pen, new RectangleF(centerX - innerRadius, centerY - innerRadius, innerRadius * 2, innerRadius * 2));
-                        graphics.DrawEllipse(pen, new RectangleF(centerX - centerRadius, centerY - centerRadius, centerRadius * 2, centerRadius * 2));
-                        graphics.DrawEllipse(pen, new RectangleF(centerX - outerRadius, centerY - outerRadius, outerRadius * 2, outerRadius * 2));
-
-                        // Hexagons.
-                        int row = 0;
-                        IEnumerator<SymbolData> enumerator = encodedData.GetEnumerator();
-                        while (enumerator.MoveNext())
-                        {
-                            symbolData = enumerator.Current;
-                            rowData = symbolData.GetRowData();
-                            rowWidth = symbolData.RowCount;
-                            for (int column = 0; column < rowWidth; column++)
-                            {
-                                if (rowData[column] == 1)
-                                {
-                                    float rowOffset = (((row & 1) == 1) ? 1.32f : 0.88f);
-                                    RectangleF hexRect = new RectangleF(
-                                        ((column * 0.88f) + rowOffset) * mMultiplier,
-                                        ((row * 0.76f) + 0.76f) * mMultiplier,
-                                        0.76f * mMultiplier,
-                                        0.88f * mMultiplier);
-
-                                    // PointF array to create a hexagon.
-                                    PointF[] hexagonPoints = new PointF[] {
-						                new PointF(hexRect.X + hexRect.Width * 0.5f, hexRect.Y),
-						                new PointF(hexRect.X + hexRect.Width, hexRect.Y + hexRect.Height * 0.25f),
-						                new PointF(hexRect.X + hexRect.Width, hexRect.Y + hexRect.Height * 0.75f),
-						                new PointF(hexRect.X + hexRect.Width * 0.5f, hexRect.Y + hexRect.Height),
-						                new PointF(hexRect.X , hexRect.Y + hexRect.Height * 0.75f),
-						                new PointF(hexRect.X, hexRect.Y + hexRect.Height * 0.25f) };
-                                    graphics.FillPolygon(brush, hexagonPoints);
-                                }
-                            }
-
-                            row++;
-                        }
-                    }
-
-                    totalSymbolHeight = symbolHeight;
+                    DrawMaxiCode(graphics, ref totalSymbolHeight);
                 }
 
                 else
                 {
-                    barStartY = 0.0f;
-                    if (mTextVisible && mTextPosition == TextPosition.AboveBarcode && !isEanUpc && symbolId != Symbology.ITF14)
-                        barStartY = (float)Math.Ceiling(currentTextSize.Height + mTextMargin);
+                    float barStartY = 0.0f;
+                    if (mTextVisible && mTextPosition == TextPosition.AboveBarcode && !isEanUpc/* && symbolId != Symbology.ITF14*/)
+                    {
+                        barStartY = bearerStartY = (float)Math.Ceiling(currentTextSize.Height + mTextMargin);
+                    }
 
                     using (SolidBrush barBrush = new SolidBrush(mBarcodeColor))
                     {
@@ -1056,12 +1239,16 @@ namespace ZintNet
                         {
                             symbolData = enumerator.Current;
                             if (symbolData.RowHeight != 0.0f)
+                            {
                                 elementHeight = symbolData.RowHeight * elementWidth;
+                            }
 
                             else
+                            {
                                 elementHeight = mBarcodeHeight;
+                            }
 
-                            barHeight = elementHeight;
+                            float barHeight = elementHeight;
                             rowStart = barStartY;
                             nextBar = firstBarXOffset;
                             rowData = symbolData.GetRowData();
@@ -1089,7 +1276,7 @@ namespace ZintNet
                                                 barHeight = elementHeight + (currentTextSize.Height / 2);
                                                 break;
 
-                                            case (byte)'S':		// Shortened bars for supplement.
+                                            case (byte)'S':		// Short bars for supplement.
                                                 rowStart = barStartY + currentTextSize.Height;
                                                 barHeight = elementHeight - (currentTextSize.Height / 2);
                                                 break;
@@ -1144,10 +1331,14 @@ namespace ZintNet
                                 if (barBit == 1)
                                 {
                                     if (isDot)
+                                    {
                                         graphics.FillEllipse(barBrush, nextBar, rowStart, elementWidth, barHeight);
+                                    }
 
                                     else
+                                    {
                                         graphics.FillRectangle(barBrush, nextBar, rowStart, elementWidth, barHeight);
+                                    }
                                 }
 
                                 nextBar += elementWidth;
@@ -1159,25 +1350,38 @@ namespace ZintNet
                     }
                 }
 
+                // Draw the DPD Code top bearer.
+                if (symbolId == Symbology.DPDCode)
+                {
+                    using (Pen pen = new Pen(mBarcodeColor, elementWidth * 4))
+                    {
+                        // Top bearer.
+                        float startY = bearerStartY;
+                        graphics.DrawLine(pen, 0, startY + (elementWidth / 2), symbolWidth + (elementWidth * 2), startY + (elementWidth / 2));
+                    }
+                }
+
                 // Draw the CodablockF bearer and binding bars.
                 if (symbolId == Symbology.CodablockF)
                 {
                     using (Pen pen = new Pen(mBarcodeColor, elementWidth))
                     {
                         // Top bearer.
-                        float startY = 0.0f;
+                        float startY = bearerStartY;
                         graphics.DrawLine(pen, 0, startY + (elementWidth / 2), symbolWidth, startY + (elementWidth / 2));
                         if (numberOfRows > 1)
                         {
                             // Centre bindings.
+                            pen.Width *= mRowSeparatorHeight;
                             for (int r = 0; r < numberOfRows - 1; r++)
                             {
                                 startY += elementHeight;
-                                graphics.DrawLine(pen, barsPerCharacter * elementWidth, startY, symbolWidth - ((barsPerCharacter + 3) * elementWidth), startY);
+                                graphics.DrawLine(pen, barsPerCharacter * elementWidth, startY, symbolWidth - ((barsPerCharacter + 2) * elementWidth), startY);
                             }
                         }
 
                         // Bottom bearer.
+                        pen.Width = elementWidth;
                         startY += elementHeight;
                         graphics.DrawLine(pen, 0, startY + (elementWidth / 2), symbolWidth, startY + (elementWidth / 2));
                     }
@@ -1191,11 +1395,12 @@ namespace ZintNet
                     using (Pen pen = new Pen(mBarcodeColor, elementWidth))
                     {
                         // Top bearer.
-                        float startY = 0.0f;
+                        float startY = bearerStartY;
                         float startX = 0.0f;
                         graphics.DrawLine(pen, startX, startY + (elementWidth / 2), symbolWidth, startY + (elementWidth / 2));
                         if (numberOfRows > 1)
                         {
+                            pen.Width *= mRowSeparatorHeight;
                             // Centre bindings.
                             for (int r = 0; r < numberOfRows - 1; r++)
                             {
@@ -1205,6 +1410,7 @@ namespace ZintNet
                         }
 
                         // Bottom bearer.
+                        pen.Width = elementWidth;
                         startY += elementHeight;
                         graphics.DrawLine(pen, startX, startY + (elementWidth / 2), symbolWidth, startY + (elementWidth / 2));
                     }
@@ -1219,22 +1425,23 @@ namespace ZintNet
                     {
                         using (Pen pen = new Pen(mBarcodeColor, bearerWidth))
                         {
+                            float startY = bearerStartY;
                             // Rectangle.
                             if (mITF14BearerStyle == ITF14BearerStyle.Rectangle)
                             {
                                 PointF[] bearerRectangle = new PointF[] {
-				                new PointF(bearerWidth / 2, bearerWidth / 2),
-				                new PointF(symbolWidth - (bearerWidth / 2), bearerWidth / 2),
-				                new PointF(symbolWidth - (bearerWidth / 2), elementHeight + (bearerWidth / 2)),
-				                new PointF(bearerWidth / 2, elementHeight + (bearerWidth / 2)),
-				                new PointF(bearerWidth / 2, 0) };
+                                new PointF(-(bearerWidth / 2), startY),
+                                new PointF(symbolWidth, startY),
+                                new PointF(symbolWidth, elementHeight + startY),
+                                new PointF(0, elementHeight + startY),
+                                new PointF(0, bearerStartY) };
                                 graphics.DrawLines(pen, bearerRectangle);
                             }
 
                             else  // Horizonal.
                             {
-                                graphics.DrawLine(pen, 0, bearerWidth / 2, symbolWidth, bearerWidth / 2);
-                                graphics.DrawLine(pen, 0, elementHeight + (bearerWidth / 2), symbolWidth, elementHeight + (bearerWidth / 2));
+                                graphics.DrawLine(pen, 0, startY, symbolWidth, startY);
+                                graphics.DrawLine(pen, 0, elementHeight + startY, symbolWidth, elementHeight + startY);
                             }
                         }
 
@@ -1244,10 +1451,14 @@ namespace ZintNet
 
                 // Render the barcode text.
                 if (isEanUpc)
+                {
                     DrawEanUpcText(graphics, totalSymbolHeight);
+                }
 
-                else if (mTextVisible)		// Render the barcode text if set to visible.
+                else if (mTextVisible)      // Render the barcode text if set to visible.
+                {
                     DrawLinearText(graphics, totalSymbolHeight);
+                }
             }
 
             catch (Exception ex)
@@ -1263,6 +1474,64 @@ namespace ZintNet
             }
         }
 
+        private void DrawMaxiCode(Graphics graphics, ref float totalSymbolHeight)
+        {
+            SymbolData symbolData;
+            byte[] rowData;
+
+            using (Pen pen = new Pen(mBarcodeColor, 0.67f * mMultiplier))
+            using (SolidBrush brush = new SolidBrush(mBarcodeColor))
+            {
+                // Central bullseye patterns.
+                float centerX = 13.64f * mMultiplier;
+                float centerY = 13.43f * mMultiplier;
+                float innerRadius = 0.85f * mMultiplier;
+                float centerRadius = 2.20f * mMultiplier;
+                float outerRadius = 3.54f * mMultiplier;
+                graphics.DrawEllipse(pen, new RectangleF(centerX - innerRadius, centerY - innerRadius, innerRadius * 2, innerRadius * 2));
+                graphics.DrawEllipse(pen, new RectangleF(centerX - centerRadius, centerY - centerRadius, centerRadius * 2, centerRadius * 2));
+                graphics.DrawEllipse(pen, new RectangleF(centerX - outerRadius, centerY - outerRadius, outerRadius * 2, outerRadius * 2));
+
+                int row = 0;
+                IEnumerator<SymbolData> enumerator = encodedData.GetEnumerator();
+                while (enumerator.MoveNext())
+                {
+                    symbolData = enumerator.Current;
+                    rowData = symbolData.GetRowData();
+                    int rowWidth = symbolData.RowCount;
+
+                    // Hexagons.
+
+                    for (int column = 0; column < rowWidth; column++)
+                    {
+                        if (rowData[column] == 1)
+                        {
+                            float rowOffset = (((row & 1) == 1) ? 1.32f : 0.88f);
+                            RectangleF hexRect = new RectangleF(
+                                ((column * 0.88f) + rowOffset) * mMultiplier,
+                                ((row * 0.76f) + 0.76f) * mMultiplier,
+                                0.76f * mMultiplier,
+                                0.88f * mMultiplier);
+
+                            // PointF array to create a hexagon.
+                            PointF[] hexagonPoints = new PointF[] {
+                                        new PointF(hexRect.X + hexRect.Width * 0.5f, hexRect.Y),
+                                        new PointF(hexRect.X + hexRect.Width, hexRect.Y + hexRect.Height * 0.25f),
+                                        new PointF(hexRect.X + hexRect.Width, hexRect.Y + hexRect.Height * 0.75f),
+                                        new PointF(hexRect.X + hexRect.Width * 0.5f, hexRect.Y + hexRect.Height),
+                                        new PointF(hexRect.X , hexRect.Y + hexRect.Height * 0.75f),
+                                        new PointF(hexRect.X, hexRect.Y + hexRect.Height * 0.25f) };
+                            graphics.FillPolygon(brush, hexagonPoints);
+                        }
+                    }
+
+                    row++;
+                }
+            }
+
+            totalSymbolHeight = symbolHeight;
+        }
+
         private void DrawEanUpcText(Graphics graphics, float totalSymbolHeight)
         {
             float centreAdjust;
@@ -1275,7 +1544,9 @@ namespace ZintNet
             int rightGuardBars = 4;
 
             if (symbolId == Symbology.UPCA)
+            {
                 leftGuardBars = 11;
+            }
 
             float leftHandTextPosition = ((linearShiftCount + leftGuardBars) * elementWidth) + firstBarXOffset;
 
@@ -1285,7 +1556,9 @@ namespace ZintNet
                 {
                     textStartX = 0.0f;
                     if (isCompositeSymbol)
+                    {
                         textStartX += elementWidth;
+                    }
 
                     graphics.DrawString(leftHandCharacter, textFont, textBrush, textStartX, textStartY);
                 }
@@ -1316,17 +1589,24 @@ namespace ZintNet
 
                 // Move the text start X point to the end of the symbol.
                 if (symbolId == Symbology.UPCA)
+                {
                     rightGuardBars = 11;
-
+                }
                 else if (symbolId == Symbology.UPCE)
+                {
                     rightGuardBars = 6;
+                }
 
                 textStartX += (rightGuardBars * elementWidth);
                 if (isCompositeSymbol)
+                {
                     textStartX -= elementWidth;
+                }
 
                 if (!string.IsNullOrEmpty(rightHandCharacter))
+                {
                     graphics.DrawString(rightHandCharacter, textFont, textBrush, textStartX, textStartY);
+                }
 
                 if (!string.IsNullOrEmpty(supplementText))
                 {
@@ -1338,7 +1618,9 @@ namespace ZintNet
                     // Draw the quiet space character.
                     textStartX = (symbolWidth - leftCharacterWidth + elementWidth);
                     if (isCompositeSymbol)
+                    {
                         textStartX -= elementWidth;
+                    }
 
                     graphics.DrawString(">", textFont, textBrush, textStartX, textStartY);
                 }
@@ -1356,11 +1638,14 @@ namespace ZintNet
 
                 // Override the "Streched" alignment if the text is wider than the barcode.
                 if (textAlignment == TextAlignment.Stretched && currentTextSize.Width > symbolWidth)
+                {
                     textAlignment = TextAlignment.Center;
+                }
 
                 if (textAlignment == TextAlignment.Stretched)
+                {
                     DrawTextStretched(graphics, textStartX, textStartY);
-
+                }
                 else
                 {
                     switch (textAlignment)
@@ -1386,7 +1671,6 @@ namespace ZintNet
 
             }
         }
-
         private void DrawTextStretched(Graphics graphics, float textStartX, float textStartY)
         {
             // Stretch the barcode text spaced equally across the width of the barcode.
@@ -1419,7 +1703,7 @@ namespace ZintNet
             mMultiplier = 1.0f;
             mXDimension = 0.264583f;    // 1 pixel.
             mRotation = 0;
-            mNumberOfCheckDigits = 2;
+            mCode11CheckDigits = Code11CheckDigits.Two;
             mITF14BearerStyle = ITF14BearerStyle.Rectangle;
             mBarcodeColor = Color.Black;
             mTextMargin = 0.0f;
@@ -1429,37 +1713,48 @@ namespace ZintNet
             mTextVisible = true;
             mOptionalCheckDigit = false;
             mShowCheckDigit = false;
+            mSuppressCodeSetC = false;
+            mRowSeparatorHeight = 1;
             mMSICheckDigitType = MSICheckDigitType.Mod10;
             mI2of5CheckDigitType = I2of5CheckDigitType.USS;
-            mSupplementMessage = String.Empty;
-            mEncodingMode = EncodingMode.Standard;
+            mSupplementMessage = null;
+            mEncodingMode = EncodingFormat.Standard;
             mECIMode = 0;
+            mGS1Mode = GS1MODE.GS1ModeFNC1;
+            mEncodeMode = SymbolEncodeMode.MinimalMode;
+            mUserMask = 0;
             mChannelCodeLevel = 0;
             mCodablockFRows = 0;
             mCodablockFColumns = 0;
+            mRowSeparatorHeight = 1;
             mDotCodeColumns = 0;
             mQRCodeEccLevel = (QRCodeEccLevel) - 1;
             mQRCodeVersion = 0;
             mDataMatrixSize = DataMatrixSize.Automatic;
             mDataMatrixSquare = true;
             mDataMatrixRectExtn = false;
+            mCode49MinimumRows = 0;
+            mCode16KMinimumRows = 0;
             mAztecSize = 0;
             mAztecEccLevel = -1;
             mHanXinVersion = 0;
-            mHanXinEccLevel = -1;
+            mHanXinEccLevel = 0;
             mUltracodeCompression = 0;
             mUltracodeEccLevel = -1;
             mGridMatrixVersion = 0;
-            mGridMatrixEccLevel = -1;
+            mGridMatrixEccLevel = 0;
             mCodeOneSize = 0;
             mPDF417Columns = 0;
             mPDF417ErrorLevel = -1;
             mPDF417RowHeight = 2;
             mDatabarExpandedSegments = 0;
-            mCompositeMessage = string.Empty;
-            mAusPostEncoding = AusPostEncoding.Numeric;
+            mCompositeMessage = null;
             mCompositeMode = CompositeMode.CCA;
             mMaxicodeMode = MaxicodeMode.Mode4;
+            mVINImportPrefix = false;
+            mPNZLength = PNZLength.PNZ8;
+
+
             isValidFlag = false;
             isEanUpc = IsEanUpc();
             isDot = false;
@@ -1499,133 +1794,185 @@ namespace ZintNet
         private void EncodeData()
         {
             isValidFlag = false;
-            SymbolEncoder encoder = null;
+            SymbolEncoder encoder;
             switch (symbolId)
             {
                 case Symbology.AusPostStandard:
                 case Symbology.AusPostReplyPaid:
                 case Symbology.AusPostRedirect:
                 case Symbology.AusPostRouting:
-                    encoder = new AusPostEncoder(symbolId, barcodeMessage);
+                    encoder = new AusPostEncoder(symbolId, mBarcodeMessage);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.RoyalMailMailmark:
-                    encoder = new MailmarkEncoder(symbolId, barcodeMessage);
+                    encoder = new MailmarkEncoder(symbolId, mBarcodeMessage);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.USPS:
-                    encoder = new IntelligentMailEncoder(symbolId, barcodeMessage);
+                    encoder = new IntelligentMailEncoder(symbolId, mBarcodeMessage);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
-                case Symbology.PostNet:
-                case Symbology.Planet:
+                case Symbology.POSTNET:
+                case Symbology.PLANET:
+                case Symbology.CEPNET:
                 case Symbology.KoreaPost:
                 case Symbology.FIM:
-                case Symbology.RoyalMail:
+                case Symbology.RoyalMail4SCC:
                 case Symbology.KixCode:
                 case Symbology.DaftCode:
                 case Symbology.Flattermarken:
                 case Symbology.JapanPost:
-                    encoder = new PostalEncoder(symbolId, barcodeMessage);
+                    encoder = new PostalEncoder(symbolId, mBarcodeMessage);
+                    encodedData = encoder.EncodeData();
+                    barcodeText = encoder.BarcodeText;
+                    checkDigitText = encoder.CheckDigitText;
+                    break;
+
+                // Code 39.
+                case Symbology.Code39:
+                case Symbology.Code39Extended:
+                case Symbology.LOGMARS:
+                    if (mEncodingMode == EncodingFormat.HIBC)
+                    {
+                        encoder = new Code39Encoder(symbolId, mBarcodeMessage, mEncodingMode);
+                    }
+
+                    else
+                    {
+                        encoder = new Code39Encoder(symbolId, mBarcodeMessage, mOptionalCheckDigit, mShowCheckDigit);
+                    }
+
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     checkDigitText = encoder.CheckDigitText;
                     break;
 
                 case Symbology.Code32:
-                case Symbology.PharmaZentralNummer:
-                case Symbology.Code39:
-                case Symbology.Code39Extended:
-                case Symbology.LOGMARS:
-                case Symbology.VINCode:
-                    encoder = new Code39Encoder(symbolId, barcodeMessage, mOptionalCheckDigit, mEncodingMode);
+                    encoder = new Code39Encoder(symbolId, mBarcodeMessage);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
-                    checkDigitText = encoder.CheckDigitText;
+                    break;
+
+                case Symbology.PharmaZentralNummer:
+                    encoder = new Code39Encoder(symbolId, mBarcodeMessage, mPNZLength);
+                    encodedData = encoder.EncodeData();
+                    barcodeText = encoder.BarcodeText;
+                    break;
+
+                case Symbology.VINCode:
+                    encoder = new Code39Encoder(symbolId, mBarcodeMessage, mVINImportPrefix);
+                    encodedData = encoder.EncodeData();
+                    barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.ChannelCode:
-                    encoder = new ChannelCodeEncoder(symbolId, barcodeMessage, mChannelCodeLevel);
+                    encoder = new ChannelCodeEncoder(symbolId, mBarcodeMessage, mChannelCodeLevel);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.Telepen:
                 case Symbology.TelepenNumeric:
-                    encoder = new TelepenEncoder(symbolId, barcodeMessage);
+                    encoder = new TelepenEncoder(symbolId, mBarcodeMessage);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.Pharmacode:
                 case Symbology.Pharmacode2Track:
-                    encoder = new PharmacodeEncoder(symbolId, barcodeMessage);
+                    encoder = new PharmacodeEncoder(symbolId, mBarcodeMessage);
+                    encodedData = encoder.EncodeData();
+                    barcodeText = encoder.BarcodeText;
+                    break;
+
+                // Code 128 based.
+                case Symbology.Code128:
+                    if (mEncodingMode == EncodingFormat.Standard)
+                    {
+                        encoder = new Code128Encoder(symbolId, mBarcodeMessage, mEncodingMode, mSuppressCodeSetC);
+                    }
+
+                    else if (mEncodingMode == EncodingFormat.HIBC)
+                    {
+                        encoder = new Code128Encoder(symbolId, mBarcodeMessage, mEncodingMode);
+                    }
+
+                    else
+                    {
+                        encoder = new Code128Encoder(symbolId, mBarcodeMessage, mCompositeMessage, mCompositeMode, mEncodingMode);
+                        isCompositeSymbol = encoder.IsCompositeSymbol;
+                    }
+
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.EAN14:
                 case Symbology.SSCC18:
-                case Symbology.Code128:
-                    encoder = new Code128Encoder(symbolId, barcodeMessage, mCompositeMessage, mCompositeMode, mEncodingMode);
+                case Symbology.DPDCode:
+                case Symbology.UPUS10Code:
+                    encoder = new Code128Encoder(symbolId, mBarcodeMessage);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.Code93:
-                    encoder = new Code93Encoder(symbolId, barcodeMessage);
+                    encoder = new Code93Encoder(symbolId, mBarcodeMessage, mShowCheckDigit);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     checkDigitText = encoder.CheckDigitText;
                     break;
 
                 case Symbology.Standard2of5:
-                case Symbology.Interleaved2of5:
-                case Symbology.Matrix2of5:
+                case Symbology.Industrial2of5:
                 case Symbology.IATA2of5:
                 case Symbology.DataLogic2of5:
+                    encoder = new Code2of5Encoder(symbolId, mBarcodeMessage, mOptionalCheckDigit, mShowCheckDigit);
+                    encodedData = encoder.EncodeData();
+                    barcodeText = encoder.BarcodeText;
+                    checkDigitText = encoder.CheckDigitText;
+                    break;
+
+                case Symbology.Interleaved2of5:
                 case Symbology.ITF14:
                 case Symbology.DeutschePostIdentCode:
-                case Symbology.DeutshePostLeitCode:
-                    encoder = new Code2of5Encoder(symbolId, barcodeMessage, mOptionalCheckDigit, mI2of5CheckDigitType);
+                case Symbology.DeutschePostLeitCode:
+                    encoder = new Interleaved2of5Encoder(symbolId, mBarcodeMessage, mOptionalCheckDigit, mShowCheckDigit, mI2of5CheckDigitType);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     checkDigitText = encoder.CheckDigitText;
                     break;
 
                 case Symbology.Codabar:
-                    encoder = new CodabarEncoder(barcodeMessage);
+                    encoder = new CodabarEncoder(symbolId, mBarcodeMessage, mOptionalCheckDigit, mShowCheckDigit);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.MSIPlessey:
                 case Symbology.UKPlessey:
-                    encoder = new PlesseyEncoder(symbolId, barcodeMessage, mMSICheckDigitType);
+                    encoder = new PlesseyEncoder(symbolId, mBarcodeMessage, mShowCheckDigit, mMSICheckDigitType);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
+                    checkDigitText = encoder.CheckDigitText;
                     checkDigitText = encoder.CheckDigitText;
                     break;
 
                 case Symbology.Code11:
-                    encoder = new Code11Encoder(barcodeMessage, mOptionalCheckDigit, mNumberOfCheckDigits);
+                    encoder = new Code11Encoder(symbolId, mBarcodeMessage, mCode11CheckDigits);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     checkDigitText = encoder.CheckDigitText;
                     break;
 
                 case Symbology.ISBN:
-                case Symbology.EAN13:
-                case Symbology.EAN8:
-                case Symbology.UPCA:
-                case Symbology.UPCE:
-                    encoder = new EANUPCEncoder(symbolId, barcodeMessage, mSupplementMessage, mCompositeMessage, mCompositeMode);
+                    encoder = new EANUPCEncoder(symbolId, mBarcodeMessage, mSupplementMessage);
                     encodedData = encoder.EncodeData();
                     leftHandCharacter = encoder.LeftHandCharacter;
                     leftHandText = encoder.LeftHandText;
@@ -1636,6 +1983,22 @@ namespace ZintNet
                     barsPerCharacter = encoder.ElementsPerCharacter;
                     break;
 
+                case Symbology.EAN13:
+                case Symbology.EAN8:
+                case Symbology.UPCA:
+                case Symbology.UPCE:
+                    encoder = new EANUPCEncoder(symbolId, mBarcodeMessage, mSupplementMessage, mCompositeMessage, mCompositeMode);
+                    encodedData = encoder.EncodeData();
+                    leftHandCharacter = encoder.LeftHandCharacter;
+                    leftHandText = encoder.LeftHandText;
+                    rightHandText = encoder.RightHandText;
+                    rightHandCharacter = encoder.RightHandCharacter;
+                    supplementText = encoder.SupplementText;
+                    supplimentWidth = encoder.SupplimentBars;
+                    barsPerCharacter = encoder.ElementsPerCharacter;
+                    isCompositeSymbol = encoder.IsCompositeSymbol;
+                    break;
+
                 case Symbology.DatabarOmni:
                 case Symbology.DatabarOmniStacked:
                 case Symbology.DatabarTruncated:
@@ -1643,41 +2006,49 @@ namespace ZintNet
                 case Symbology.DatabarLimited:
                 case Symbology.DatabarExpanded:
                 case Symbology.DatabarExpandedStacked:
-                    encoder = new DatabarEncoder(symbolId, barcodeMessage, mCompositeMessage, mCompositeMode, mDatabarExpandedSegments);
+                    encoder = new DatabarEncoder(symbolId, mBarcodeMessage, mCompositeMessage, mCompositeMode, mDatabarExpandedSegments);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
+                    isCompositeSymbol = encoder.IsCompositeSymbol;
                     break;
 
                 case Symbology.QRCode:
                 case Symbology.MicroQRCode:
                 case Symbology.UPNQR:
                 case Symbology.RectangularMicroQRCode:
-                    encoder = new QRCodeEncoder(symbolId, barcodeMessage, mQRCodeVersion, mQRCodeEccLevel, mECIMode, mEncodingMode);
+                    encoder = new QRCodeEncoder(symbolId, mBarcodeMessage, mQRCodeVersion, mQRCodeEccLevel, mUserMask, mECIMode, mEncodingMode);
+                    encodedData = encoder.EncodeData();
+                    barcodeText = encoder.BarcodeText;
+                    break;
+
+                case Symbology.Mailmark2D:
+                    encoder = new DataMatrixEncoder(symbolId, mBarcodeMessage, Mailmark2DFormat.Format9);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.DataMatrix:
-                    encoder = new DataMatrixEncoder(symbolId, barcodeMessage, mDataMatrixSize, mDataMatrixSquare, mDataMatrixRectExtn, mECIMode, mEncodingMode);
+                    encoder = new DataMatrixEncoder(symbolId, mBarcodeMessage, mDataMatrixSize, mDataMatrixSquare, mDataMatrixRectExtn, mGS1Mode, mEncodeMode, mECIMode, mEncodingMode);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.CodeOne:
-                    encoder = new CodeOneEncoder(symbolId, barcodeMessage, mCodeOneSize, mEncodingMode);
+                    encoder = new CodeOneEncoder(symbolId, mBarcodeMessage, mCodeOneSize, mECIMode, mEncodingMode);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.Aztec:
                 case Symbology.AztecRunes:
-                    encoder = new AztecEncoder(symbolId, barcodeMessage, mAztecSize, mAztecEccLevel, mECIMode, mEncodingMode);
+                    encoder = new AztecEncoder(symbolId, mBarcodeMessage, mAztecSize, mAztecEccLevel, mECIMode, mEncodingMode);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
+                    AztecSize = encoder.aztecAutoSize;
                     break;
 
                 case Symbology.MaxiCode:
-                    encoder = new MaxiCodeEncoder(symbolId, barcodeMessage, mMaxicodeMode, mECIMode);
+                    encoder = new MaxiCodeEncoder(symbolId, mBarcodeMessage, mMaxicodeMode, mECIMode);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
@@ -1685,50 +2056,61 @@ namespace ZintNet
                 case Symbology.PDF417:
                 case Symbology.PDF417Truncated:
                 case Symbology.MicroPDF417:
-                    encoder = new PDF417Encoder(symbolId, barcodeMessage, mPDF417Columns, mPDF417ErrorLevel, mPDF417RowHeight, mEncodingMode);
+                    encoder = new PDF417Encoder(symbolId, mBarcodeMessage, mPDF417Columns, mPDF417ErrorLevel, mPDF417RowHeight, mEncodingMode);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.CodablockF:
-                    encoder = new CodaBlockEncoder(symbolId, barcodeMessage, mCodablockFRows, mCodablockFColumns);
+                    encoder = new CodaBlockEncoder(symbolId, mBarcodeMessage, mCodablockFRows, mCodablockFColumns, mEncodingMode);
                     encodedData = encoder.EncodeData();
                     barsPerCharacter = encoder.ElementsPerCharacter;
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.Code16K:
-                    encoder = new Code16KEncoder(symbolId, barcodeMessage, mEncodingMode);
+                    encoder = new Code16KEncoder(symbolId, mBarcodeMessage, mCode16KMinimumRows, mEncodingMode);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.DotCode:
-                    encoder = new DotCodeEncoder(symbolId, barcodeMessage, mDotCodeColumns, mECIMode, mEncodingMode);
+                    encoder = new DotCodeEncoder(symbolId, mBarcodeMessage, mDotCodeColumns, mECIMode, mUserMask, mEncodingMode);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.GridMatrix:
-                    encoder = new GridMatrixEncoder(symbolId, barcodeMessage, mGridMatrixVersion, mGridMatrixEccLevel, mECIMode);
+                    encoder = new GridMatrixEncoder(symbolId, mBarcodeMessage, mGridMatrixVersion, mGridMatrixEccLevel, mECIMode);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.Code49:
-                    encoder = new Code49Encoder(symbolId, barcodeMessage, mEncodingMode);
+                    encoder = new Code49Encoder(symbolId, mBarcodeMessage, mCode49MinimumRows, mEncodingMode);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.HanXin:
-                    encoder = new HanXinEncoder(symbolId, barcodeMessage, mHanXinVersion, mHanXinEccLevel, mECIMode);
+                    encoder = new HanXinEncoder(symbolId, mBarcodeMessage, mHanXinVersion, mUserMask, mHanXinEccLevel, mECIMode);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
 
                 case Symbology.Ultracode:
-                    encoder = new UltraEncoder(symbolId, barcodeMessage, mUltracodeCompression, mUltracodeEccLevel, mECIMode, mEncodingMode);
+                    encoder = new UltraEncoder(symbolId, mBarcodeMessage, mUltracodeCompression, mUltracodeEccLevel, mECIMode, mEncodingMode);
+                    encodedData = encoder.EncodeData();
+                    barcodeText = encoder.BarcodeText;
+                    break;
+
+                case Symbology.DXFilmEdge:
+                    encoder = new DXFilmEdgeEncoder(symbolId, mBarcodeMessage);
+                    encodedData = encoder.EncodeData();
+                    break;
+
+                case Symbology.BC412:
+                    encoder = new BC412Encoder(symbolId, mBarcodeMessage);
                     encodedData = encoder.EncodeData();
                     barcodeText = encoder.BarcodeText;
                     break;
@@ -1746,10 +2128,13 @@ namespace ZintNet
             if (symbolId == Symbology.EAN13 || symbolId == Symbology.EAN8 ||
                 symbolId == Symbology.UPCA || symbolId == Symbology.UPCE ||
                 symbolId == Symbology.ISBN)
+            {
                 return true;
-
+            }
             else
+            {
                 return false;
+            }
         }
 
         /// <summary>
@@ -1762,11 +2147,13 @@ namespace ZintNet
                 symbolId == Symbology.DatabarOmni || symbolId == Symbology.DatabarStacked ||
                 symbolId == Symbology.DatabarOmniStacked || symbolId == Symbology.DatabarTruncated ||
                 symbolId == Symbology.DatabarLimited)
+            {
                 return true;
-
+            }
             else
+            {
                 return false;
-
+            }
         }
 
         /// <summary>
@@ -1813,7 +2200,9 @@ namespace ZintNet
                     for (int i = 0; i < symbolData.RowCount; i++)
                     {
                         if (isEanUpc && rowData[i] > 1) // Skip ean/upc bar size markers.
+                        {
                             continue;
+                        }
 
                         rowWidth++;
                     }
@@ -1821,10 +2210,13 @@ namespace ZintNet
                     maxWidth = Math.Max(maxWidth, rowWidth);
                     // Use the height if specified, else use the property value. 
                     if (symbolData.RowHeight == 0.0f)
+                    {
                         symbolSize.Height += mBarcodeHeight;
-
+                    }
                     else
+                    {
                         symbolSize.Height += symbolData.RowHeight * elementWidth;
+                    }
                 }
 
                 symbolSize.Width = maxWidth * elementWidth;
@@ -1835,7 +2227,7 @@ namespace ZintNet
                     // Bearer and quite zone dimensions.
                     quietZone = 10.16f * elementWidth;
                     bearerWidth = 4.7f * elementWidth;
-                    symbolSize.Width += (quietZone * 2);
+                    symbolSize.Width += quietZone * 2;
                     firstBarXOffset = quietZone;
                     if (mITF14BearerStyle == ITF14BearerStyle.Rectangle)
                     {
@@ -1848,7 +2240,9 @@ namespace ZintNet
 
                 // Make allowances for CodablockF top and bottom binders.
                 if (symbolId == Symbology.CodablockF)
+                {
                     symbolSize.Height += elementWidth;
+                }
 
                 if (symbolId == Symbology.Code16K || symbolId == Symbology.Code49)
                 {
@@ -1869,23 +2263,27 @@ namespace ZintNet
         private void GetTotalSymbolSize(Graphics graphics)
         {
             leftCharacterWidth = 0.0f;
-            humanReadableText = String.Empty;
+            humanReadableText = string.Empty;
             float elementWidth = mXDimension * mMultiplier;
 
             SizeF symbolSize = GetSymbolOnlySize();
             symbolWidth = symbolSize.Width;
             symbolHeight = symbolSize.Height;
-            if ((!String.IsNullOrEmpty(barcodeText) && mTextVisible) || isEanUpc)
+            if ((!string.IsNullOrEmpty(barcodeText) && mTextVisible) || isEanUpc)
             {
                 if (isEanUpc)
                 {
                     GetEanUpcTextSize(graphics);
                     symbolHeight += currentTextSize.Height;
                     if (leftCharacterWidth > 0)
+                    {
                         firstBarXOffset = leftCharacterWidth - (linearShiftCount * elementWidth);
+                    }
 
-                    if (!String.IsNullOrEmpty(leftHandCharacter))
+                    if (!string.IsNullOrEmpty(leftHandCharacter))
+                    {
                         symbolWidth += leftCharacterWidth - (linearShiftCount * elementWidth);
+                    }
 
                     symbolWidth += leftCharacterWidth;
                 }
@@ -1909,18 +2307,11 @@ namespace ZintNet
         /// Optimize the font size to the linear symbol.
         /// </summary>
         /// <param name="graphics">the graphics surface the barcode will be drawn on.</param>
-        void GetTextSize(Graphics graphics)
+        private void GetTextSize(Graphics graphics)
         {
             textFont = mFont;
             float fontSize = mFont.Size;
-
-            // Build the human readable text.
             humanReadableText = barcodeText;
-            if (!String.IsNullOrEmpty(checkDigitText) && mShowCheckDigit)
-                humanReadableText += checkDigitText;
-
-            if (symbolId == Symbology.Code39 || symbolId == Symbology.Code39Extended)
-                humanReadableText = "*" + humanReadableText + "*";
 
             // Optimize the text size.
             currentTextSize = graphics.MeasureString(humanReadableText, textFont);
@@ -1930,10 +2321,12 @@ namespace ZintNet
                 {
                     // Try to reduce the font size until the text width is less than the barcode width.
                     fontSize -= 1.0f;
-                    textFont = new System.Drawing.Font(mFont.FontFamily, fontSize, mFont.Style);
+                    textFont = new Font(family: mFont.FontFamily, fontSize, mFont.Style);
                     currentTextSize = graphics.MeasureString(humanReadableText, textFont);
-                    if (fontSize <= 4.0f)	// Don't let the font get too small.
+                    if (fontSize <= 4.0f)   // Don't let the font get too small.
+                    {
                         break;
+                    }
 
                 } while (currentTextSize.Width >= symbolWidth);
             }
@@ -1959,7 +2352,9 @@ namespace ZintNet
             textFont = new System.Drawing.Font(mFont.FontFamily, fontSize, mFont.Style);
             textSize = graphics.MeasureString(leftHandText, textFont);
             if (!string.IsNullOrEmpty(leftHandCharacter))
+            {
                 leftCharacterWidth = graphics.MeasureString(leftHandCharacter, textFont).Width;
+            }
 
             currentTextSize = textSize;
         }

@@ -1,7 +1,7 @@
 ﻿/* DefineModes.cs - Calculate optimized character encoding modes.
 
 /*
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -43,9 +43,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace ZintNet
 {
@@ -65,18 +62,20 @@ namespace ZintNet
             int[] currentCosts = new int[numberOfModes];
             char[] characterModes = new char[length * numberOfModes];
 
-            // characterModes[i * num_modes + j] represents the mode to encode the code point at index i such that the final
+            // CharacterModes[i * num_modes + j] represents the mode to encode the code point at index i such that the final
             // segment ends in mode_types[j] and the total number of bits is minimized over all possible choices.
 
-            // At the beginning of each iteration of the loop below, prev_costs[j] is the minimum number of 1/6 (1/XX_MULT)
-            // bits needed to encode the entire string prefix of length i, and end in mode_types[j]
+            // At the beginning of each iteration of the loop below, previousCosts[j] is the minimum number of 1/6 (1/XX_MULT)
+            // bits needed to encode the entire string prefix of length i, and end in modeTypes[j]
             Array.Copy(headCost(state), previousCosts, numberOfModes);
 
             // Calculate costs using dynamic programming.
             for (int position = 0, cmIdx = 0; position < length; position++, cmIdx += numberOfModes)
             {
                 for (int i = 0; i < numberOfModes; i++)
+                {
                     currentCosts[i] = 0;
+                }
 
                 currentCost(state, data, length, position, characterModes, previousCosts, currentCosts);
                 if (eodCost != null && position == length - 1)
@@ -85,7 +84,9 @@ namespace ZintNet
                     for (int j = 0; j < numberOfModes; j++)
                     {
                         if (characterModes[cmIdx + j] > 0)
+                        {
                             currentCosts[j] += eodCost(j);
+                        }
                     }
                 }
                 // Start new segment at the end to switch modes.

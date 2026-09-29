@@ -1,7 +1,7 @@
 ﻿/* SymbolDictionary.cs - Symbol Names and ID's for ZintNet */
 
 /*
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -47,81 +47,87 @@ namespace ZintNet
             }
         }
 
-        static IDictionary<string, Symbology> symbolDictionary = new Dictionary<string, Symbology>()
+        static readonly IDictionary<string, Symbology> symbolDictionary = new Dictionary<string, Symbology>()
         {
             {"Code One", Symbology.CodeOne},
             {"Code 39 (ISO 16388)", Symbology.Code39},
             {"Code 39 Extended", Symbology.Code39Extended},
             {"LOGMARS", Symbology.LOGMARS},
             {"Code 32 (Italian Pharmacode)", Symbology.Code32},
-            {"Pharmazentral Nummer (PZN)", Symbology.PharmaZentralNummer},
-            {"Pharmacode", Symbology.Pharmacode},
-            {"Pharmacode 2-Track", Symbology.Pharmacode2Track},
-            {"Code 93", Symbology.Code93},
-            {"Channel Code", Symbology.ChannelCode},
-            {"Telepen", Symbology.Telepen},
-            {"Telepen Numeric", Symbology.TelepenNumeric},
-            {"Code 128 (ISO 15417)", Symbology.Code128},
+            { "Pharmazentral Nummer (PZN)", Symbology.PharmaZentralNummer },
+            { "Pharmacode", Symbology.Pharmacode },
+            { "Pharmacode 2-Track", Symbology.Pharmacode2Track },
+            { "Code 93", Symbology.Code93 },
+            { "Channel Code", Symbology.ChannelCode },
+            { "Telepen", Symbology.Telepen },
+            { "Telepen Numeric", Symbology.TelepenNumeric },
+            { "Code 128 (ISO 15417)", Symbology.Code128 },
             {"EAN-14", Symbology.EAN14},
             {"SSCC 18", Symbology.SSCC18},
-            {"Code 2of5 Standard", Symbology.Standard2of5},
+            {"Code 2of5 Standard (Matrix)", Symbology.Standard2of5},
             {"Code 2of5 Interleaved", Symbology.Interleaved2of5},
-            {"Code 2of5 Matrix", Symbology.Matrix2of5},
+            {"Code 2of5 Industrial", Symbology.Industrial2of5},
             {"Code 2of5 IATA", Symbology.IATA2of5},
             {"Code 2of5 Data Logic", Symbology.DataLogic2of5},
             {"ITF-14", Symbology.ITF14},
             {"Deutsche Post Identcode", Symbology.DeutschePostIdentCode},
-            {"Deutshe Post Leitcode", Symbology.DeutshePostLeitCode},
-            {"Codabar", Symbology.Codabar},
-            {"MSI Plessey", Symbology.MSIPlessey},
-            {"UK Plessey", Symbology.UKPlessey},
-            {"Code 11", Symbology.Code11},
-            {"ISBN", Symbology.ISBN},
-            {"EAN-13", Symbology.EAN13},
-            {"EAN-8", Symbology.EAN8},
-            {"UPC-A", Symbology.UPCA},
-            {"UPC-E", Symbology.UPCE},
-            {"Databar Omnidirectional", Symbology.DatabarOmni},
-            {"Databar Omnidirectional Stacked", Symbology.DatabarOmniStacked},
-            {"Databar Stacked", Symbology.DatabarStacked},
-            {"Databar Truncated", Symbology.DatabarTruncated},
-            {"Databar Limited", Symbology.DatabarLimited},
-            {"Databar Expanded", Symbology.DatabarExpanded},
-            {"Databar Expanded Stacked", Symbology.DatabarExpandedStacked},
-            {"Data Matrix (ISO 16022)", Symbology.DataMatrix},
-            {"QR Code (ISO 18004)", Symbology.QRCode},
-            {"Micro QR Code", Symbology.MicroQRCode},
-            {"Rectangular Micro QR Code", Symbology.RectangularMicroQRCode},
-            {"UPN QR Code", Symbology.UPNQR},
-            {"Aztec Code (ISO 24778)", Symbology.Aztec},
-            {"Aztec Runes", Symbology.AztecRunes},
-            {"Maxicode(ISO 16023)", Symbology.MaxiCode},
-            {"PDF 417 (ISO 15438)", Symbology.PDF417},
-            {"PDF 417 Truncated", Symbology.PDF417Truncated},
-            {"Micro PDF 417 (ISO 24728)", Symbology.MicroPDF417},
-            {"Australia Post Standard Customer", Symbology.AusPostStandard},
-            {"Australia Post Reply Paid", Symbology.AusPostReplyPaid},
-            {"Australia Post Redirect", Symbology.AusPostRedirect},
-            {"Australia Post Routing", Symbology.AusPostRouting},
-            {"USPS Intelligent Mail", Symbology.USPS},
-            {"PostNet Code", Symbology.PostNet},
-            {"Planet Code", Symbology.Planet},
-            {"Korean Postal", Symbology.KoreaPost},
-            {"Facing Indentifcation Mark (FIM)", Symbology.FIM},
-            {"Royal Mail 4 State Barcode", Symbology.RoyalMail},
-            {"Dutch Post (KIX)", Symbology.KixCode},
-            {"DAFT Code", Symbology.DaftCode},
-            {"Flattermarken", Symbology.Flattermarken},
-            {"Japanese Postal", Symbology.JapanPost},
-            {"Codablock-F", Symbology.CodablockF},
-            {"Code 16K", Symbology.Code16K},
-            {"Dot Code", Symbology.DotCode},
-            {"Grid Matrix", Symbology.GridMatrix},
-            {"Code 49", Symbology.Code49},
-            {"Han Xin Code", Symbology.HanXin},
-            {"VIN Code", Symbology.VINCode},
-            {"Royal Mail 4 State Mailmark", Symbology.RoyalMailMailmark},
-            {"Ultracode", Symbology.Ultracode}
+            {"Deutsche Post Leitcode", Symbology.DeutschePostLeitCode},
+            { "Codabar (EN 798)", Symbology.Codabar },
+            { "MSI Plessey", Symbology.MSIPlessey },
+            { "UK Plessey", Symbology.UKPlessey },
+            { "Code 11", Symbology.Code11 },
+            { "ISBN", Symbology.ISBN },
+            { "EAN-13 (ISO 15420)", Symbology.EAN13 },
+            { "EAN-8 (ISO 15420)", Symbology.EAN8 },
+            { "UPC-A (ISO 15420)", Symbology.UPCA },
+            { "UPC-E (ISO 15420)", Symbology.UPCE },
+            { "GS1 Databar Omnidirectional", Symbology.DatabarOmni },
+            { "GS1 Databar Omnidirectional Stacked", Symbology.DatabarOmniStacked },
+            { "GS1 Databar Stacked", Symbology.DatabarStacked },
+            { "GS1 Databar Truncated", Symbology.DatabarTruncated },
+            { "GS1 Databar Limited", Symbology.DatabarLimited },
+            { "GS1 Databar Expanded", Symbology.DatabarExpanded },
+            { "GS1 Databar Expanded Stacked", Symbology.DatabarExpandedStacked },
+            { "Data Matrix (ISO 16022)", Symbology.DataMatrix },
+            { "QR Code (ISO 18004)", Symbology.QRCode },
+            { "Micro QR Code", Symbology.MicroQRCode },
+            { "Rectangular Micro QR Code", Symbology.RectangularMicroQRCode },
+            { "UPNQR Code", Symbology.UPNQR },
+            { "Aztec Code (ISO 24778)", Symbology.Aztec },
+            { "Aztec Runes", Symbology.AztecRunes },
+            { "Maxicode(ISO 16023)", Symbology.MaxiCode },
+            { "PDF 417 (ISO 15438)", Symbology.PDF417 },
+            { "PDF 417 Truncated", Symbology.PDF417Truncated },
+            { "Micro PDF 417 (ISO 24728)", Symbology.MicroPDF417 },
+            { "Australia Post Standard Customer", Symbology.AusPostStandard },
+            { "Australia Post Reply Paid", Symbology.AusPostReplyPaid },
+            { "Australia Post Redirect", Symbology.AusPostRedirect },
+            { "Australia Post Routing", Symbology.AusPostRouting },
+            { "USPS Intelligent Mail", Symbology.USPS },
+            { "POSTNET", Symbology.POSTNET },
+            { "PLANET", Symbology.PLANET },
+            { "Brazilian Postal Code (CEPNet)", Symbology.CEPNET },
+            { "Korean Postal", Symbology.KoreaPost },
+            { "Facing Indentifcation Mark (FIM)", Symbology.FIM },
+            { "Royal Mail 4-State Customer Code (RM4SCC)", Symbology.RoyalMail4SCC },
+            { "Dutch Post (KIX)", Symbology.KixCode },
+            { "DAFT Code", Symbology.DaftCode },
+            { "Flattermarken", Symbology.Flattermarken },
+            { "Japanese Postal", Symbology.JapanPost },
+            { "Codablock-F", Symbology.CodablockF },
+            { "Code 16K (EN 12323)", Symbology.Code16K },
+            { "Dot Code", Symbology.DotCode },
+            { "Grid Matrix", Symbology.GridMatrix },
+            { "Code 49", Symbology.Code49 },
+            { "Han Xin Code (ISO 20830)", Symbology.HanXin },
+            { "VIN Code (Code 39)", Symbology.VINCode },
+            { "Royal Mail 4 State Mailmark (RM4SCL)", Symbology.RoyalMailMailmark },
+            { "Royal Mail Mailmark 2D (Datamatrix)", Symbology.Mailmark2D },
+            { "Ultracode", Symbology.Ultracode },
+            { "DPD Code", Symbology.DPDCode },
+            { "UPU S10 Code", Symbology.UPUS10Code },
+            { "DX Film Edge", Symbology.DXFilmEdge },
+            { "BC412 (SEMI T1-95)", Symbology.BC412 }
         };
 
         public static Symbology GetSymbolId(string symbolName)
@@ -129,10 +135,13 @@ namespace ZintNet
             // Try to get the symbol id in the static dictionary.
             Symbology symbolId;
             if (symbolDictionary.TryGetValue(symbolName, out symbolId))
+            {
                 return symbolId;
-
+            }
             else
+            {
                 return Symbology.Invalid;
+            }
         }
 
         public static string[] GetSymbolNames()
@@ -143,7 +152,9 @@ namespace ZintNet
             foreach (KeyValuePair<string, Symbology> entry in symbolDictionary)
             {
                 if (entry.Key != "Invalid")
+                {
                     symbolNames[index] = entry.Key;
+                }
 
                 index++;
             }
@@ -156,7 +167,9 @@ namespace ZintNet
             foreach (KeyValuePair<string, Symbology> entry in symbolDictionary)
             {
                 if (entry.Value == symbolId)
+                {
                     return entry.Key;
+                }
             }
 
             return string.Empty;

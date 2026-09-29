@@ -33,10 +33,11 @@ namespace ZintNet
 {
     internal static class CharacterSets
     {
+        public static string Code32Set = "0123456789BCDFGHJKLMNPQRSTUVWXYZ";
         public static string Code49Set = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%!&*";
         public static string Code39Set = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%";
         public static string Code93Set = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%abcd";
-        public static string Code32Set = "0123456789BCDFGHJKLMNPQRSTUVWXYZ";
+        public static string Postal = "0123456789ABCDFGHJKLMNPQRSTUVWXYZ";    // Royal Mail & KIX Postal
         public static string CodaBarSet = "0123456789-$:/.+ABCD";
         public static string NumberOnlySet = "0123456789";
         public static string AlphaNumericSet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
@@ -48,7 +49,7 @@ namespace ZintNet
         public static string UpperCaseSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
         public static string LowerCaseSet = "abcdefghijklmnopqrstuvwxyz ";
         public static string VINSet = "0123456789ABCDEFGHJKLMNPRSTUVWXYZ";
-        public static string Mailmark = "01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
+        public static string Mailmark4State = "01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
 
         // Japan Post character sets.
         public static string KASUTSET = "1234567890-abcdefgh";

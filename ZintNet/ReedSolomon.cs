@@ -35,7 +35,7 @@ namespace ZintNet
 {
     internal static class ReedSolomon
     {
-        private static int logSize;		// 2**symbolSize - 1
+        private static int logSize;		    // 2**symbolSize - 1
         private static int eccSymbols;
         private static int[] logTable;      // Log table.
         private static int[] alogTable;     // Antilog table.
@@ -49,17 +49,25 @@ namespace ZintNet
                 for (int j = eccSymbols - 1; j > 0; j--)
                 {
                     if (m != 0 && rsPolynomial[j] != 0)
+                    {
                         ecc[j] = (byte)(ecc[j - 1] ^ alogTable[(logTable[m] + logTable[rsPolynomial[j]]) % logSize]);
+                    }
 
                     else
+                    {
                         ecc[j] = ecc[j - 1];
+                    }
                 }
 
                 if (m != 0 && rsPolynomial[0] != 0)
-                    ecc[0] = (byte)(alogTable[(logTable[m] + logTable[rsPolynomial[0]]) % logSize]);
+                {
+                    ecc[0] = (byte)alogTable[(logTable[m] + logTable[rsPolynomial[0]]) % logSize];
+                }
 
                 else
+                {
                     ecc[0] = 0;
+                }
             }
         }
 
@@ -72,17 +80,25 @@ namespace ZintNet
                 for (int j = eccSymbols - 1; j > 0; j--)
                 {
                     if (m != 0 && rsPolynomial[j] != 0)
+                    {
                         ecc[j] = (uint)(ecc[j - 1] ^ alogTable[(logTable[m] + logTable[rsPolynomial[j]]) % logSize]);
+                    }
 
                     else
+                    {
                         ecc[j] = ecc[j - 1];
+                    }
                 }
 
                 if (m != 0 && rsPolynomial[0] != 0)
-                    ecc[0] = (uint)(alogTable[(logTable[m] + logTable[rsPolynomial[0]]) % logSize]);
+                {
+                    ecc[0] = (uint)alogTable[(logTable[m] + logTable[rsPolynomial[0]]) % logSize];
+                }
 
                 else
+                {
                     ecc[0] = 0;
+                }
             }
         }
 
@@ -100,7 +116,9 @@ namespace ZintNet
             eccSymbols = numberOfEccSymbols;
             // Find the top bit, and hence the symbol size
             for (b = 1; b <= polynomial; b <<= 1)
+            {
                 size++;
+            }
 
             size--;
             b >>= 1;
@@ -117,7 +135,9 @@ namespace ZintNet
                 logTable[p] = v;
                 p <<= 1;
                 if ((p & b) != 0)
+                {
                     p ^= polynomial;
+                }
             }
 
             rsPolynomial[0] = 1;
@@ -127,7 +147,9 @@ namespace ZintNet
                 for (int k = i - 1; k > 0; k--)
                 {
                     if (rsPolynomial[k] != 0)
+                    {
                         rsPolynomial[k] = alogTable[(logTable[rsPolynomial[k]] + index) % logSize];
+                    }
 
                     rsPolynomial[k] ^= rsPolynomial[k - 1];
                 }

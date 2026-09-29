@@ -1,7 +1,7 @@
 ﻿/* BitVector.cs - Manage a byte array as a vector of bits */
 
 /*
-    Copyright (C) 2013-2020 Milton Neal <milton200954@gmail.com>
+    Copyright (C) 2013-2025 Milton Neal <milton200954@gmail.com>
     Acknowledgments to ZXing Authors and Contributors.
 
     Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,16 @@ namespace ZintNet
         private byte[] array;
 
         /// <summary>
+        /// Initializes a new instance of BitVector class.
+        /// </summary>
+        public BitVector()
+        {
+            sizeInBits = 0;
+            array = new byte[DefaultSize];
+        }
+
+
+        /// <summary>
         /// Gets a copy of the vector as a byte array.
         /// </summary>
         /// <returns>a copy of the vector array</returns>
@@ -91,18 +101,9 @@ namespace ZintNet
         }
 
         /// <summary>
-        /// Initializes a new instance of BitVector class.
-        /// </summary>
-        public BitVector()
-        {
-            sizeInBits = 0;
-            array = new byte[DefaultSize];
-        }
-
-        /// <summary>
         /// Initializes a new instance of BitVector class of a given size.
         /// </summary>
-        /// <param name="size">size in bytes of the vector</param>
+        /// <param name="size">Size in bytes of the vector.</param>
         public BitVector(int size)
         {
             sizeInBits = 0;
@@ -112,11 +113,13 @@ namespace ZintNet
         /// <summary>
         /// Returns the bit value at a specified bit index.
         /// </summary>
-        /// <param name="index">index to the bit to be returned</param>
+        /// <param name="index">Index to the bit to be returned.</param>
         private byte ValueAtIndex(int index)
         {
             if (index < 0 || index > sizeInBits)
+            {
                 throw new ArgumentOutOfRangeException("Index outside the range of the vector: " + index);
+            }
 
             int byteValue = array[index >> 3] & 0xff;
             return (byte)((byteValue >> (7 - (index & 0x7))) & 1);
@@ -130,17 +133,25 @@ namespace ZintNet
         private void SetAtIndex(int index, byte value)
         {
             if (index < 0 || index >= sizeInBits)
+            {
                 throw new ArgumentOutOfRangeException("Index outside the range of the vector: " + index);
+            }
 
             if (!(value == 0 || value == 1))
+            {
                 throw new System.ArgumentException("Invalid value for bit vector: " + value);
+            }
 
             int byteValue = array[index >> 3] & 0xff;
             if (value == 1)
+            {
                 byteValue = (byte)(byteValue | (1 << (7 - (index & 0x7))));     // Left-shift 1, then bitwise OR
+            }
 
             else
+            {
                 byteValue = (byte)(byteValue & ~(1 << (7 - (index & 0x7))));    // Left-shift 1, then take complement, then bitwise AND
+            }
 
             array[index >> 3] = (byte)(byteValue & 0xff);
         }
@@ -148,14 +159,16 @@ namespace ZintNet
         /// <summary>
         /// Inserts a bit into the vector.
         /// </summary>
-        /// <param name="index">index to insert the bit</param>
-        /// <param name="value">value of the bit</param>
+        /// <param name="index">Index to insert the bit.</param>
+        /// <param name="value">Value of the bit to be inserted.</param>
         public void Insert(int index, byte value)
         {
             byte bit;
 
             if (!(value == 0 || value == 1))
-                throw new System.ArgumentException("Invalid value for bit vector: " + value);
+            {
+                throw new ArgumentException("Invalid value for bit vector: " + value);
+            }
 
             AppendBit(0);
             int position = sizeInBits - 1;
@@ -172,20 +185,29 @@ namespace ZintNet
         /// <summary>
         /// Removes bits from the vector.
         /// </summary>
-        /// <param name="index">index within the vector to remove the bit</param>
-        /// <param name="count">number of bits to remove</param>
+        /// <param name="index">Index within the vector to remove the bit.</param>
+        /// <param name="count">Number of bits to remove.</param>
         public void RemoveBits(int index, int count)
         {
             if ((index + count) > sizeInBits)
+            {
                 throw new ArgumentOutOfRangeException("Index outside the range of the vector: " + (index + count).ToString(CultureInfo.CurrentCulture));
+            }
 
             int bitsToShift = sizeInBits - (count + index);
             if ((index + count) < sizeInBits)
             {
+                // Shift the bits the required bits "count" places.
                 for (int i = index; i < bitsToShift; i++)
                 {
                     byte bit = ValueAtIndex(i + count);
                     SetAtIndex(i, bit);
+                }
+
+                // Reset the trailing "count' bits.
+                for(int i = 0; i < count; i++)
+                {
+                    SetAtIndex(bitsToShift + i, 0);
                 }
             }
 
@@ -195,11 +217,13 @@ namespace ZintNet
         /// <summary>
         /// Appends one bit to the vector.
         /// </summary>
-        /// <param name="value">the bit value to add</param>
+        /// <param name="value">The bit value to addto the vector.</param>
         public void AppendBit(byte value)
         {
             if (!(value == 0 || value == 1))
-                throw new System.ArgumentException("Invalid value for bit vector: " + value);
+            {
+                throw new ArgumentException("Invalid value for bit vector: " + value);
+            }
 
             int numBitsInLastByte = sizeInBits & 0x7;
             if (numBitsInLastByte == 0)
@@ -223,12 +247,14 @@ namespace ZintNet
         /// - appendBits(0xff, 8) adds 11111111.
         /// </remarks>
         /// </summary>
-        /// <param name="value">value to add</param>
-        /// <param name="numberOfBits">number of bits from 'value'</param>
+        /// <param name="value">Value to add to the vector.</param>
+        /// <param name="numberOfBits">Number of bits from 'value' to add.</param>
         public void AppendBits(int value, int numberOfBits)
         {
             if (numberOfBits < 0 || numberOfBits > 32)
-                throw new System.ArgumentException("Number of bits must be between 0 and 32");
+            {
+                throw new ArgumentException("Number of bits must be between 0 and 32");
+            }
 
             int numberOfBitsLeft = numberOfBits;
             while (numberOfBitsLeft > 0)
@@ -251,37 +277,57 @@ namespace ZintNet
         }
 
         /// <summary>
+        /// Appends a byte to the end of the vector.
+        /// </summary>
+        /// <param name="value">The byte value to be added to the vector.</param>
+        private void AppendByte(byte value)
+        {
+            if ((sizeInBits >> 3) == array.Length)
+            {
+                Array.Resize(ref array, array.Length << 1);
+            }
+
+            array[sizeInBits >> 3] = value;
+            sizeInBits += 8;
+        }
+
+        /// <summary>
         /// Clears the contents of the bit vector and resets it's size to 0.
         /// </summary>
         public void Clear()
         {
             int length = SizeInBytes;
             for (int i = 0; i < length; i++)
+            {
                 this.array[i] = 0;
+            }
 
             sizeInBits = 0;
         }
 
         /// <summary>
         /// Appends the contents of a bit vector to the current vector.
-        /// </summary><param type=""></param>
-        /// <param name="bitVector">the bit vector to be appended</param>
+        /// </summary>
+        /// <param name="bitVector">The bit vector to be appended to the current vector.</param>
         public void AppendBitVector(BitVector bitVector)
         {
             int size = bitVector.SizeInBits;
             for (int i = 0; i < size; ++i)
+            {
                 AppendBit(bitVector.ValueAtIndex(i));
+            }
         }
 
         /// <summary>
         /// Modify the bit vector by XOR'ing with another vector.
         /// </summary>
-        /// <param name="bitVector">vector to Xor with</param>
-
+        /// <param name="bitVector">Vector to Xor with current vector.</param>
         public void Xor(BitVector bitVector)
         {
             if (sizeInBits != bitVector.SizeInBits)
-                throw new System.ArgumentException("Bit Vector sizes don't match");
+            {
+                throw new ArgumentException("Bit Vector sizes don't match");
+            }
 
             int size = this.SizeInBytes;
             for (int i = 0; i < size; ++i)
@@ -295,8 +341,8 @@ namespace ZintNet
         /// <summary>
         /// Bit Vector indexer.
         /// </summary>
-        /// <param name="index">index position within the vector</param>
-        /// <returns>value at the index</returns>
+        /// <param name="index">Index position within the vector.</param>
+        /// <returns>Value at the index.</returns>
         public byte this[int index]
         {
             get { return ValueAtIndex(index); }
@@ -306,27 +352,16 @@ namespace ZintNet
         /// <summary>
         /// Builds a string representation of the bit vector.
         /// </summary>
-        /// <returns></returns>
-        public override System.String ToString()
+        /// <returns>The string value of the current vector.</returns>
+        public override string ToString()
         {
             StringBuilder result = new StringBuilder(sizeInBits);
             for (int i = 0; i < sizeInBits; ++i)
+            {
                 result.Append(ValueAtIndex(i) == 0 ? '0' : '1');
+            }
 
             return result.ToString();
-        }
-
-        /// <summary>
-        /// Appends a byte to the end of the vector.
-        /// </summary>
-        /// <param name="value">the byte value to be added</param>
-        private void AppendByte(byte value)
-        {
-            if ((sizeInBits >> 3) == array.Length)
-                System.Array.Resize(ref array, array.Length << 1);
-
-            array[sizeInBits >> 3] = value;
-            sizeInBits += 8;
         }
     }
 }

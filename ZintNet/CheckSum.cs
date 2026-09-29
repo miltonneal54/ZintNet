@@ -33,7 +33,10 @@ using System;
 
 namespace ZintNet
 {
-    internal static class CheckSum
+    /// <summary>
+    /// Class exposing commonly used checksum calculators.
+    /// </summary>
+    internal static class GetCheckDigit
     {
         /// <summary>
         /// Mod43 checksum calculator.
@@ -46,7 +49,9 @@ namespace ZintNet
             int length = data.Length;
 
             for (int i = 0; i < length; i++)
+            {
                 weight += CharacterSets.Code39Set.IndexOf(data[i]);
+            }
 
             weight %= 43;
             return CharacterSets.Code39Set[weight];
@@ -75,6 +80,32 @@ namespace ZintNet
             return (char)(((10 - (weight % 10)) % 10) + '0');
         }
 
+        public static char Mod11CheckDigit(char[] data)
+        {
+            int value;
+            int weight = 0;
+            int weightIndex = 1;
+            int length = data.Length;
+
+            for (int i = 0; i < length; i++)
+            {
+                value = (data[i] - '0');
+                weight += (value * weightIndex);
+                weightIndex++;
+            }
+
+            value = weight % 11;
+            if (value == 10)
+            {
+                return 'X';
+            }
+
+            else
+            {
+                return (char)(value + '0');
+            }
+        }
+
         public static char OPCCCheckDigit(char[] data)
         {
             int factor = 2;
@@ -91,7 +122,9 @@ namespace ZintNet
                 }
 
                 else
+                {
                     weight += value;
+                }
 
                 factor = (factor == 2) ? 1 : 2;
             }
@@ -99,26 +132,6 @@ namespace ZintNet
             return (char)(((10 - (weight % 10)) % 10) + '0');
         }
 
-        public static char Mod11CheckDigit(char[] data)
-        {
-            int value = 0;
-            int weight = 0;
-            int weightIndex = 1;
-            int length = data.Length;
 
-            for (int i = 0; i < length; i++)
-            {
-                value = (data[i] - '0');
-                weight += (value * weightIndex);
-                weightIndex++;
-            }
-
-            value = weight % 11;
-            if (value == 10)
-                return 'X';
-
-            else
-                return (char)(value + '0');
-        }
     }
 }
