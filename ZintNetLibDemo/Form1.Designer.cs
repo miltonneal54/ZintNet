@@ -50,31 +50,33 @@
             this.label1 = new System.Windows.Forms.Label();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.commomPropertiesTabPage = new System.Windows.Forms.TabPage();
+            this.showCheckDigitCheckBox = new System.Windows.Forms.CheckBox();
+            this.checkDigitCheckBox = new System.Windows.Forms.CheckBox();
             this.textAlignComboBox = new System.Windows.Forms.ComboBox();
-            this.label3 = new System.Windows.Forms.Label();
+            this.textAlignmentLabel = new System.Windows.Forms.Label();
             this.textPositionComboBox = new System.Windows.Forms.ComboBox();
-            this.label2 = new System.Windows.Forms.Label();
+            this.textPositionLabel = new System.Windows.Forms.Label();
             this.rotateTextBox = new System.Windows.Forms.TextBox();
             this.showTextCheckBox = new System.Windows.Forms.CheckBox();
-            this.barHeightNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.label6 = new System.Windows.Forms.Label();
+            this.heightNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.heightLabel = new System.Windows.Forms.Label();
             this.textMarginNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.label8 = new System.Windows.Forms.Label();
+            this.textMarginLabel = new System.Windows.Forms.Label();
             this.rotateButton = new System.Windows.Forms.Button();
             this.textColorButton = new System.Windows.Forms.Button();
-            this.label13 = new System.Windows.Forms.Label();
-            this.button4 = new System.Windows.Forms.Button();
-            this.label14 = new System.Windows.Forms.Label();
+            this.textColorLabel = new System.Windows.Forms.Label();
+            this.textFontButton = new System.Windows.Forms.Button();
+            this.textFontLabel = new System.Windows.Forms.Label();
             this.barcodeColorButton = new System.Windows.Forms.Button();
-            this.label15 = new System.Windows.Forms.Label();
+            this.barcodeColorLabel = new System.Windows.Forms.Label();
             this.multiplierNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.label16 = new System.Windows.Forms.Label();
+            this.multiplierLabel = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.commomPropertiesTabPage.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.barHeightNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.heightNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.textMarginNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.multiplierNumericUpDown)).BeginInit();
             this.groupBox2.SuspendLayout();
@@ -82,13 +84,13 @@
             // 
             // generateButton
             // 
-            this.generateButton.Location = new System.Drawing.Point(73, 443);
+            this.generateButton.Location = new System.Drawing.Point(73, 487);
             this.generateButton.Name = "generateButton";
             this.generateButton.Size = new System.Drawing.Size(170, 21);
             this.generateButton.TabIndex = 3;
             this.generateButton.Text = "Generate Barcode";
             this.generateButton.UseVisualStyleBackColor = true;
-            this.generateButton.Click += new System.EventHandler(this.generateButton_Click);
+            this.generateButton.Click += new System.EventHandler(this.GenerateButton_Click);
             // 
             // menuStrip1
             // 
@@ -177,7 +179,7 @@
             this.imagePanel.BackColor = System.Drawing.Color.White;
             this.imagePanel.Location = new System.Drawing.Point(320, 38);
             this.imagePanel.Name = "imagePanel";
-            this.imagePanel.Size = new System.Drawing.Size(694, 290);
+            this.imagePanel.Size = new System.Drawing.Size(694, 334);
             this.imagePanel.TabIndex = 11;
             this.imagePanel.Paint += new System.Windows.Forms.PaintEventHandler(this.ImagePanelPaint);
             this.imagePanel.Resize += new System.EventHandler(this.ImagePanelResize);
@@ -224,7 +226,7 @@
             this.barcodeDataTextBox.Size = new System.Drawing.Size(258, 20);
             this.barcodeDataTextBox.TabIndex = 1;
             this.barcodeDataTextBox.WordWrap = false;
-            this.barcodeDataTextBox.TextChanged += new System.EventHandler(this.barcodeDataTextBox_TextChanged);
+            this.barcodeDataTextBox.TextChanged += new System.EventHandler(this.BarcodeDataTextBox_TextChanged);
             // 
             // label20
             // 
@@ -240,7 +242,7 @@
             this.outputTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.outputTextBox.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.outputTextBox.Location = new System.Drawing.Point(320, 347);
+            this.outputTextBox.Location = new System.Drawing.Point(320, 391);
             this.outputTextBox.Multiline = true;
             this.outputTextBox.Name = "outputTextBox";
             this.outputTextBox.ReadOnly = true;
@@ -255,7 +257,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(317, 331);
+            this.label1.Location = new System.Drawing.Point(317, 375);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(88, 13);
             this.label1.TabIndex = 13;
@@ -267,37 +269,61 @@
             this.tabControl1.Location = new System.Drawing.Point(8, 19);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(270, 234);
+            this.tabControl1.Size = new System.Drawing.Size(270, 274);
             this.tabControl1.TabIndex = 2;
             // 
             // commomPropertiesTabPage
             // 
+            this.commomPropertiesTabPage.Controls.Add(this.showCheckDigitCheckBox);
+            this.commomPropertiesTabPage.Controls.Add(this.checkDigitCheckBox);
             this.commomPropertiesTabPage.Controls.Add(this.textAlignComboBox);
-            this.commomPropertiesTabPage.Controls.Add(this.label3);
+            this.commomPropertiesTabPage.Controls.Add(this.textAlignmentLabel);
             this.commomPropertiesTabPage.Controls.Add(this.textPositionComboBox);
-            this.commomPropertiesTabPage.Controls.Add(this.label2);
+            this.commomPropertiesTabPage.Controls.Add(this.textPositionLabel);
             this.commomPropertiesTabPage.Controls.Add(this.rotateTextBox);
             this.commomPropertiesTabPage.Controls.Add(this.showTextCheckBox);
-            this.commomPropertiesTabPage.Controls.Add(this.barHeightNumericUpDown);
-            this.commomPropertiesTabPage.Controls.Add(this.label6);
+            this.commomPropertiesTabPage.Controls.Add(this.heightNumericUpDown);
+            this.commomPropertiesTabPage.Controls.Add(this.heightLabel);
             this.commomPropertiesTabPage.Controls.Add(this.textMarginNumericUpDown);
-            this.commomPropertiesTabPage.Controls.Add(this.label8);
+            this.commomPropertiesTabPage.Controls.Add(this.textMarginLabel);
             this.commomPropertiesTabPage.Controls.Add(this.rotateButton);
             this.commomPropertiesTabPage.Controls.Add(this.textColorButton);
-            this.commomPropertiesTabPage.Controls.Add(this.label13);
-            this.commomPropertiesTabPage.Controls.Add(this.button4);
-            this.commomPropertiesTabPage.Controls.Add(this.label14);
+            this.commomPropertiesTabPage.Controls.Add(this.textColorLabel);
+            this.commomPropertiesTabPage.Controls.Add(this.textFontButton);
+            this.commomPropertiesTabPage.Controls.Add(this.textFontLabel);
             this.commomPropertiesTabPage.Controls.Add(this.barcodeColorButton);
-            this.commomPropertiesTabPage.Controls.Add(this.label15);
+            this.commomPropertiesTabPage.Controls.Add(this.barcodeColorLabel);
             this.commomPropertiesTabPage.Controls.Add(this.multiplierNumericUpDown);
-            this.commomPropertiesTabPage.Controls.Add(this.label16);
+            this.commomPropertiesTabPage.Controls.Add(this.multiplierLabel);
             this.commomPropertiesTabPage.Location = new System.Drawing.Point(4, 22);
             this.commomPropertiesTabPage.Name = "commomPropertiesTabPage";
             this.commomPropertiesTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.commomPropertiesTabPage.Size = new System.Drawing.Size(262, 208);
+            this.commomPropertiesTabPage.Size = new System.Drawing.Size(262, 248);
             this.commomPropertiesTabPage.TabIndex = 0;
             this.commomPropertiesTabPage.Text = "Common Properties";
             this.commomPropertiesTabPage.UseVisualStyleBackColor = true;
+            // 
+            // showCheckDigitCheckBox
+            // 
+            this.showCheckDigitCheckBox.AutoSize = true;
+            this.showCheckDigitCheckBox.Location = new System.Drawing.Point(146, 215);
+            this.showCheckDigitCheckBox.Name = "showCheckDigitCheckBox";
+            this.showCheckDigitCheckBox.Size = new System.Drawing.Size(111, 17);
+            this.showCheckDigitCheckBox.TabIndex = 32;
+            this.showCheckDigitCheckBox.Text = "Show Check Digit";
+            this.showCheckDigitCheckBox.UseVisualStyleBackColor = true;
+            this.showCheckDigitCheckBox.CheckedChanged += new System.EventHandler(this.ShowCheckDigitCheckBox_CheckedChanged);
+            // 
+            // checkDigitCheckBox
+            // 
+            this.checkDigitCheckBox.AutoSize = true;
+            this.checkDigitCheckBox.Location = new System.Drawing.Point(12, 215);
+            this.checkDigitCheckBox.Name = "checkDigitCheckBox";
+            this.checkDigitCheckBox.Size = new System.Drawing.Size(128, 17);
+            this.checkDigitCheckBox.TabIndex = 31;
+            this.checkDigitCheckBox.Text = "Generate Check Digit";
+            this.checkDigitCheckBox.UseVisualStyleBackColor = true;
+            this.checkDigitCheckBox.CheckedChanged += new System.EventHandler(this.CheckDigitCheckBox_CheckedChanged);
             // 
             // textAlignComboBox
             // 
@@ -308,20 +334,20 @@
             "Left",
             "Right",
             "Stretched"});
-            this.textAlignComboBox.Location = new System.Drawing.Point(115, 176);
+            this.textAlignComboBox.Location = new System.Drawing.Point(114, 141);
             this.textAlignComboBox.Name = "textAlignComboBox";
             this.textAlignComboBox.Size = new System.Drawing.Size(138, 21);
             this.textAlignComboBox.TabIndex = 30;
             this.textAlignComboBox.SelectedIndexChanged += new System.EventHandler(this.textAlignComboBox_SelectedIndexChanged);
             // 
-            // label3
+            // textAlignmentLabel
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(9, 179);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(80, 13);
-            this.label3.TabIndex = 29;
-            this.label3.Text = "Text Alignment:";
+            this.textAlignmentLabel.AutoSize = true;
+            this.textAlignmentLabel.Location = new System.Drawing.Point(9, 144);
+            this.textAlignmentLabel.Name = "textAlignmentLabel";
+            this.textAlignmentLabel.Size = new System.Drawing.Size(80, 13);
+            this.textAlignmentLabel.TabIndex = 29;
+            this.textAlignmentLabel.Text = "Text Alignment:";
             // 
             // textPositionComboBox
             // 
@@ -330,27 +356,27 @@
             this.textPositionComboBox.Items.AddRange(new object[] {
             "Under barcode",
             "Above barcode"});
-            this.textPositionComboBox.Location = new System.Drawing.Point(114, 144);
+            this.textPositionComboBox.Location = new System.Drawing.Point(114, 109);
             this.textPositionComboBox.Name = "textPositionComboBox";
             this.textPositionComboBox.Size = new System.Drawing.Size(138, 21);
             this.textPositionComboBox.TabIndex = 15;
             this.textPositionComboBox.SelectedIndexChanged += new System.EventHandler(this.textPositionComboBox_SelectedIndexChanged);
             // 
-            // label2
+            // textPositionLabel
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(8, 147);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(71, 13);
-            this.label2.TabIndex = 15;
-            this.label2.Text = "Text Position:";
+            this.textPositionLabel.AutoSize = true;
+            this.textPositionLabel.Location = new System.Drawing.Point(9, 112);
+            this.textPositionLabel.Name = "textPositionLabel";
+            this.textPositionLabel.Size = new System.Drawing.Size(71, 13);
+            this.textPositionLabel.TabIndex = 15;
+            this.textPositionLabel.Text = "Text Position:";
             // 
             // rotateTextBox
             // 
             this.rotateTextBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.rotateTextBox.CausesValidation = false;
             this.rotateTextBox.Enabled = false;
-            this.rotateTextBox.Location = new System.Drawing.Point(93, 112);
+            this.rotateTextBox.Location = new System.Drawing.Point(221, 175);
             this.rotateTextBox.Name = "rotateTextBox";
             this.rotateTextBox.ReadOnly = true;
             this.rotateTextBox.Size = new System.Drawing.Size(31, 20);
@@ -362,52 +388,52 @@
             this.showTextCheckBox.AutoSize = true;
             this.showTextCheckBox.Checked = true;
             this.showTextCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.showTextCheckBox.Location = new System.Drawing.Point(142, 115);
+            this.showTextCheckBox.Location = new System.Drawing.Point(12, 51);
             this.showTextCheckBox.Name = "showTextCheckBox";
             this.showTextCheckBox.Size = new System.Drawing.Size(77, 17);
             this.showTextCheckBox.TabIndex = 8;
             this.showTextCheckBox.Text = "Show Text";
             this.showTextCheckBox.UseVisualStyleBackColor = true;
-            this.showTextCheckBox.Click += new System.EventHandler(this.showTextCheckBox_CheckedChanged);
+            this.showTextCheckBox.Click += new System.EventHandler(this.ShowTextCheckBox_CheckedChanged);
             // 
-            // barHeightNumericUpDown
+            // heightNumericUpDown
             // 
-            this.barHeightNumericUpDown.DecimalPlaces = 2;
-            this.barHeightNumericUpDown.Location = new System.Drawing.Point(70, 49);
-            this.barHeightNumericUpDown.Maximum = new decimal(new int[] {
+            this.heightNumericUpDown.DecimalPlaces = 2;
+            this.heightNumericUpDown.Location = new System.Drawing.Point(198, 19);
+            this.heightNumericUpDown.Maximum = new decimal(new int[] {
             50,
             0,
             0,
             0});
-            this.barHeightNumericUpDown.Minimum = new decimal(new int[] {
+            this.heightNumericUpDown.Minimum = new decimal(new int[] {
             5,
             0,
             0,
             0});
-            this.barHeightNumericUpDown.Name = "barHeightNumericUpDown";
-            this.barHeightNumericUpDown.Size = new System.Drawing.Size(54, 20);
-            this.barHeightNumericUpDown.TabIndex = 3;
-            this.barHeightNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.barHeightNumericUpDown.Value = new decimal(new int[] {
+            this.heightNumericUpDown.Name = "heightNumericUpDown";
+            this.heightNumericUpDown.Size = new System.Drawing.Size(54, 20);
+            this.heightNumericUpDown.TabIndex = 3;
+            this.heightNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.heightNumericUpDown.Value = new decimal(new int[] {
             20,
             0,
             0,
             0});
-            this.barHeightNumericUpDown.ValueChanged += new System.EventHandler(this.barHeightNumericUpDown_ValueChanged);
+            this.heightNumericUpDown.ValueChanged += new System.EventHandler(this.barHeightNumericUpDown_ValueChanged);
             // 
-            // label6
+            // heightLabel
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(8, 53);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(41, 13);
-            this.label6.TabIndex = 27;
-            this.label6.Text = "Height:";
+            this.heightLabel.AutoSize = true;
+            this.heightLabel.Location = new System.Drawing.Point(132, 21);
+            this.heightLabel.Name = "heightLabel";
+            this.heightLabel.Size = new System.Drawing.Size(41, 13);
+            this.heightLabel.TabIndex = 27;
+            this.heightLabel.Text = "Height:";
             // 
             // textMarginNumericUpDown
             // 
             this.textMarginNumericUpDown.DecimalPlaces = 1;
-            this.textMarginNumericUpDown.Location = new System.Drawing.Point(206, 19);
+            this.textMarginNumericUpDown.Location = new System.Drawing.Point(207, 51);
             this.textMarginNumericUpDown.Maximum = new decimal(new int[] {
             5,
             0,
@@ -419,18 +445,18 @@
             this.textMarginNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.textMarginNumericUpDown.ValueChanged += new System.EventHandler(this.textMarginNumericUpDown_ValueChanged);
             // 
-            // label8
+            // textMarginLabel
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(139, 21);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(66, 13);
-            this.label8.TabIndex = 26;
-            this.label8.Text = "Text Margin:";
+            this.textMarginLabel.AutoSize = true;
+            this.textMarginLabel.Location = new System.Drawing.Point(132, 53);
+            this.textMarginLabel.Name = "textMarginLabel";
+            this.textMarginLabel.Size = new System.Drawing.Size(66, 13);
+            this.textMarginLabel.TabIndex = 26;
+            this.textMarginLabel.Text = "Text Margin:";
             // 
             // rotateButton
             // 
-            this.rotateButton.Location = new System.Drawing.Point(11, 112);
+            this.rotateButton.Location = new System.Drawing.Point(142, 175);
             this.rotateButton.Name = "rotateButton";
             this.rotateButton.Size = new System.Drawing.Size(59, 20);
             this.rotateButton.TabIndex = 7;
@@ -444,40 +470,40 @@
             this.textColorButton.FlatAppearance.BorderSize = 0;
             this.textColorButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.textColorButton.ForeColor = System.Drawing.Color.Black;
-            this.textColorButton.Location = new System.Drawing.Point(222, 80);
+            this.textColorButton.Location = new System.Drawing.Point(73, 79);
             this.textColorButton.Name = "textColorButton";
             this.textColorButton.Size = new System.Drawing.Size(30, 20);
             this.textColorButton.TabIndex = 6;
             this.textColorButton.UseVisualStyleBackColor = false;
             this.textColorButton.Click += new System.EventHandler(this.textColorButton_Click);
             // 
-            // label13
+            // textColorLabel
             // 
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(139, 84);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(58, 13);
-            this.label13.TabIndex = 25;
-            this.label13.Text = "Text Color:";
+            this.textColorLabel.AutoSize = true;
+            this.textColorLabel.Location = new System.Drawing.Point(9, 83);
+            this.textColorLabel.Name = "textColorLabel";
+            this.textColorLabel.Size = new System.Drawing.Size(58, 13);
+            this.textColorLabel.TabIndex = 25;
+            this.textColorLabel.Text = "Text Color:";
             // 
-            // button4
+            // textFontButton
             // 
-            this.button4.Location = new System.Drawing.Point(193, 49);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(60, 20);
-            this.button4.TabIndex = 4;
-            this.button4.Text = "Select";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.fontButton_Click);
+            this.textFontButton.Location = new System.Drawing.Point(193, 79);
+            this.textFontButton.Name = "textFontButton";
+            this.textFontButton.Size = new System.Drawing.Size(60, 20);
+            this.textFontButton.TabIndex = 4;
+            this.textFontButton.Text = "Select";
+            this.textFontButton.UseVisualStyleBackColor = true;
+            this.textFontButton.Click += new System.EventHandler(this.fontButton_Click);
             // 
-            // label14
+            // textFontLabel
             // 
-            this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(139, 53);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(55, 13);
-            this.label14.TabIndex = 23;
-            this.label14.Text = "Text Font:";
+            this.textFontLabel.AutoSize = true;
+            this.textFontLabel.Location = new System.Drawing.Point(132, 83);
+            this.textFontLabel.Name = "textFontLabel";
+            this.textFontLabel.Size = new System.Drawing.Size(55, 13);
+            this.textFontLabel.TabIndex = 23;
+            this.textFontLabel.Text = "Text Font:";
             // 
             // barcodeColorButton
             // 
@@ -485,26 +511,26 @@
             this.barcodeColorButton.FlatAppearance.BorderSize = 0;
             this.barcodeColorButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.barcodeColorButton.ForeColor = System.Drawing.Color.Black;
-            this.barcodeColorButton.Location = new System.Drawing.Point(94, 80);
+            this.barcodeColorButton.Location = new System.Drawing.Point(94, 175);
             this.barcodeColorButton.Name = "barcodeColorButton";
             this.barcodeColorButton.Size = new System.Drawing.Size(30, 20);
             this.barcodeColorButton.TabIndex = 5;
             this.barcodeColorButton.UseVisualStyleBackColor = false;
             this.barcodeColorButton.Click += new System.EventHandler(this.barcodeColorButton_Click);
             // 
-            // label15
+            // barcodeColorLabel
             // 
-            this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(9, 84);
-            this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(77, 13);
-            this.label15.TabIndex = 18;
-            this.label15.Text = "Barcode Color:";
+            this.barcodeColorLabel.AutoSize = true;
+            this.barcodeColorLabel.Location = new System.Drawing.Point(12, 179);
+            this.barcodeColorLabel.Name = "barcodeColorLabel";
+            this.barcodeColorLabel.Size = new System.Drawing.Size(77, 13);
+            this.barcodeColorLabel.TabIndex = 18;
+            this.barcodeColorLabel.Text = "Barcode Color:";
             // 
             // multiplierNumericUpDown
             // 
             this.multiplierNumericUpDown.DecimalPlaces = 2;
-            this.multiplierNumericUpDown.Location = new System.Drawing.Point(70, 19);
+            this.multiplierNumericUpDown.Location = new System.Drawing.Point(66, 19);
             this.multiplierNumericUpDown.Maximum = new decimal(new int[] {
             15,
             0,
@@ -524,23 +550,23 @@
             0,
             0,
             0});
-            this.multiplierNumericUpDown.ValueChanged += new System.EventHandler(this.multiplierNumericUpDown_ValueChanged);
+            this.multiplierNumericUpDown.ValueChanged += new System.EventHandler(this.MultiplierNumericUpDown_ValueChanged);
             // 
-            // label16
+            // multiplierLabel
             // 
-            this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(9, 21);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(51, 13);
-            this.label16.TabIndex = 15;
-            this.label16.Text = "Multiplier:";
+            this.multiplierLabel.AutoSize = true;
+            this.multiplierLabel.Location = new System.Drawing.Point(9, 21);
+            this.multiplierLabel.Name = "multiplierLabel";
+            this.multiplierLabel.Size = new System.Drawing.Size(51, 13);
+            this.multiplierLabel.TabIndex = 15;
+            this.multiplierLabel.Text = "Multiplier:";
             // 
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.tabControl1);
             this.groupBox2.Location = new System.Drawing.Point(12, 174);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(289, 261);
+            this.groupBox2.Size = new System.Drawing.Size(289, 297);
             this.groupBox2.TabIndex = 14;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Symbol Properties";
@@ -550,7 +576,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Thistle;
-            this.ClientSize = new System.Drawing.Size(1026, 471);
+            this.ClientSize = new System.Drawing.Size(1026, 515);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.generateButton);
             this.Controls.Add(this.label1);
@@ -573,7 +599,7 @@
             this.tabControl1.ResumeLayout(false);
             this.commomPropertiesTabPage.ResumeLayout(false);
             this.commomPropertiesTabPage.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.barHeightNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.heightNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.textMarginNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.multiplierNumericUpDown)).EndInit();
             this.groupBox2.ResumeLayout(false);
@@ -603,28 +629,30 @@
         private System.Windows.Forms.TabPage commomPropertiesTabPage;
         private System.Windows.Forms.TextBox rotateTextBox;
         private System.Windows.Forms.CheckBox showTextCheckBox;
-        private System.Windows.Forms.NumericUpDown barHeightNumericUpDown;
-        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.NumericUpDown heightNumericUpDown;
+        private System.Windows.Forms.Label heightLabel;
         private System.Windows.Forms.NumericUpDown textMarginNumericUpDown;
-        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label textMarginLabel;
         private System.Windows.Forms.Button rotateButton;
         private System.Windows.Forms.Button textColorButton;
-        private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.Button button4;
-        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.Label textColorLabel;
+        private System.Windows.Forms.Button textFontButton;
+        private System.Windows.Forms.Label textFontLabel;
         private System.Windows.Forms.Button barcodeColorButton;
-        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.Label barcodeColorLabel;
         private System.Windows.Forms.NumericUpDown multiplierNumericUpDown;
-        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.Label multiplierLabel;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.ToolStripMenuItem pNGToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem bMPToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem gIFToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem tIFToolStripMenuItem;
         private System.Windows.Forms.ComboBox textPositionComboBox;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label textPositionLabel;
         private System.Windows.Forms.ComboBox textAlignComboBox;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label textAlignmentLabel;
+        private System.Windows.Forms.CheckBox checkDigitCheckBox;
+        private System.Windows.Forms.CheckBox showCheckDigitCheckBox;
     }
 }
 

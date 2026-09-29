@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ZintNetLibDemo</name>
+    </assembly>
+    <members>
+        <member name="M:ZintNetLibTest.Form1.AddTabPage">
+            <summary>
+            Adds a second tab page if required.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.AddAztecControls">
+            <summary>
+            Adds the Aztec controls and event handlers to the tab page.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.AddCodablockControls">
+            <summary>
+            Adds the Codablock F controls and event handlers to the tab page.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.AddCode16KCode49Controls">
+            <summary>
+            Adds the Code 16K or Code 49 controls and event handlers to the tab page.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.AddCodeOneControls">
+            <summary>
+            Adds the Code One controls and event handlers to the tab page.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.AddDataMatrixControls">
+            <summary>
+            Adds Data Matrix specific controls to the symbol properties tab page.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.AddMaxiCodeControls(System.Int32)">
+            <summary>
+            Adds the Maxicode controls and event handlers to the tab page.
+            </summary>
+            <param name="index">Default selected index.</param>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.AddGridMatrixControls">
+            <summary>
+            Adds common 2D controls to the symbol properties tab page.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.AddHanXinControls">
+            <summary>
+            Adds the Han Xin Code controls and event handlers to the tab page.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.AddModeControls">
+            <summary>
+            Adds mode selection controls to the symbol properties tab page.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.AddCompositeControls(System.Int32)">
+            <summary>
+            Adds the composite data controls to the symbol properties tab page.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.AddSupplimentDataControls">
+            <summary>
+            Adds the EAN/UPC/ISBN suppliment controls.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.RemoveRunTimeControls">
+            <summary>
+            Clears all runtime controls from the symbol properties tab page.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.SaveToImage(System.String,System.Drawing.Imaging.ImageFormat)">
+            <summary>
+            Creates and saves an image of the barcode.
+            </summary>
+            <param name="fileName">save path and filename</param>
+            <param name="imageFormat">image format to save as</param>
+        </member>
+        <member name="F:ZintNetLibTest.Form1.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:ZintNetLibTest.Form1.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="M:ZintNetLibTest.Program.Main">
+            <summary>
+            The main entry point for the application.
+            </summary>
+        </member>
+        <member name="T:ZintNetLibTest.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:ZintNetLibTest.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:ZintNetLibTest.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+    </members>
+</doc>

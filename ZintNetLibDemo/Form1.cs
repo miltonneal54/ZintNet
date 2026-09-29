@@ -49,20 +49,20 @@ namespace ZintNetLibTest
         private int hanXinErrorLevel = -1;
 
         private int gridMatrixVersion = 0;
-        private int gridMatrixErrorLevel = -1;
+        private int gridMatrixErrorLevel = 0;
 
         private int ultracodeCompression = 0;
         private int ultracodeErrorLevel = -1;
 
         private int pdfErrorLevel = -1;
 
-        private EncodingMode encodingMode = EncodingMode.Standard;
+        private EncodingFormat encodingMode = EncodingFormat.Standard;
         private CompositeMode compositeMode = CompositeMode.CCA;
 
         // Barcodes string values.
-        private string barcodeData = String.Empty;
-        private string compositeText = String.Empty;
-        private string supplementText = String.Empty;
+        private string barcodeData = string.Empty;
+        private string compositeText = string.Empty;
+        private string supplementText = string.Empty;
 
         private ITF14BearerStyle itf14BearerStyle = ITF14BearerStyle.Rectangle;
         private TextAlignment textAlignment = TextAlignment.Center;
@@ -86,14 +86,16 @@ namespace ZintNetLibTest
         {
             myBarcode = new ZintNetLib();
             if (myBarcode != null)
+            {
                 GetSymbologies();
+            }
 
             // Set some menu options.
             printToolStripMenuItem.Enabled = false;
             saveAsToolStripMenuItem.Enabled = false;
             generateButton.Enabled = false;
             textMarginNumericUpDown.Value = (decimal)(myBarcode.TextMargin);
-            barHeightNumericUpDown.Value = (decimal)(myBarcode.BarcodeHeight);
+            heightNumericUpDown.Value = (decimal)(myBarcode.BarcodeHeight);
             rotateTextBox.Text = rotationAngle.ToString() + (char)176;
             textPositionComboBox.SelectedIndex = 0;
             textAlignComboBox.SelectedIndex = 0;
@@ -125,7 +127,9 @@ namespace ZintNetLibTest
         private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (myBarcode != null)
+            {
                 myBarcode.Dispose();
+            }
 
             Application.Exit();
         }
@@ -147,12 +151,14 @@ namespace ZintNetLibTest
 
                 catch (ZintNetDLLException ex)
                 {
-                    outputTextBox.Text = String.Empty;
+                    outputTextBox.Text = string.Empty;
                     string errorMessage = ex.Message;
                     if (ex.InnerException != null)
+                    {
                         errorMessage += ex.InnerException.Message;
+                    }
 
-                    System.Windows.Forms.MessageBox.Show(errorMessage, "ZintNet Barcode Demo", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(errorMessage, "ZintNet Barcode Demo", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
                 finally
@@ -180,10 +186,15 @@ namespace ZintNetLibTest
             symbolID = ZintNetLib.GetSymbolId(symbologyComboBox.Text);
             SetControlsAndOptions();
             SetBarCodeDefaults();
+            if (!string.IsNullOrEmpty(barcodeDataTextBox.Text))
+            {
+                generateButton.Enabled = true;
+                barcodeData = barcodeDataTextBox.Text;
+            }
         }
 
         // Set the users requested properties and generates the barcode.
-        private void SetBarcodeProperties()
+        private bool SetBarcodeProperties()
         {
             // Common properties.
             myBarcode.ElementXDimension = 0.264583f;  // Equals 1 pixel at 96 dpi
@@ -197,26 +208,190 @@ namespace ZintNetLibTest
             myBarcode.TextVisible = showTextCheckBox.Checked;
             myBarcode.TextAlignment = textAlignment;
             myBarcode.TextPosition = textPosition;
+            myBarcode.RowSeparatorHeight = 1;
 
             // Symbol specific properties.
             myBarcode.EncodingMode = encodingMode;
             if (compositeDataTextbox != null)
+            {
                 compositeText = compositeDataTextbox.Text;
+            }
 
             if (supplementDataTextBox != null)
+            {
                 supplementText = supplementDataTextBox.Text;
+            }
 
-            // ITF14.
-            if (symbolID == Symbology.ITF14)
-                myBarcode.ITF14BearerStyle = itf14BearerStyle;
+            // Aztec Code.
+            if (symbolID == Symbology.Aztec)
+            {
+                if (autoResizeRadioButton.Checked)
+                {
+                    // Automatic resizing.
+                    myBarcode.AztecSize = 0;
+                    myBarcode.AztecErrorLevel = -1;
+                }
+
+                else if (sizesRadioButton.Checked)
+                {
+                    // Adjust to size.
+                    myBarcode.AztecSize = versionSizesComboBox.SelectedIndex + 1;
+                }
+
+                else
+                {
+                    // Add error correction.
+                    myBarcode.AztecSize = 0;
+                    myBarcode.AztecErrorLevel = errorCorrectionComboBox.SelectedIndex + 1;
+                }
+            }
+
+            // Channel Code.
+            if (symbolID == Symbology.ChannelCode)
+            {
+                myBarcode.ChannelCodeLevel = columnsComboBox.SelectedIndex + 2;
+            }
+
+            // Codabar.
+            if (symbolID == Symbology.Codabar)
+            {
+                myBarcode.OptionalCheckDigit = checkDigitCheckBox.Checked;
+                myBarcode.ShowCheckDigit = showCheckDigitCheckBox.Checked;
+            }
+
+            // Codablock F.
+            if (symbolID == Symbology.CodablockF)
+            {
+                int value;
+
+                // 0 = Automatic, valid range 9 - 67.
+                value = columnsComboBox.SelectedIndex;
+                if (value > 0)
+                {
+                    value += 8;
+                }
+
+                myBarcode.CodablockFColumns = value;
+
+                // 0 = Automatic, valid range 2 - 44.
+                value = rowsComboBox.SelectedIndex;
+                if (value > 0)
+                {
+                    value += 1;
+                }
+
+                myBarcode.CodablockFRows = value;
+
+                // Valid range 1-4;
+                value = separatorHeightComboBox.SelectedIndex + 1;
+                if (value > 4)
+                {
+                    value = 4;
+                }
+
+                myBarcode.RowSeparatorHeight = value;
+            }
+
+            // Code 128.
+            if (symbolID == Symbology.Code128)
+            {
+                if (encodingMode == EncodingFormat.GS1)
+                {
+                    myBarcode.CompositeMode = compositeMode;
+                    myBarcode.CompositeMessage = compositeText;
+                }
+
+                myBarcode.Code128SuppressCodeC = codeSetCCheckBox.Checked;
+            }
+
+            // Code 16K and Code 49.
+            if (symbolID == Symbology.Code16K || symbolID == Symbology.Code49)
+            {
+                int value;
+
+                // 0 = Automatic, valid range 3-16.
+                value = rowsComboBox.SelectedIndex;
+                if (value > 0)
+                {
+                    value += 2;
+                }
+
+                myBarcode.Code16KMinimumRows = value;
+
+                // Valid range 1-4;
+                value = separatorHeightComboBox.SelectedIndex + 1;
+                if (value > 4)
+                {
+                    value = 4;
+                }
+
+                myBarcode.RowSeparatorHeight = value;
+            }
 
             // Code 39.
             if (symbolID == Symbology.Code39 || symbolID == Symbology.Code39Extended || symbolID == Symbology.Code93 || symbolID == Symbology.LOGMARS)
             {
                 if (symbolID != Symbology.Code93)
-                    myBarcode.OptionalCheckDigit = optionalCheckDigitCheckBox.Checked;
+                {
+                    myBarcode.OptionalCheckDigit = checkDigitCheckBox.Checked;
+                }
 
                 myBarcode.ShowCheckDigit = showCheckDigitCheckBox.Checked;
+            }
+
+            // Code One
+            if (symbolID == Symbology.CodeOne)
+            {
+                // 0 = Automatic, valid range 1-10.
+                myBarcode.CodeOneSize = versionSizesComboBox.SelectedIndex;
+            }
+
+            if (symbolID == Symbology.Industrial2of5 || symbolID == Symbology.Standard2of5 ||
+                symbolID == Symbology.IATA2of5 || symbolID == Symbology.DataLogic2of5 || symbolID == Symbology.Interleaved2of5)
+            {
+                myBarcode.OptionalCheckDigit = checkDigitCheckBox.Checked;
+                myBarcode.ShowCheckDigit = showCheckDigitCheckBox.Checked;
+            }
+
+            // DataMatrix Properties.
+            if (symbolID == Symbology.DataMatrix)
+            {
+                int index = versionSizesComboBox.SelectedIndex;
+                squareOnlyCheckBox.Enabled = index == 0;
+                dmreCheckBox.Enabled = index == 0 && !squareOnlyCheckBox.Checked;
+                myBarcode.DataMatrixSize = (DataMatrixSize)index;
+                myBarcode.DataMatrixRectExtn = dmreCheckBox.Checked;
+                myBarcode.DataMatrixSquare = squareOnlyCheckBox.Checked;
+            }
+
+            // Grid Matrix.
+            if (symbolID == Symbology.GridMatrix)
+            {
+                myBarcode.GridMatixVersion = versionSizesComboBox.SelectedIndex;
+                myBarcode.GridMatrixEccLevel = errorCorrectionComboBox.SelectedIndex;
+            }
+
+            // Han Xin.
+            if (symbolID == Symbology.HanXin)
+            {
+                myBarcode.HanXinVersion = versionSizesComboBox.SelectedIndex;
+                myBarcode.HanXinErrorLevel = errorCorrectionComboBox.SelectedIndex;
+                myBarcode.UserMask = userMaskComboBox.SelectedIndex;
+            }
+
+            // ITF14.
+            if (symbolID == Symbology.ITF14)
+            {
+                myBarcode.OptionalCheckDigit = false;
+                myBarcode.ShowCheckDigit = false;
+                myBarcode.ITF14BearerStyle = itf14BearerStyle;
+            }
+
+            // Vin Code.
+            if (symbolID == Symbology.VINCode)
+            {
+                myBarcode.OptionalCheckDigit = false;
+                myBarcode.ShowCheckDigit = false;
             }
 
             // MaxiCode properties.
@@ -225,30 +400,35 @@ namespace ZintNetLibTest
                 myBarcode.MaxicodeMode = (MaxicodeMode)maxicodeModeComboBox.SelectedIndex + 2;
             }
 
-            // DataMatrix Properties.
-            if (symbolID == Symbology.DataMatrix)
-            {
-                myBarcode.DataMatrixSize = (DataMatrixSize)dmSizesComboBox.SelectedIndex;
-                myBarcode.DataMatrixRectExtn = dmreCheckBox.Checked;
-                myBarcode.DataMatrixSquare = squareOnlyCheckBox.Checked;
-            }
-
+            // QR code.
             if (symbolID == Symbology.QRCode || symbolID == Symbology.MicroQRCode || symbolID == Symbology.RectangularMicroQRCode)
             {
-                myBarcode.QRVersion = qrVersion;
-                myBarcode.QRCodeEccLevel = qrErrorLevel;
-            }
+                myBarcode.QRVersion = versionSizesComboBox.SelectedIndex;
+                if (symbolID == Symbology.RectangularMicroQRCode)
+                {
+                    // rMQR only supports Medium and High ECC.
+                    int value = errorCorrectionComboBox.SelectedIndex - 1;
+                    if (value == 0)
+                    {
+                        myBarcode.QRCodeEccLevel = QRCodeEccLevel.Medium;
+                    }
 
-            if (symbolID == Symbology.Aztec)
-            {
-                myBarcode.AztecSize = aztecVersion;
-                myBarcode.AztecErrorLevel = aztecErrorLevel;
-            }
+                    else if (value == 1)
+                    {
+                        myBarcode.QRCodeEccLevel = QRCodeEccLevel.High;
+                    }
 
-            if (symbolID == Symbology.HanXin)
-            {
-                myBarcode.HanXinVersion = hanXinVersion;
-                myBarcode.HanXinErrorLevel = hanXinErrorLevel;
+                    else
+                    {
+                        myBarcode.QRCodeEccLevel = QRCodeEccLevel.Automatic;
+                    }
+                }
+
+                else
+                {
+                    myBarcode.QRCodeEccLevel = (QRCodeEccLevel)errorCorrectionComboBox.SelectedIndex - 1;
+                    myBarcode.UserMask = userMaskComboBox.SelectedIndex;
+                }
             }
 
             if (symbolID == Symbology.Ultracode)
@@ -257,21 +437,14 @@ namespace ZintNetLibTest
                 myBarcode.UltracodeErrorLevel = ultracodeErrorLevel;
             }
 
-            if (symbolID == Symbology.Code128)
-            {
-                if (encodingMode == EncodingMode.GS1)
-                {
-                    myBarcode.CompositeMode = compositeMode;
-                    myBarcode.CompositeMessage = compositeText;
-                }
-            }
-
             if (myBarcode.IsGS1Databar())
             {
                 myBarcode.CompositeMode = compositeMode;
                 myBarcode.CompositeMessage = compositeText;
                 if (symbolID == Symbology.DatabarExpandedStacked)
+                {
                     myBarcode.DatabarExpandedSegments = columnsComboBox.SelectedIndex * 2;
+                }
             }
 
             if (myBarcode.IsEanUpc())
@@ -293,7 +466,9 @@ namespace ZintNetLibTest
             }
 
             if (symbolID == Symbology.MicroPDF417)
+            {
                 myBarcode.PDF417Columns = columnsComboBox.SelectedIndex;
+            }
 
             if (symbolID == Symbology.DotCode)
             {
@@ -301,38 +476,46 @@ namespace ZintNetLibTest
                 myBarcode.DotCodeColumns = columnsComboBox.SelectedIndex;
             }
 
-            if (symbolID == Symbology.CodeOne)
-                myBarcode.CodeOneSize = columnsComboBox.SelectedIndex;
-
-            if (symbolID == Symbology.ChannelCode)
-                myBarcode.ChannelCodeLevel = columnsComboBox.SelectedIndex + 2;
-
-            if(symbolID == Symbology.GridMatrix)
+            if(symbolID == Symbology.UPNQR)
             {
-                myBarcode.GridMatixVersion = gridMatrixVersion;
-                myBarcode.GridMatrixEccLevel = gridMatrixErrorLevel;
+                myBarcode.UserMask = userMaskComboBox.SelectedIndex;
             }
 
-            BarcodeCreate();
+            return BarcodeCreate();
         }
 
-        private void BarcodeCreate()
+        private void UpdateProperties()
         {
-            if (myBarcode != null && !String.IsNullOrEmpty(barcodeData))
+            switch (symbolID)
+            {
+                case Symbology.Aztec:
+                    versionSizesComboBox.SelectedIndex = myBarcode.AztecSize;
+                    break;
+            }
+        }
+
+        private bool BarcodeCreate()
+        {
+            bool result = false;
+
+            if (myBarcode != null && !string.IsNullOrEmpty(barcodeData))
             {
                 try
                 {
                     myBarcode.CreateBarcode(symbolID, barcodeData);
+                    result = true;
                 }
 
                 catch (ZintNetDLLException ex)
                 {
-                    outputTextBox.Text = String.Empty;
+                    outputTextBox.Text = string.Empty;
                     string errorMessage = ex.Message;
                     if (ex.InnerException != null)
+                    {
                         errorMessage += ex.InnerException.Message;
+                    }
 
-                    System.Windows.Forms.MessageBox.Show(errorMessage, "ZintNet Barcode Demo", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(errorMessage, "ZintNet Barcode Demo", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
                 finally
@@ -340,6 +523,9 @@ namespace ZintNetLibTest
                     UpdateMenus();
                 }
             }
+
+            //UpdateProperties();
+            return result;
         }
 
         private void UpdateMenus()
@@ -351,64 +537,207 @@ namespace ZintNetLibTest
         // Set some options and the controls depending on the users barcode symbol selection.
         private void SetControlsAndOptions()
         {
-            outputTextBox.Text = String.Empty;
-            barHeightNumericUpDown.Enabled = true;
-            textMarginNumericUpDown.Enabled = true;
-            showTextCheckBox.Enabled = true;
+            foreach (Control c in commomPropertiesTabPage.Controls)
+            {
+                c.Enabled = false;
+            }
+
+            outputTextBox.Text = string.Empty;
+            multiplierLabel.Enabled = true;
+            multiplierNumericUpDown.Enabled = true;
+            barcodeColorLabel.Enabled = true;
+            barcodeColorButton.Enabled = true;
+            rotateButton.Enabled = true;
+
             RemoveRunTimeControls();
+
             switch (symbolID)
             {
-                case Symbology.MaxiCode:
-                    barHeightNumericUpDown.Enabled = false;
+                case Symbology.AusPostRedirect:
+                case Symbology.AusPostReplyPaid:
+                case Symbology.AusPostRouting:
+                case Symbology.AusPostStandard:
+                case Symbology.KixCode:
+                case Symbology.PLANET:
+                case Symbology.POSTNET:
+                case Symbology.RoyalMail4SCC:
+                case Symbology.RoyalMailMailmark:
+                case Symbology.JapanPost:
+                case Symbology.DXFilmEdge:
+                case Symbology.FIM:
+                    SetTextControls(false);
+                    break;
+
+                case Symbology.Aztec:
+                    AddTabPage();
+                    AddAztecControls();
+                    break;
+
+                case Symbology.ChannelCode:
+                    heightLabel.Enabled = true;
+                    heightNumericUpDown.Enabled = true;
+                    SetTextControls(true);
+                    AddTabPage();
+                    AddChannelCodeControls();
+                    break;
+
+                case Symbology.CodablockF:
+                    AddTabPage();
+                    AddCodablockControls();
+                    break;
+
+                // Code 128 based.
+                case Symbology.Code128:
+                    heightLabel.Enabled = true;
+                    heightNumericUpDown.Enabled = true;
+                    SetTextControls(true);
+                    AddTabPage();
+                    AddCode128Controls();
+                    break;
+
+                case Symbology.Code16K:
+                case Symbology.Code49:
+                    AddTabPage();
+                    AddCode16KCode49Controls();
+                    break;
+
+                case Symbology.CodeOne:
+                    heightNumericUpDown.Enabled = false;
                     textMarginNumericUpDown.Enabled = false;
                     showTextCheckBox.Enabled = false;
                     AddTabPage();
-                    AddMaxiCodeControls((int)myBarcode.MaxicodeMode - 2);
+                    AddCodeOneControls();
+                    hibcRadioButton.Enabled = false;
+                    break;
+
+                // Code 39 based.
+                case Symbology.Code39:
+                case Symbology.Code39Extended:
+                    SetTextControls(true);
+                    heightLabel.Enabled = true;
+                    heightNumericUpDown.Enabled = true;
+                    checkDigitCheckBox.Checked = true;
+                    showCheckDigitCheckBox.Checked = true;
+                    checkDigitCheckBox.Enabled = true;
+                    showCheckDigitCheckBox.Enabled = true;
+                    AddTabPage();
+                    AddCode39Controls();
+                    break;
+
+                case Symbology.Code93:
+                    SetTextControls(true);
+                    heightLabel.Enabled = true;
+                    heightNumericUpDown.Enabled = true;
+                    showCheckDigitCheckBox.Checked = true;
+                    checkDigitCheckBox.Enabled = false;
+                    showCheckDigitCheckBox.Enabled = true;
                     break;
 
                 case Symbology.DataMatrix:
-                    barHeightNumericUpDown.Enabled = false;
+                    heightNumericUpDown.Enabled = false;
                     textMarginNumericUpDown.Enabled = false;
                     showTextCheckBox.Enabled = false;
                     AddTabPage();
                     AddDataMatrixControls();
                     break;
 
-                case Symbology.QRCode:
-                case Symbology.MicroQRCode:
-                case Symbology.RectangularMicroQRCode:
-                case Symbology.Aztec:
-                case Symbology.HanXin:
-                case Symbology.GridMatrix:
-                    barHeightNumericUpDown.Enabled = false;
+                case Symbology.DotCode:
+                    heightNumericUpDown.Enabled = false;
                     textMarginNumericUpDown.Enabled = false;
                     showTextCheckBox.Enabled = false;
                     AddTabPage();
-                    Add2DControls();
+                    AddDotCodeControls();
+                    hibcRadioButton.Enabled = false;
                     break;
 
-                case Symbology.AztecRunes:
-                    barHeightNumericUpDown.Enabled = false;
+                case Symbology.GridMatrix:
+                    heightNumericUpDown.Enabled = false;
                     textMarginNumericUpDown.Enabled = false;
                     showTextCheckBox.Enabled = false;
+                    AddTabPage();
+                    AddGridMatrixControls();
                     break;
 
+                case Symbology.HanXin:
+                    heightNumericUpDown.Enabled = false;
+                    textMarginNumericUpDown.Enabled = false;
+                    showTextCheckBox.Enabled = false;
+                    AddTabPage();
+                    AddHanXinControls();
+                    break;
+
+                case Symbology.MaxiCode:
+                    heightNumericUpDown.Enabled = false;
+                    textMarginNumericUpDown.Enabled = false;
+                    showTextCheckBox.Enabled = false;
+                    AddTabPage();
+                    AddMaxiCodeControls((int)myBarcode.MaxicodeMode - 2);
+                    break;
+
+                case Symbology.QRCode:
+                case Symbology.MicroQRCode:
+                case Symbology.RectangularMicroQRCode:
+                    AddTabPage();
+                    AddQRCodeControls();
+                    break;
+
+                case Symbology.DPDCode:
+                case Symbology.DeutschePostIdentCode:
+                case Symbology.DeutschePostLeitCode:
+                case Symbology.KoreaPost:
+                case Symbology.BC412:
+                    heightLabel.Enabled = true;
+                    heightNumericUpDown.Enabled = true;
+                    SetTextControls(true);
+                    break;
+
+                case Symbology.Standard2of5:
+                case Symbology.Interleaved2of5:
+                case Symbology.Industrial2of5:
+                case Symbology.IATA2of5:
+                case Symbology.DataLogic2of5:
+                case Symbology.Code11:
+                case Symbology.Codabar:
+                    heightLabel.Enabled = true;
+                    heightNumericUpDown.Enabled = true;
+                    SetTextControls(true);
+                    checkDigitCheckBox.Enabled = true;
+                    showCheckDigitCheckBox.Enabled = true;
+                    break;
+
+                case Symbology.ITF14:
+                    heightNumericUpDown.Enabled = true;
+                    textMarginNumericUpDown.Enabled = true;
+                    heightLabel.Enabled = true;
+                    heightNumericUpDown.Enabled = true;
+                    SetTextControls(true);
+                    AddTabPage();
+                    AddITF14Controls();
+                    break;
+
+                case Symbology.ISBN:
                 case Symbology.EAN13:
                 case Symbology.EAN8:
                 case Symbology.UPCA:
                 case Symbology.UPCE:
+                    heightLabel.Enabled = true;
+                    heightNumericUpDown.Enabled = true;
+                    SetTextControls(true);
+                    textAlignmentLabel.Enabled = false;
+                    textAlignComboBox.Enabled = false;
+                    textPositionLabel.Enabled = false;
+                    textPositionComboBox.Enabled = false;
                     textMarginNumericUpDown.Enabled = false;
                     showTextCheckBox.Enabled = false;
+                    checkDigitCheckBox.Enabled = false;
+                    showCheckDigitCheckBox.Enabled = false;
                     AddTabPage();
-                    AddCompositeControls();
-                    cccRadioButton.Enabled = false;
-                    break;
+                    AddEanUpcControls();
+                    if (symbolID != Symbology.ISBN)
+                    {
+                        cccRadioButton.Enabled = false;
+                    }
 
-                case Symbology.ISBN:
-                    textMarginNumericUpDown.Enabled = false;
-                    showTextCheckBox.Enabled = false;
-                    AddTabPage();
-                    AddSupplimentDataControls();
                     break;
 
                 case Symbology.DatabarExpanded:
@@ -418,24 +747,28 @@ namespace ZintNetLibTest
                 case Symbology.DatabarOmniStacked:
                 case Symbology.DatabarStacked:
                 case Symbology.DatabarTruncated:
-                    barHeightNumericUpDown.Enabled = false;
+                    heightNumericUpDown.Enabled = false;
                     textMarginNumericUpDown.Enabled = false;
                     showTextCheckBox.Enabled = false;
+                    checkDigitCheckBox.Enabled = false;
+                    showCheckDigitCheckBox.Enabled = false;
                     AddTabPage();
-                    AddCompositeControls();
+                    //AddCompositeControls();
                     cccRadioButton.Enabled = false;
                     break;
 
-                case Symbology.Code128:
-                    AddTabPage();
-                    AddModeControls();
-                    AddCompositeControls();
+                case Symbology.SSCC18:
+                case Symbology.EAN14:
+                case Symbology.UPUS10Code:
+                    checkDigitCheckBox.Enabled = false;
+                    showCheckDigitCheckBox.Enabled = false;
                     break;
 
+                // PDF417.
                 case Symbology.PDF417:
                 case Symbology.PDF417Truncated:
                 case Symbology.MicroPDF417:
-                    barHeightNumericUpDown.Enabled = false;
+                    heightNumericUpDown.Enabled = false;
                     textMarginNumericUpDown.Enabled = false;
                     showTextCheckBox.Enabled = false;
                     AddTabPage();
@@ -444,69 +777,49 @@ namespace ZintNetLibTest
                     AddPDFControls();
                     break;
 
-                case Symbology.Code39:
-                case Symbology.Code39Extended:
-                case Symbology.Code93:
-                    AddTabPage();
-                    AddCode39Controls();
-                    break;
-
-                case Symbology.ITF14:
-                    barHeightNumericUpDown.Enabled = true;
-                    textMarginNumericUpDown.Enabled = true;
-                    showTextCheckBox.Enabled = true;
-                    AddTabPage();
-                    AddITF14Controls();
-                    break;
-
-                case Symbology.CodablockF:
-                    barHeightNumericUpDown.Enabled = false;
-                    textMarginNumericUpDown.Enabled = false;
-                    showTextCheckBox.Enabled = false;
-                    break;
-
-                case Symbology.DotCode:
-                    barHeightNumericUpDown.Enabled = false;
-                    textMarginNumericUpDown.Enabled = false;
-                    showTextCheckBox.Enabled = false;
-                    AddTabPage();
-                    AddDotCodeControls();
-                    hibcRadioButton.Enabled = false;
-                    break;
-
-                case Symbology.CodeOne:
-                    barHeightNumericUpDown.Enabled = false;
-                    textMarginNumericUpDown.Enabled = false;
-                    showTextCheckBox.Enabled = false;
-                    AddTabPage();
-                    AddCodeOneControls();
-                    hibcRadioButton.Enabled = false;
-                    break;
-
-                case Symbology.Code49:
-                case Symbology.Code16K:
-                    barHeightNumericUpDown.Enabled = false;
-                    textMarginNumericUpDown.Enabled = false;
-                    showTextCheckBox.Enabled = false;
-                    AddTabPage();
-                    AddModeControls();
-                    hibcRadioButton.Enabled = false;
-                    break;
-
-                case Symbology.ChannelCode:
-                    AddTabPage();
-                    AddChannelCodeControls();
+                case Symbology.VINCode:
+                case Symbology.Code32:
+                case Symbology.PharmaZentralNummer:
+                case Symbology.Pharmacode:
+                case Symbology.Pharmacode2Track:
+                case Symbology.UKPlessey:
+                    checkDigitCheckBox.Checked = false;
+                    showCheckDigitCheckBox.Checked = false;
+                    checkDigitCheckBox.Enabled = false;
+                    showCheckDigitCheckBox.Enabled = false;
                     break;
 
                 case Symbology.Ultracode:
-                    barHeightNumericUpDown.Enabled = false;
+                    heightNumericUpDown.Enabled = false;
                     textMarginNumericUpDown.Enabled = false;
                     showTextCheckBox.Enabled = false;
                     AddTabPage();
                     AddUltracodeControls();
                     hibcRadioButton.Enabled = false;
                     break;
+
+                case Symbology.UPNQR:
+                    AddTabPage();
+                    AddUPNQRControls();
+                    break;
             }
+        }
+
+        private void SetTextControls(bool showText)
+        {
+            showTextCheckBox.Enabled = true;
+            showTextCheckBox.Checked = showText;
+            textFontLabel.Enabled = showText;
+            textFontButton.Enabled = showText;
+            textMarginLabel.Enabled = showText;
+            textMarginNumericUpDown.Enabled = showText;
+            textColorLabel.Enabled = showText;
+            textColorButton.Enabled = showText;
+            textAlignmentLabel.Enabled = showText;
+            textAlignComboBox.Enabled = showText;
+            textPositionLabel.Enabled = showText;
+            textPositionComboBox.Enabled = showText;
+            textMarginNumericUpDown.Enabled = showText;
         }
 
         private void SetBarCodeDefaults()
@@ -520,13 +833,13 @@ namespace ZintNetLibTest
             hanXinVersion = 0;
             hanXinErrorLevel = 0;
 
-            encodingMode = EncodingMode.Standard;
+            encodingMode = EncodingFormat.Standard;
             compositeMode = CompositeMode.CCA;
 
             // Barcodes string values.
-            barcodeData = String.Empty;
-            compositeText = String.Empty;
-            supplementText = String.Empty;
+            barcodeData = string.Empty;
+            compositeText = string.Empty;
+            supplementText = string.Empty;
         }
 
         #region Save As Image
@@ -558,7 +871,9 @@ namespace ZintNetLibTest
                 saveFileDialog.FileName = fileName;
                 saveFileDialog.Title = "Save To Image";
                 if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
                     SaveToImage(saveFileDialog.FileName, format);
+                }
             }
         }
 
@@ -621,7 +936,9 @@ namespace ZintNetLibTest
             finally
             {
                 if (newBitmap != null)
+                {
                     newBitmap.Dispose();
+                }
             }
         }
 
@@ -640,11 +957,13 @@ namespace ZintNetLibTest
 
         #endregion
 
-        private void multiplierNumericUpDown_ValueChanged(object sender, EventArgs e)
+        private void MultiplierNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             multiplierValue = (float)multiplierNumericUpDown.Value;
-            SetBarcodeProperties();
-            imagePanel.Invalidate();
+            if (SetBarcodeProperties())
+            {
+                imagePanel.Invalidate();
+            }
         }
 
         private void barcodeColorButton_Click(object sender, EventArgs e)
@@ -679,7 +998,9 @@ namespace ZintNetLibTest
         {
             rotationAngle += 90;
             if (rotationAngle > 270)
+            {
                 rotationAngle = 0;
+            }
 
             rotateTextBox.Text = rotationAngle.ToString() + (char)176;
             SetBarcodeProperties();
@@ -687,16 +1008,16 @@ namespace ZintNetLibTest
 
         }
 
-        private void generateButton_Click(object sender, EventArgs e)
+        private void GenerateButton_Click(object sender, EventArgs e)
         {
-            barcodeData = barcodeDataTextBox.Text;
             SetBarcodeProperties();
             imagePanel.Invalidate();
         }
 
-        private void barcodeDataTextBox_TextChanged(object sender, EventArgs e)
+        private void BarcodeDataTextBox_TextChanged(object sender, EventArgs e)
         {
-            generateButton.Enabled = !string.IsNullOrEmpty(this.barcodeDataTextBox.Text);
+            barcodeData = barcodeDataTextBox.Text;
+            generateButton.Enabled = !string.IsNullOrEmpty(barcodeData);
         }
 
         private void fontButton_Click(object sender, EventArgs e)
@@ -721,18 +1042,30 @@ namespace ZintNetLibTest
 
         private void barHeightNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            barHeight = (float)barHeightNumericUpDown.Value;
+            barHeight = (float)heightNumericUpDown.Value;
             SetBarcodeProperties();
             imagePanel.Invalidate();
         }
 
-        private void showTextCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void ShowTextCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            SetTextControls(showTextCheckBox.Checked);
+            SetBarcodeProperties();
+            imagePanel.Invalidate();
+        }
+
+        private void ShowCheckDigitCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            SetBarcodeProperties();
+            imagePanel.Invalidate();
+        }
+        private void CheckDigitCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             SetBarcodeProperties();
             imagePanel.Invalidate();
         }
 
-        private void showCheckDigitCheckBox_CheckedChange(object sender, EventArgs e)
+        private void showOptCheckDigitCheckBox_CheckedChange(object sender, EventArgs e)
         {
             SetBarcodeProperties();
             imagePanel.Invalidate();
@@ -764,26 +1097,45 @@ namespace ZintNetLibTest
             imagePanel.Invalidate();
         }
 
-        private void maxicodeModeComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        private void RowsComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SetBarcodeProperties();
+            imagePanel.Invalidate();
+        }
+
+        private void SeparatorHeightComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SetBarcodeProperties();
+            imagePanel.Invalidate();
+        }
+
+        private void CodeSetCCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            SetBarcodeProperties();
+            imagePanel.Invalidate();
+        }
+
+
+        private void MaxicodeModeComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             SetBarcodeProperties();
             imagePanel.Invalidate();
         }
 
         #region Data Matrix Controls Events
-        private void dmSizesComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        /*private void dmSizesComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SetBarcodeProperties();
+            imagePanel.Invalidate();
+        }*/
+
+        private void SquareOnlyCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             SetBarcodeProperties();
             imagePanel.Invalidate();
         }
 
-        private void squareOnlyCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            SetBarcodeProperties();
-            imagePanel.Invalidate();
-        }
-
-        private void dmreCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void DmreCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             SetBarcodeProperties();
             imagePanel.Invalidate();
@@ -791,175 +1143,164 @@ namespace ZintNetLibTest
         #endregion
 
         #region 2D Shared Controls Events
-        private void Auto2DRadioButton_CheckedChanged(object sender, EventArgs e)
+
+        // Aztec Auto Resize button event.
+        private void AutoResizeRadioButton_CheckedChanged(object sender, EventArgs e)
         {
-            if (autoSize2DRadioButton.Checked)
+            if (autoResizeRadioButton.Checked)
             {
-                sizes2DComboBox.Enabled = false;
-                errorCorrection2DComboBox.Enabled = false;
-                qrVersion = 0;
-                qrErrorLevel = (QRCodeEccLevel) (-1);
-                aztecVersion = 0;
-                aztecErrorLevel = -1;
-                hanXinVersion = 0;
-                hanXinErrorLevel = -1;
-                gridMatrixVersion = 0;
-                gridMatrixErrorLevel = -1;
+                versionSizesComboBox.Enabled = false;
+                errorCorrectionComboBox.Enabled = false;
                 SetBarcodeProperties();
                 imagePanel.Invalidate();
             }
         }
 
-        private void Sizes2DRadioButton_CheckedChanged(object sender, EventArgs e)
+        private void SizesRadioButton_CheckedChanged(object sender, EventArgs e)
         {
-            if (sizes2DRadioButton.Checked)
+            if (sizesRadioButton.Checked)
             {
-                sizes2DComboBox.Enabled = true;
-                errorCorrection2DComboBox.Enabled = false;
-                qrVersion = sizes2DComboBox.SelectedIndex + 1;
+                versionSizesComboBox.Enabled = true;
+                errorCorrectionComboBox.Enabled = false;
+                qrVersion = versionSizesComboBox.SelectedIndex + 1;
                 qrErrorLevel = (QRCodeEccLevel)(-1);
-                aztecVersion = sizes2DComboBox.SelectedIndex + 1;
-                aztecErrorLevel = -1;
-                hanXinVersion = sizes2DComboBox.SelectedIndex + 1; ;
-                hanXinErrorLevel = -1;
-                gridMatrixVersion = sizes2DComboBox.SelectedIndex + 1;
-                gridMatrixErrorLevel = -1;
+
                 SetBarcodeProperties();
                 imagePanel.Invalidate();
             }
         }
 
-        private void Errorcorrection2DRadioButton_CheckedChanged(object sender, EventArgs e)
+        private void ErrorCorrectionRadioButton_CheckedChanged(object sender, EventArgs e)
         {
-            if (errorCorrection2DRadioButton.Checked)
+            if (errorCorrectionRadioButton.Checked)
             {
-                errorCorrection2DComboBox.Enabled = true;
-                sizes2DComboBox.Enabled = false;
+                errorCorrectionComboBox.Enabled = true;
+                versionSizesComboBox.Enabled = false;
                 qrVersion = 0;
-                qrErrorLevel = (QRCodeEccLevel)errorCorrection2DComboBox.SelectedIndex;
+                qrErrorLevel = (QRCodeEccLevel)errorCorrectionComboBox.SelectedIndex;
                 if (symbolID == Symbology.RectangularMicroQRCode)
                 {
-                    int level = errorCorrection2DComboBox.SelectedIndex;
+                    int level = errorCorrectionComboBox.SelectedIndex;
                     if (level == 0)
+                    {
                         qrErrorLevel = QRCodeEccLevel.Medium;
-
+                    }
                     else
+                    {
                         qrErrorLevel = QRCodeEccLevel.High;
+                    }
                 }
 
-                aztecVersion = 0;
-                aztecErrorLevel = errorCorrection2DComboBox.SelectedIndex + 1;
-                hanXinVersion = 0;
-                hanXinErrorLevel = errorCorrection2DComboBox.SelectedIndex + 1;
-                gridMatrixVersion = 0;
-                gridMatrixErrorLevel = errorCorrection2DComboBox.SelectedIndex + 1;
                 SetBarcodeProperties();
                 imagePanel.Invalidate();
             }
         }
 
-        private void Sizes2DComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        private void SymbolSizesComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            qrVersion = sizes2DComboBox.SelectedIndex + 1;
+            qrVersion = versionSizesComboBox.SelectedIndex + 1;
             if (symbolID == Symbology.RectangularMicroQRCode)
             {
-                int level = errorCorrection2DComboBox.SelectedIndex;
+                int level = errorCorrectionComboBox.SelectedIndex;
                 if (level == 0)
+                {
                     qrErrorLevel = QRCodeEccLevel.Medium;
+                }
 
                 else
+                {
                     qrErrorLevel = QRCodeEccLevel.High;
+                }
             }
 
-            aztecVersion = sizes2DComboBox.SelectedIndex + 1;
-            aztecErrorLevel = -1;
-            hanXinVersion = sizes2DComboBox.SelectedIndex + 1;
-            hanXinErrorLevel = -1;
-            gridMatrixVersion = sizes2DComboBox.SelectedIndex + 1;
-            gridMatrixErrorLevel = -1;
+            if (versionSizesComboBox.Enabled)
+            {
+                SetBarcodeProperties();
+                imagePanel.Invalidate();
+            }
+        }
+
+        private void UserMaskComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
             SetBarcodeProperties();
             imagePanel.Invalidate();
         }
 
-        private void ErrorCorrection2DComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        private void ErrorCorrectionComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             qrVersion = 0;
-            qrErrorLevel = (QRCodeEccLevel)errorCorrection2DComboBox.SelectedIndex;
+            qrErrorLevel = (QRCodeEccLevel)errorCorrectionComboBox.SelectedIndex;
             if (symbolID == Symbology.RectangularMicroQRCode)
             {
-                int level = errorCorrection2DComboBox.SelectedIndex;
+                int level = errorCorrectionComboBox.SelectedIndex;
                 if (level == 0)
+                {
                     qrErrorLevel = QRCodeEccLevel.Medium;
-
+                }
                 else
+                {
                     qrErrorLevel = QRCodeEccLevel.High;
+                }
             }
 
-            aztecVersion = 0;
-            aztecErrorLevel = errorCorrection2DComboBox.SelectedIndex + 1;
-            hanXinVersion = 0;
-            hanXinErrorLevel = errorCorrection2DComboBox.SelectedIndex + 1;
-            gridMatrixVersion = 0;
-            gridMatrixErrorLevel = errorCorrection2DComboBox.SelectedIndex + 1;
             SetBarcodeProperties();
             imagePanel.Invalidate();
         }
 
         #endregion
 
-        private void ErrorCorrectionComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            ultracodeErrorLevel = errorLevelComboBox.SelectedIndex;
-            SetBarcodeProperties();
-            imagePanel.Invalidate();
-        }
-
         #region Mode Controls Events
-        private void standardRadioButton_CheckedChanged(object sender, EventArgs e)
+        private void StandardRadioButton_CheckedChanged(object sender, EventArgs e)
         {
             if (standardRadioButton.Checked)
             {
-                encodingMode = EncodingMode.Standard;
+                encodingMode = EncodingFormat.Standard;
                 SetBarcodeProperties();
                 imagePanel.Invalidate();
             }
         }
 
-        private void gs1RadioButton_CheckedChanged(object sender, EventArgs e)
+        private void GS1RadioButton_CheckedChanged(object sender, EventArgs e)
         {
             if (gs1RadioButton.Checked)
             {
-                if (symbolID == Symbology.Code128)
-                {
-                    compositeGroupBox.Enabled = true;
-                    compositeDataTextbox.Enabled = true;
-                }
-
-                encodingMode = EncodingMode.GS1;
+                encodingMode = EncodingFormat.GS1;
                 SetBarcodeProperties();
                 imagePanel.Invalidate();
             }
 
-            else if (compositeGroupBox != null)
+            if (symbolID == Symbology.Code128)
             {
+                codeSetCCheckBox.Checked = false;
+                codeSetCCheckBox.Enabled = !gs1RadioButton.Checked;
+                compositeDataLabel.Enabled = gs1RadioButton.Checked;
+                compositeGroupBox.Enabled = gs1RadioButton.Checked;
+                compositeDataTextbox.Enabled = gs1RadioButton.Checked;
+            }
+        }
+
+        private void HIBCRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (hibcRadioButton.Checked)
+            {
+                encodingMode = EncodingFormat.HIBC;
+                SetBarcodeProperties();
+                imagePanel.Invalidate();
+            }
+
+            if (symbolID == Symbology.Code128)
+            {
+                codeSetCCheckBox.Checked = false;
+                codeSetCCheckBox.Enabled = false;
+                compositeDataLabel.Enabled = false;
                 compositeGroupBox.Enabled = false;
                 compositeDataTextbox.Enabled = false;
             }
         }
 
-        private void hibcRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (hibcRadioButton.Checked)
-            {
-                encodingMode = EncodingMode.HIBC;
-                SetBarcodeProperties();
-                imagePanel.Invalidate();
-            }
-        }
-
         #endregion
 
-        #region Composite Controls Events
+        #region Composite Controls Events.
         private void ccaRadioButton_CheckedChanged(object sender, EventArgs e)
         {
             if (ccaRadioButton.Checked)
@@ -1038,7 +1379,11 @@ namespace ZintNetLibTest
             }
         }
 
+
+
         #endregion
+
+
     }
 }
 
